@@ -1538,6 +1538,231 @@ const ALL_QUESTIONS = [
   wrongs:["1 2 4 5 3 6 7 ","4 2 5 6 3 7 1 "],
   errors:["Compilation Error - postOrder מוגדרת לפני main אך ללא prototype","Compilation Error - root->left ו-root->right חייבים להיות מאותחלים ב-malloc"],
   explanation:"העץ: 1->(2->(4,5), 3->(6,7)). PostOrder (LRD): שמאל-ימין-שורש. תת-עץ שמאלי: 4,5,2. תת-עץ ימני: 6,7,3. שורש: 1. תוצאה: 4 5 2 6 7 3 1."
+},
+// ======== PREPROCESSOR & MACROS ========
+{
+  topic:"preprocessor", code:`#include <stdio.h>\n#define X 3\nvoid main() {\n#if !X\n    printf("Hello");\n#else\n    printf("World");\n#endif\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"World",
+  wrongs:["Hello","HelloWorld"],
+  errors:["Compilation Error - #if !X לא חוקי כי X הוא מספר ולא ביטוי בוליאני","Compilation Error - #define X 3 מתנגש עם #if"],
+  explanation:"X מוגדר כ-3. הביטוי !X שקול ל-!3 = 0, כלומר false. לכן ההידור עובר ל-#else ומדפיס World."
+},
+{
+  topic:"preprocessor", code:`#include <stdio.h>\n#define SQUARE(x) x * x\nvoid main() {\n    int a = 3;\n    printf("%d", SQUARE(a + 1));\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"7",
+  wrongs:["16","9"],
+  errors:["Compilation Error - SQUARE לא יכול לקבל ביטוי a + 1","Compilation Error - מאקרו SQUARE חייב להיות עם סוגריים"],
+  explanation:"המאקרו מתרחב טקסטואלית: SQUARE(a+1) = a+1 * a+1 = 3+1*3+1 = 3+3+1 = 7. ללא סוגריים סביב x בהגדרה, סדר הפעולות שגוי. עם הגדרה נכונה ((x)*(x)) התוצאה היתה 16."
+},
+{
+  topic:"preprocessor", code:`#include <stdio.h>\n#define PRINT(i, limit) if(i < ++limit) printf("1"); else printf("0");\nvoid main() {\n    int x = 1, y = 0;\n    PRINT(x, y);\n    PRINT(x, y);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"01",
+  wrongs:["11","10"],
+  errors:["Compilation Error - ++limit בתוך #define לא חוקי","Compilation Error - מאקרו PRINT לא יכול להכיל if-else"],
+  explanation:"קריאה ראשונה: PRINT(x,y) = if(1 < ++0) → if(1<1) → false → \"0\". y עכשיו 1. קריאה שנייה: if(1 < ++1) → if(1<2) → true → \"1\". סה\"כ: 01."
+},
+{
+  topic:"preprocessor", code:`#include <stdio.h>\n#define M(x, y) (x * 3) >= (y / 3) ? (x / 3) : (y * 3)\nvoid main() {\n    int num;\n    num = M(2 + 5, 4 + 7);\n    printf("%d", num);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"3",
+  wrongs:["21","25"],
+  errors:["Compilation Error - אופרטור ternary בתוך #define לא חוקי","Compilation Error - M מקבל שני ביטויים ולא מספרים"],
+  explanation:"הרחבה: (2+5*3) >= (4+7/3) ? (2+5/3) : (4+7*3). חישוב: (2+15)>=(4+2) → 17>=6 → true. ענף true: 2+5/3 = 2+1 = 3. ללא סוגריים במאקרו, סדר הפעולות שונה מהמצופה."
+},
+{
+  topic:"preprocessor", code:`#include <stdio.h>\n#define A 2\n#define B A + 1\n#define C B * B\nvoid main() {\n    printf("%d %d", C, C + A);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"5 7",
+  wrongs:["9 11","6 8"],
+  errors:["Compilation Error - מאקרו C מתנגש עם מילה שמורה בשפת C","Compilation Error - הגדרות מאקרו מקוננות לא חוקיות"],
+  explanation:"הרחבת מאקרו: C = B*B = A+1*A+1 = 2+1*2+1. לפי סדר פעולות: 2+(1*2)+1 = 5. C+A = 5+2 = 7. הבעיה: חסרים סוגריים בהגדרת B ו-C."
+},
+{
+  topic:"preprocessor", code:`#include <stdio.h>\n#define MAX(a,b) a > b ? a : b\nvoid main() {\n    int x = 3;\n    printf("%d", MAX(x, 2) + 1);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"__NONE__",
+  wrongs:["4","3"],
+  errors:["Compilation Error - אופרטור ternary בתוך #define לא חוקי","Compilation Error - MAX(x, 2) + 1 גורם לשגיאת parsing"],
+  explanation:"הרחבה: x > 2 ? x : 2 + 1. ה-+1 נקשר ל-2 ולא לתוצאת ה-MAX! x(3)>2 → true → x = 3. אבל אם x היה 1: 1>2 → false → 2+1=3. כאן x=3, אז התוצאה 3.",
+  noneExplanation:"התשובה הנכונה היא 3. עם סוגריים ((a)>(b)?(a):(b)) התשובה היתה 4"
+},
+// ======== FUNCTION POINTERS ========
+{
+  topic:"funcptrs", code:`#include <stdio.h>\nint add(int a, int b) { return a + b; }\nint mul(int a, int b) { return a * b; }\nvoid main() {\n    int (*f)(int, int);\n    f = add;\n    printf("%d ", f(3, 4));\n    f = mul;\n    printf("%d", f(3, 4));\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"7 12",
+  wrongs:["12 7","7 7"],
+  errors:["Compilation Error - int (*f)(int, int) הוא תחביר לא חוקי","Compilation Error - f = add דורש &add"],
+  explanation:"f הוא מצביע לפונקציה שמקבלת שני int ומחזירה int. f = add: f(3,4) = 3+4 = 7. f = mul: f(3,4) = 3*4 = 12. שם פונקציה מתפרש אוטומטית ככתובת."
+},
+{
+  topic:"funcptrs", code:`#include <stdio.h>\nint add(int a, int b) { return a + b; }\nint sub(int a, int b) { return a - b; }\nint mul(int a, int b) { return a * b; }\nvoid main() {\n    int (*ops[])(int, int) = {add, sub, mul};\n    int i, result = 1;\n    for (i = 0; i < 3; i++)\n        result = ops[i](result, i + 1);\n    printf("%d", result);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"0",
+  wrongs:["6","3"],
+  errors:["Compilation Error - מערך מצביעים לפונקציות לא חוקי ב-C","Compilation Error - ops[i](result, i+1) תחביר קריאה שגוי"],
+  explanation:"i=0: result = add(1, 1) = 2. i=1: result = sub(2, 2) = 0. i=2: result = mul(0, 3) = 0. מערך של מצביעים לפונקציות מאפשר לבחור פונקציה דינמית."
+},
+{
+  topic:"funcptrs", code:`#include <stdio.h>\nint isEven(int x) { return x % 2 == 0; }\nint count(int *arr, int n, int (*pred)(int)) {\n    int i, c = 0;\n    for (i = 0; i < n; i++)\n        if (pred(arr[i])) c++;\n    return c;\n}\nvoid main() {\n    int arr[] = {3, 8, 1, 6, 4, 7, 2};\n    printf("%d", count(arr, 7, isEven));\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"4",
+  wrongs:["3","7"],
+  errors:["Compilation Error - int (*pred)(int) כפרמטר לפונקציה לא חוקי","Compilation Error - pred(arr[i]) חסרה קריאה דרך *pred"],
+  explanation:"count קוראת ל-pred (שהוא isEven) על כל איבר. מספרים זוגיים: 8,6,4,2 = 4. מצביע לפונקציה כ-callback מאפשר כתיבת פונקציות גנריות."
+},
+{
+  topic:"funcptrs", code:`#include <stdio.h>\nvoid apply(int *arr, int n, int (*f)(int)) {\n    int i;\n    for (i = 0; i < n; i++)\n        arr[i] = f(arr[i]);\n}\nint doubleIt(int x) { return x * 2; }\nint square(int x) { return x * x; }\nvoid main() {\n    int a[] = {1, 2, 3};\n    apply(a, 3, doubleIt);\n    apply(a, 3, square);\n    printf("%d %d %d", a[0], a[1], a[2]);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"4 16 36",
+  wrongs:["2 4 6","1 4 9"],
+  errors:["Compilation Error - apply משנה מערך דרך מצביע לפונקציה, לא חוקי","Compilation Error - f(arr[i]) ו-arr[i] = f(...) לא ניתנים באותה שורה"],
+  explanation:"apply(doubleIt): a = {2, 4, 6}. apply(square): a = {4, 16, 36}. הפעולות מצטברות - קודם כפל ב-2 ואז ריבוע."
+},
+// ======== DYNAMIC MEMORY ========
+{
+  topic:"memory", code:`#include <stdio.h>\n#include <stdlib.h>\nvoid f(int *p, int n) {\n    p = (int*)malloc(n * sizeof(int));\n    int i;\n    for (i = 0; i < n; i++)\n        p[i] = i * 10;\n}\nvoid main() {\n    int *arr = NULL;\n    f(arr, 5);\n    if (arr == NULL)\n        printf("NULL");\n    else\n        printf("%d", arr[0]);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"NULL",
+  wrongs:["0","10"],
+  errors:["Compilation Error - malloc בתוך פונקציה f לא חוקי","Compilation Error - arr = NULL ו-f(arr, 5) מתנגשים"],
+  explanation:"f מקבלת את p בהעברת ערך (by value). ה-malloc משנה את p המקומי, אבל arr ב-main נשאר NULL. נדרשת העברת int** כדי לשנות את המצביע עצמו."
+},
+{
+  topic:"memory", code:`#include <stdio.h>\n#include <stdlib.h>\nvoid main() {\n    int *p = (int*)malloc(2 * sizeof(int));\n    p[0] = 10; p[1] = 20;\n    p = (int*)realloc(p, 4 * sizeof(int));\n    p[2] = 30; p[3] = 40;\n    printf("%d %d %d %d", p[0], p[1], p[2], p[3]);\n    free(p);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"10 20 30 40",
+  wrongs:["0 0 30 40","10 20 0 0"],
+  errors:["Compilation Error - realloc לא יכול לשנות גודל של malloc קיים","Compilation Error - p[2] ו-p[3] חורגים מגבולות ההקצאה המקורית"],
+  explanation:"realloc מרחיב את הבלוק. הנתונים הקיימים (10,20) נשמרים. הזיכרון החדש (p[2],p[3]) זמין לכתיבה. realloc עלול להזיז את הבלוק אם אין מקום רציף."
+},
+{
+  topic:"memory", code:`#include <stdio.h>\n#include <stdlib.h>\nvoid main() {\n    int **mat = (int**)malloc(2 * sizeof(int*));\n    int i, j;\n    for (i = 0; i < 2; i++) {\n        mat[i] = (int*)malloc(3 * sizeof(int));\n        for (j = 0; j < 3; j++)\n            mat[i][j] = i * 3 + j + 1;\n    }\n    printf("%d %d %d", mat[0][2], mat[1][0], mat[1][2]);\n    for (i = 0; i < 2; i++) free(mat[i]);\n    free(mat);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"3 4 6",
+  wrongs:["2 3 5","1 4 6"],
+  errors:["Compilation Error - int** עם malloc כפול לא חוקי","Compilation Error - mat[i][j] לא ניתן לגישה על מצביע כפול"],
+  explanation:"mat[0] = {1,2,3}, mat[1] = {4,5,6}. הקצאה דינמית של מטריצה: קודם מערך של שורות (int**), ואז כל שורה (int*). mat[0][2]=3, mat[1][0]=4, mat[1][2]=6."
+},
+{
+  topic:"memory", code:`#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\ntypedef struct {\n    char *name;\n    int grade;\n} Student;\nvoid main() {\n    Student s1;\n    s1.name = (char*)malloc(10);\n    strcpy(s1.name, "Alice");\n    s1.grade = 90;\n    Student s2 = s1;\n    strcpy(s2.name, "Bob");\n    s2.grade = 80;\n    printf("%s %d", s1.name, s1.grade);\n    free(s1.name);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"Bob 90",
+  wrongs:["Alice 90","Alice 80"],
+  errors:["Compilation Error - Student s2 = s1 לא חוקי על struct עם מצביע","Compilation Error - strcpy(s2.name, \"Bob\") דורש malloc נפרד"],
+  explanation:"s2 = s1 הוא העתקה רדודה (shallow copy). s2.name מצביע לאותו זיכרון כמו s1.name. לכן strcpy(s2.name, \"Bob\") משנה גם את s1.name! אבל grade הוא העתק נפרד - s1.grade נשאר 90."
+},
+// ======== VARIABLES & SCOPE (additional) ========
+{
+  topic:"variables", code:`#include <stdio.h>\nint x = 10;\nvoid f() {\n    static int x = 1;\n    x++;\n    printf("%d ", x);\n}\nvoid main() {\n    f();\n    printf("%d ", x);\n    f();\n    printf("%d", x);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"2 10 3 10",
+  wrongs:["2 2 3 3","2 10 2 10"],
+  errors:["Compilation Error - static int x מתנגש עם int x הגלובלי","Compilation Error - אין אפשרות להגדיר x בשני מקומות"],
+  explanation:"ב-f, ה-x הסטטי מוסתר מהגלובלי. קריאה ראשונה: static x=1→2. main: x הגלובלי=10. קריאה שנייה: static x=2→3 (שומר ערך!). x הגלובלי לא משתנה."
+},
+{
+  topic:"variables", code:`#include <stdio.h>\nint a = 5;\nvoid f() {\n    int a = 1;\n    {\n        static int a = 10;\n        a += 5;\n        printf("%d ", a);\n    }\n    a += 10;\n    printf("%d ", a);\n}\nvoid main() {\n    f();\n    f();\n    printf("%d", a);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"15 11 20 11 5",
+  wrongs:["15 11 15 11 5","15 15 20 20 5"],
+  errors:["Compilation Error - שלוש הגדרות של a בסקופים שונים לא חוקי","Compilation Error - static int a בתוך בלוק לא חוקי"],
+  explanation:"3 משתנים בשם a: גלובלי(5), מקומי(1), סטטי בבלוק(10). f() ראשון: סטטי 10+5=15, מקומי 1+10=11. f() שני: סטטי 15+5=20 (שומר!), מקומי 1+10=11 (חדש). גלובלי: 5."
+},
+{
+  topic:"variables", code:`#include <stdio.h>\nvoid main() {\n    int x = 5;\n    {\n        int x = 10;\n        x += 3;\n        printf("%d ", x);\n    }\n    printf("%d", x);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"13 5",
+  wrongs:["13 13","10 5"],
+  errors:["Compilation Error - הגדרת x בתוך בלוק כשכבר קיים x חיצוני","Compilation Error - סוגריים מסולסלים ללא for/if לא חוקיים ב-C"],
+  explanation:"ה-x בתוך הבלוק הוא משתנה חדש שמסתיר את x החיצוני. x הפנימי = 10+3 = 13. כשהבלוק נגמר, x הפנימי נהרס, ו-x החיצוני (5) לא השתנה."
+},
+// ======== CONTROL FLOW (additional) ========
+{
+  topic:"control", code:`#include <stdio.h>\nvoid main() {\n    int x = 2;\n    switch (x) {\n        case 1: printf("A");\n        case 2: printf("B");\n        case 3: printf("C");\n                break;\n        case 4: printf("D");\n        default: printf("E");\n    }\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"BC",
+  wrongs:["B","BCE"],
+  errors:["Compilation Error - case ללא break גורם לשגיאה","Compilation Error - switch דורש default לפני case"],
+  explanation:"x=2 נכנס ל-case 2. מדפיס B, ואז fall-through ל-case 3 - מדפיס C. ה-break עוצר את ה-fall-through. ללא break בין case, הביצוע ממשיך לcase הבא."
+},
+{
+  topic:"control", code:`#include <stdio.h>\nvoid main() {\n    int i, j;\n    for (i = 0; i < 3; i++) {\n        for (j = 0; j < 3; j++) {\n            if (j == i) continue;\n            if (j > i) break;\n            printf("%d%d ", i, j);\n        }\n    }\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"10 20 21 ",
+  wrongs:["01 02 12 ","00 10 11 20 21 22 "],
+  errors:["Compilation Error - continue ו-break באותה לולאה לא חוקי","Compilation Error - printf בתוך לולאה מקוננת עם break לא מוגדר"],
+  explanation:"i=0: j=0(continue), j=1(break). i=1: j=0(print 10), j=1(continue), j=2(break). i=2: j=0(print 20), j=1(print 21), j=2(continue). continue מדלג, break יוצא מהלולאה הפנימית בלבד."
+},
+{
+  topic:"control", code:`#include <stdio.h>\nvoid main() {\n    int a = 5, b = 3, c = 8;\n    int r = (a > b) ? (b > c) ? a : b : c;\n    printf("%d", r);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"3",
+  wrongs:["5","8"],
+  errors:["Compilation Error - אופרטור ternary מקונן לא חוקי ב-C","Compilation Error - חסרים סוגריים באופרטור ?:"],
+  explanation:"a>b (5>3=true) → בודק (b>c) → (3>8=false) → b = 3. ternary מקונן: הביטוי החיצוני true, הביטוי הפנימי false, לכן מחזיר b=3."
+},
+// ======== STRING OPERATIONS ========
+{
+  topic:"arrays", code:`#include <stdio.h>\n#include <string.h>\nvoid main() {\n    char s1[20] = "ABCDEFGH";\n    char *p = s1 + 3;\n    strcpy(p, "XY");\n    printf("%s %d", s1, (int)strlen(s1));\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"ABCXY 5",
+  wrongs:["ABCXYEFGH 9","ABCXY 8"],
+  errors:["Compilation Error - strcpy למיקום באמצע מחרוזת לא חוקי","Compilation Error - s1 + 3 לא ניתן להעביר ל-strcpy"],
+  explanation:"p מצביע ל-s1[3] (D). strcpy(p, \"XY\") כותב 'X','Y','\\0' מעמדה 3. s1 = \"ABCXY\". strlen = 5 כי '\\0' נכתב בעמדה 5."
+},
+{
+  topic:"arrays", code:`#include <stdio.h>\n#include <string.h>\nchar a[] = "ABCDEFGH";\nint f(char *b, int t) {\n    char s[20];\n    strcpy(s, b);\n    strcpy(s, a + t);\n    strcpy(b, s);\n    return t;\n}\nvoid main() {\n    int n;\n    n = f(a, 2);\n    n = f(a, n + 1);\n    printf("%s", a);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"FGH",
+  wrongs:["CDEFGH","DEFGH"],
+  errors:["Compilation Error - strcpy(b, s) כשהם חופפים גורם לשגיאה","Compilation Error - a הוא מערך גלובלי ולא ניתן לשנותו"],
+  explanation:"קריאה 1 f(a,2): s=a, s=a+2=\"CDEFGH\", a=\"CDEFGH\". return 2. קריאה 2 f(a,3): a עכשיו \"CDEFGH\", s=a, s=a+3=\"FGH\", a=\"FGH\". return 3."
+},
+{
+  topic:"arrays", code:`#include <stdio.h>\n#include <string.h>\nvoid main() {\n    char s[] = "Hello World";\n    char *p = s;\n    while (*p != ' ')\n        p++;\n    *p = '\\0';\n    printf("%s %d", s, (int)strlen(s));\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"Hello 5",
+  wrongs:["Hello World 11","Hello 11"],
+  errors:["Compilation Error - *p = '\\0' לא ניתן לשנות מחרוזת","Compilation Error - while (*p != ' ') ללא גבול עליון גורם לשגיאה"],
+  explanation:"p מתקדם עד הרווח (עמדה 5). *p = '\\0' מחליף את הרווח ב-null terminator. s עכשיו \"Hello\" כי strlen עוצרת ב-'\\0' הראשון, למרות שהזיכרון עדיין מכיל 'World'."
+},
+// ======== I/O & TYPES (additional) ========
+{
+  topic:"io", code:`#include <stdio.h>\nvoid main() {\n    int x = 65;\n    printf("%c %d %x", x, x, x);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"A 65 41",
+  wrongs:["65 65 65","A 65 65"],
+  errors:["Compilation Error - לא ניתן להדפיס int עם %c","Compilation Error - %x לא מוגדר על int"],
+  explanation:"%c מדפיס את התו שערכו ASCII 65 = 'A'. %d מדפיס כמספר עשרוני = 65. %x מדפיס בבסיס 16 = 41 (4*16+1=65). אותו משתנה, שלושה פורמטים שונים."
+},
+{
+  topic:"io", code:`#include <stdio.h>\nvoid main() {\n    float f = 3.14;\n    int n = f;\n    printf("%d %.2f %d", n, f, (int)(f * 100));\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"3 3.14 314",
+  wrongs:["3 3.14 313","3.14 3.14 314"],
+  errors:["Compilation Error - int n = f דורש casting מפורש","Compilation Error - (int)(f * 100) casting לא חוקי על ביטוי"],
+  explanation:"n = f: המרה מ-float ל-int קוטעת (truncation), n = 3. f נשאר 3.14. (int)(f*100) = (int)(314.0) = 314. הגנת סוגריים: casting חל על כל הביטוי."
+},
+// ======== ARGC/ARGV ========
+{
+  topic:"functions", code:`#include <stdio.h>\nint main(int argc, char *argv[]) {\n    printf("%d %s %c", argc, argv[1], argv[2][1]);\n    return 0;\n}`,
+  question:"התוכנית מורצת עם הפקודה:\nprog ABC DEF\nמה ידפיס קטע הקוד הבא?",
+  correct:"3 ABC E",
+  wrongs:["2 ABC D","3 prog A"],
+  errors:["Compilation Error - argv[2][1] גישה כפולה למצביע לא חוקית","Compilation Error - char *argv[] חייב להיות char **argv"],
+  explanation:"argc=3 (prog, ABC, DEF). argv[0]=\"prog\", argv[1]=\"ABC\", argv[2]=\"DEF\". argv[2][1]='E' (האות השנייה ב-DEF). argc סופר גם את שם התוכנית."
+},
+{
+  topic:"functions", code:`#include <stdio.h>\nchar *func(char **p) {\n    ++(*p);\n    (*p)++;\n    return *p;\n}\nvoid main() {\n    char *s = "Hello";\n    char *result = func(&s);\n    printf("%s", result);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"llo",
+  wrongs:["ello","lo"],
+  errors:["Compilation Error - char **p כפרמטר לא חוקי","Compilation Error - ++(*p) ו-(*p)++ לא מוגדרים על מצביע כפול"],
+  explanation:"func מקבלת &s (מצביע למצביע). ++(*p): מקדם את s להצביע ל-'e' (\"ello\"). (*p)++: מקדם שוב ל-'l' (\"llo\"). שתי הפעולות שקולות - pre-increment ו-post-increment של *p (שהוא s)."
 }
 ];
 
@@ -1552,10 +1777,13 @@ const TOPICS = [
   {id:"control",  label:"בקרה",           icon:"&#x1F500;"},
   {id:"variables",label:"משתנים",         icon:"&#x1F4E6;"},
   {id:"functions",label:"פונקציות ורקורסיה", icon:"&#x2699;"},
-  {id:"structs",  label:"מבנים, רשימות ומאקרו", icon:"&#x1F9F1;"},
+  {id:"structs",  label:"מבנים",              icon:"&#x1F9F1;"},
   {id:"io",       label:"קלט/פלט וטיפוסים",  icon:"&#x1F4BB;"},
   {id:"lists",    label:"רשימות מקושרות",    icon:"&#x1F517;"},
   {id:"trees",    label:"עצים בינאריים",     icon:"&#x1F333;"},
+  {id:"preprocessor", label:"פריפרוססור ומאקרו", icon:"&#x2699;"},
+  {id:"funcptrs", label:"מצביעים לפונקציות", icon:"&#x1F517;"},
+  {id:"memory",   label:"הקצאה דינמית",      icon:"&#x1F4E6;"},
 ];
 const NONE_TEXT = "אף תשובה אחרת אינה נכונה";
 
