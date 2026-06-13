@@ -1,0 +1,2024 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C Quiz - שאלות אמריקאיות</title>
+<script>
+(()=>{
+  const param = new URLSearchParams(window.location.search).get("clawpilotTheme");
+  const theme = param || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  document.documentElement.setAttribute("data-theme", theme);
+})();
+</script>
+<style>
+:root {
+  color-scheme: light;
+  --cp-bg: #f7f4ef;
+  --cp-bg-elevated: #fcfbf8;
+  --cp-surface: #ffffff;
+  --cp-surface-soft: #f5f5f5;
+  --cp-border: #dedede;
+  --cp-border-strong: #919191;
+  --cp-text: #242424;
+  --cp-text-muted: #5c5c5c;
+  --cp-text-soft: #6f6f6f;
+  --cp-accent: #b11f4b;
+  --cp-accent-hover: #9a1a41;
+  --cp-accent-soft: rgba(177, 31, 75, 0.08);
+  --cp-accent-fg: #ffffff;
+  --cp-success: #16a34a;
+  --cp-danger: #dc2626;
+  --cp-warning: #f59e0b;
+  --cp-link: #0078d4;
+  --cp-shadow: 0 18px 48px rgba(0, 0, 0, 0.12);
+  --cp-overlay: rgba(255, 255, 255, 0.8);
+  --cp-panel: rgba(255, 255, 255, 0.86);
+  --cp-panel-strong: rgba(255, 255, 255, 0.96);
+  --cp-sheen: rgba(255, 255, 255, 0.55);
+  --cp-highlight: rgba(177, 31, 75, 0.12);
+}
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --cp-bg: #3d3b3a;
+  --cp-bg-elevated: #343231;
+  --cp-surface: #292929;
+  --cp-surface-soft: #2e2e2e;
+  --cp-border: #474747;
+  --cp-border-strong: #5f5f5f;
+  --cp-text: #dedede;
+  --cp-text-muted: #919191;
+  --cp-text-soft: #b0b0b0;
+  --cp-accent: #fd8ea1;
+  --cp-accent-hover: #fb7b91;
+  --cp-accent-soft: rgba(253, 142, 161, 0.14);
+  --cp-accent-fg: #1a1a1a;
+  --cp-success: #4ade80;
+  --cp-danger: #f87171;
+  --cp-warning: #fbbf24;
+  --cp-link: #4da6ff;
+  --cp-shadow: 0 18px 48px rgba(0, 0, 0, 0.32);
+  --cp-overlay: rgba(41, 41, 41, 0.88);
+  --cp-panel: rgba(41, 41, 41, 0.72);
+  --cp-panel-strong: rgba(41, 41, 41, 0.96);
+  --cp-sheen: rgba(255, 255, 255, 0.04);
+  --cp-highlight: rgba(253, 142, 161, 0.12);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: "Segoe UI", Aptos, Calibri, -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--cp-bg);
+  color: var(--cp-text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+code, pre, .mono {
+  font-family: Consolas, "Courier New", Courier, monospace;
+}
+
+/* ========== WELCOME SCREEN ========== */
+.welcome-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 40px 20px;
+  text-align: center;
+}
+.welcome-screen.hidden { display: none; }
+.welcome-title {
+  font-size: 2.8rem;
+  font-weight: 700;
+  color: var(--cp-accent);
+  margin-bottom: 8px;
+}
+.welcome-subtitle {
+  font-size: 1.2rem;
+  color: var(--cp-text-muted);
+  margin-bottom: 40px;
+}
+.topic-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  width: 100%;
+  max-width: 820px;
+  margin-bottom: 20px;
+}
+.topic-btn {
+  background: var(--cp-surface);
+  color: var(--cp-text);
+  border: 2px solid var(--cp-border);
+  padding: 18px 12px;
+  border-radius: 0.625rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+.topic-btn:hover {
+  border-color: var(--cp-accent);
+  background: var(--cp-accent-soft);
+  transform: translateY(-2px);
+}
+.topic-btn.all-topics {
+  grid-column: 1 / -1;
+  background: var(--cp-accent);
+  color: var(--cp-accent-fg);
+  border-color: var(--cp-accent);
+  font-size: 1.15rem;
+}
+.topic-btn.all-topics:hover {
+  background: var(--cp-accent-hover);
+  border-color: var(--cp-accent-hover);
+}
+.welcome-footer {
+  margin-top: 30px;
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.footer-setting {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--cp-text-muted);
+  font-size: 0.9rem;
+}
+.footer-setting select {
+  background: var(--cp-surface);
+  color: var(--cp-text);
+  border: 1px solid var(--cp-border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.welcome-info {
+  margin-top: 24px;
+  padding: 16px 24px;
+  background: var(--cp-accent-soft);
+  border: 1px solid var(--cp-accent);
+  border-radius: 0.625rem;
+  max-width: 600px;
+  color: var(--cp-text-soft);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+.welcome-info strong { color: var(--cp-accent); }
+.keys-hint {
+  margin-top: 16px;
+  color: var(--cp-text-muted);
+  font-size: 0.85rem;
+}
+.key-badge {
+  display: inline-block;
+  background: var(--cp-highlight);
+  color: var(--cp-accent);
+  border: 1px solid var(--cp-border);
+  border-radius: 4px;
+  padding: 1px 7px;
+  font-family: Consolas, "Courier New", Courier, monospace;
+  font-size: 0.8rem;
+  margin: 0 2px;
+}
+
+/* ========== QUIZ SCREEN ========== */
+.quiz-screen {
+  display: none;
+  padding: 24px;
+  min-height: 100vh;
+}
+.quiz-screen.visible { display: block; }
+.quiz-grid {
+  display: grid;
+  grid-template-columns: minmax(300px, 550px) minmax(300px, 1fr);
+  gap: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  height: calc(100vh - 48px);
+}
+.quiz-grid.no-code { grid-template-columns: minmax(0, 800px); }
+.quiz-grid.no-code .code-panel { display: none; }
+
+/* Top Bar */
+.quiz-top-bar {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  background: var(--cp-surface);
+  border: 1px solid var(--cp-border);
+  border-radius: 0.625rem;
+  gap: 10px;
+}
+.btn-quit {
+  background: none;
+  border: 1px solid var(--cp-border);
+  color: var(--cp-text-muted);
+  width: 34px;
+  height: 34px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+.btn-quit:hover {
+  border-color: var(--cp-danger);
+  color: var(--cp-danger);
+  background: rgba(220,38,38,0.08);
+}
+.quiz-counter, .quiz-timer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: var(--cp-surface-soft);
+  border-radius: 20px;
+  font-size: 0.9rem;
+  color: var(--cp-accent);
+  font-weight: 600;
+}
+.quiz-timer.warning { color: var(--cp-danger); animation: pulse 1s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+.quiz-score-display {
+  font-size: 0.9rem;
+  color: var(--cp-text-muted);
+}
+
+/* Code Panel */
+.code-panel {
+  background: var(--cp-surface);
+  border: 1px solid var(--cp-border);
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.code-panel-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--cp-border);
+  font-size: 0.85rem;
+  color: var(--cp-text-muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.dot-r { background: var(--cp-danger); }
+.dot-y { background: var(--cp-warning); }
+.dot-g { background: var(--cp-success); }
+.code-content {
+  flex: 1;
+  overflow: auto;
+  padding: 20px;
+}
+.code-content pre {
+  direction: ltr;
+  text-align: left;
+  font-size: 14px;
+  line-height: 1.7;
+  white-space: pre;
+  color: var(--cp-text);
+  margin: 0;
+}
+.code-content .line-num {
+  color: var(--cp-text-muted);
+  display: inline-block;
+  min-width: 28px;
+  text-align: right;
+  margin-left: 12px;
+  user-select: none;
+  opacity: 0.5;
+}
+/* Syntax highlight tokens */
+.kw { color: #c678dd; } /* keywords */
+.fn { color: #61afef; } /* function names */
+.str { color: #98c379; } /* strings */
+.num { color: #d19a66; } /* numbers */
+.cm { color: #5c6370; font-style: italic; } /* comments */
+.pp { color: #e06c75; } /* preprocessor */
+.tp { color: #e5c07b; } /* types */
+
+html[data-theme="light"] .kw { color: #7b30a0; }
+html[data-theme="light"] .fn { color: #2560a8; }
+html[data-theme="light"] .str { color: #2e7d32; }
+html[data-theme="light"] .num { color: #b35900; }
+html[data-theme="light"] .cm { color: #6a737d; }
+html[data-theme="light"] .pp { color: #c41a16; }
+html[data-theme="light"] .tp { color: #b07800; }
+
+/* Question Panel */
+.question-panel {
+  background: var(--cp-surface);
+  border: 1px solid var(--cp-border);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.question-content {
+  flex: 1;
+  overflow: auto;
+  padding: 28px 32px;
+}
+.question-title {
+  font-size: 1.35rem;
+  font-weight: 600;
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+.answers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.answer-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 16px;
+  background: var(--cp-surface-soft);
+  border: 2px solid var(--cp-border);
+  border-radius: 0.625rem;
+  cursor: pointer;
+  text-align: right;
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: var(--cp-text);
+  transition: all 0.2s ease;
+  line-height: 1.4;
+}
+.answer-btn:hover:not(.disabled) {
+  border-color: var(--cp-accent);
+  transform: scale(1.01);
+}
+.answer-btn.selected {
+  border-color: var(--cp-accent);
+  background: var(--cp-accent-soft);
+}
+.answer-btn.correct {
+  border-color: var(--cp-success);
+  background: rgba(22, 163, 74, 0.1);
+}
+.answer-btn.incorrect {
+  border-color: var(--cp-danger);
+  background: rgba(220, 38, 38, 0.1);
+}
+.answer-btn.disabled { cursor: default; pointer-events: none; }
+.answer-btn.show-correct {
+  border-color: var(--cp-success);
+  background: rgba(22, 163, 74, 0.08);
+}
+.answer-num {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: var(--cp-highlight);
+  color: var(--cp-accent);
+  font-weight: 700;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+.answer-text {
+  flex: 1;
+}
+.answer-text code {
+  background: var(--cp-bg);
+  padding: 1px 5px;
+  border-radius: 4px;
+  border: 1px solid var(--cp-border);
+  font-size: 0.88em;
+  direction: ltr;
+  display: inline-block;
+}
+.answer-icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+/* Controls */
+.question-controls {
+  padding: 16px 32px;
+  border-top: 1px solid var(--cp-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.btn-primary {
+  background: var(--cp-accent);
+  color: var(--cp-accent-fg);
+  border: none;
+  padding: 12px 28px;
+  border-radius: 0.625rem;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+.btn-primary:hover { background: var(--cp-accent-hover); }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+.explanation-text {
+  font-size: 0.85rem;
+  color: var(--cp-text-muted);
+  max-width: 60%;
+  line-height: 1.5;
+}
+
+/* ========== END SCREEN ========== */
+.end-screen {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 40px;
+  text-align: center;
+}
+.end-screen.visible { display: flex; }
+.end-card {
+  background: var(--cp-surface);
+  border: 1px solid var(--cp-border);
+  border-radius: 16px;
+  padding: 48px 60px;
+  box-shadow: var(--cp-shadow);
+  max-width: 500px;
+  width: 100%;
+}
+.end-emoji { font-size: 4rem; margin-bottom: 16px; }
+.end-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--cp-accent);
+  margin-bottom: 12px;
+}
+.end-score {
+  font-size: 1.2rem;
+  color: var(--cp-text-muted);
+  margin-bottom: 8px;
+}
+.end-detail {
+  font-size: 1rem;
+  color: var(--cp-text-soft);
+  margin-bottom: 24px;
+}
+.end-bar-wrap {
+  width: 100%;
+  height: 12px;
+  background: var(--cp-surface-soft);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 32px;
+  border: 1px solid var(--cp-border);
+}
+.end-bar-fill {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 1s ease;
+}
+.btn-restart {
+  background: var(--cp-accent);
+  color: var(--cp-accent-fg);
+  border: none;
+  padding: 14px 36px;
+  border-radius: 0.625rem;
+  cursor: pointer;
+  font-size: 1.05rem;
+  font-weight: 700;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+.btn-restart:hover { background: var(--cp-accent-hover); transform: translateY(-2px); }
+
+/* ========== TABS NAV ========== */
+.tabs-nav {
+  display: flex;
+  gap: 0;
+  margin-bottom: 32px;
+  border-bottom: 2px solid var(--cp-border);
+  max-width: 820px;
+  width: 100%;
+}
+.tab-btn {
+  flex: 1;
+  padding: 14px 16px;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: var(--cp-text-muted);
+  font-family: inherit;
+  font-size: 1.05rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: -2px;
+}
+.tab-btn:hover { color: var(--cp-text); }
+.tab-btn.active {
+  color: var(--cp-accent);
+  border-bottom-color: var(--cp-accent);
+}
+.tab-content { display: none; width: 100%; max-width: 820px; }
+.tab-content.active { display: block; }
+
+/* ========== EXAM MODE ========== */
+.exam-card {
+  background: var(--cp-surface);
+  border: 2px solid var(--cp-accent);
+  border-radius: 16px;
+  padding: 36px 40px;
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto 20px;
+}
+.exam-card h2 {
+  font-size: 1.6rem;
+  color: var(--cp-accent);
+  margin-bottom: 12px;
+}
+.exam-card p {
+  color: var(--cp-text-muted);
+  margin-bottom: 8px;
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+.exam-card ul {
+  text-align: right;
+  list-style: none;
+  margin: 16px 0;
+  padding: 0;
+}
+.exam-card li {
+  padding: 6px 0;
+  color: var(--cp-text-soft);
+  font-size: 0.9rem;
+}
+.exam-card li::before {
+  content: "✔";
+  color: var(--cp-success);
+  margin-left: 8px;
+  font-weight: 700;
+}
+.btn-exam {
+  background: var(--cp-accent);
+  color: var(--cp-accent-fg);
+  border: none;
+  padding: 16px 48px;
+  border-radius: 0.625rem;
+  cursor: pointer;
+  font-size: 1.15rem;
+  font-weight: 700;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  margin-top: 12px;
+}
+.btn-exam:hover { background: var(--cp-accent-hover); transform: translateY(-2px); }
+
+.exam-global-timer {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--cp-accent);
+  padding: 6px 16px;
+  background: var(--cp-accent-soft);
+  border: 1px solid var(--cp-accent);
+  border-radius: 6px;
+}
+.exam-global-timer.warning { color: var(--cp-danger); border-color: var(--cp-danger); background: rgba(220,38,38,0.1); animation: pulse 1s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
+
+/* ========== STATISTICS ========== */
+.stats-container {
+  width: 100%;
+  max-width: 820px;
+}
+.stats-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--cp-text-muted);
+  font-size: 1.1rem;
+}
+.stats-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.stat-card {
+  background: var(--cp-surface);
+  border: 1px solid var(--cp-border);
+  border-radius: 0.625rem;
+  padding: 20px;
+  text-align: center;
+}
+.stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--cp-accent);
+}
+.stat-label {
+  font-size: 0.85rem;
+  color: var(--cp-text-muted);
+  margin-top: 4px;
+}
+.stats-section {
+  background: var(--cp-surface);
+  border: 1px solid var(--cp-border);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 16px;
+}
+.stats-section h3 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--cp-accent);
+  margin-bottom: 16px;
+}
+.stats-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+.stats-table th, .stats-table td {
+  padding: 10px 12px;
+  text-align: right;
+  border-bottom: 1px solid var(--cp-border);
+}
+.stats-table th {
+  background: var(--cp-surface-soft);
+  color: var(--cp-text-muted);
+  font-weight: 600;
+}
+.stats-table tr:last-child td { border-bottom: none; }
+.stats-table .score-high { color: var(--cp-success); font-weight: 700; }
+.stats-table .score-mid { color: var(--cp-warning); font-weight: 700; }
+.stats-table .score-low { color: var(--cp-danger); font-weight: 700; }
+.topic-bar-wrap {
+  width: 100%;
+  height: 8px;
+  background: var(--cp-surface-soft);
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid var(--cp-border);
+}
+.topic-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+.stats-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  height: 120px;
+  padding: 12px 0;
+  border-bottom: 2px solid var(--cp-border);
+  margin-bottom: 8px;
+}
+.chart-bar {
+  flex: 1;
+  min-width: 20px;
+  max-width: 50px;
+  border-radius: 4px 4px 0 0;
+  transition: height 0.5s ease;
+  position: relative;
+  cursor: pointer;
+}
+.chart-bar:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--cp-surface);
+  border: 1px solid var(--cp-border);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  color: var(--cp-text);
+  box-shadow: var(--cp-shadow);
+  z-index: 10;
+}
+.chart-labels {
+  display: flex;
+  gap: 6px;
+}
+.chart-labels span {
+  flex: 1;
+  min-width: 20px;
+  max-width: 50px;
+  text-align: center;
+  font-size: 0.65rem;
+  color: var(--cp-text-muted);
+}
+.btn-clear-stats {
+  background: none;
+  border: 1px solid var(--cp-danger);
+  color: var(--cp-danger);
+  padding: 8px 20px;
+  border-radius: 0.625rem;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.85rem;
+  margin-top: 12px;
+  transition: all 0.2s ease;
+}
+.btn-clear-stats:hover { background: rgba(220,38,38,0.1); }
+
+/* ========== REVIEW MODAL ========== */
+.review-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: var(--cp-overlay);
+  z-index: 1000;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 40px 20px;
+  overflow: auto;
+}
+.review-overlay.visible { display: flex; }
+.review-card {
+  background: var(--cp-surface);
+  border: 1px solid var(--cp-border);
+  border-radius: 16px;
+  padding: 32px;
+  max-width: 700px;
+  width: 100%;
+  box-shadow: var(--cp-shadow);
+}
+.review-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--cp-accent);
+  margin-bottom: 20px;
+  text-align: center;
+}
+.review-item {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--cp-border);
+}
+.review-item:last-child { border-bottom: none; }
+.review-q-num {
+  font-weight: 700;
+  color: var(--cp-accent);
+  margin-bottom: 4px;
+}
+.review-q-result {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-right: 8px;
+}
+.review-q-result.correct-tag { background: rgba(22,163,74,0.15); color: var(--cp-success); }
+.review-q-result.wrong-tag { background: rgba(220,38,38,0.15); color: var(--cp-danger); }
+.review-q-result.timeout-tag { background: rgba(245,158,11,0.15); color: var(--cp-warning); }
+.review-answers-mini { font-size: 0.85rem; color: var(--cp-text-muted); margin-top: 4px; }
+.review-close-btn {
+  display: block;
+  margin: 24px auto 0;
+  background: var(--cp-accent);
+  color: var(--cp-accent-fg);
+  border: none;
+  padding: 10px 32px;
+  border-radius: 0.625rem;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+}
+</style>
+</head>
+<body>
+
+<!-- ======== WELCOME SCREEN ======== -->
+<div class="welcome-screen" id="welcomeScreen">
+  <h1 class="welcome-title">C Quiz - שאלות אמריקאיות</h1>
+  <p class="welcome-subtitle">תרגול, מבחן וסטטיסטיקות</p>
+
+  <div class="tabs-nav" id="tabsNav">
+    <button class="tab-btn active" data-tab="practice">&#x1F4DD; תרגול</button>
+    <button class="tab-btn" data-tab="exam">&#x1F4CB; מבחן</button>
+    <button class="tab-btn" data-tab="stats">&#x1F4CA; סטטיסטיקות</button>
+  </div>
+
+  <!-- ====== PRACTICE TAB ====== -->
+  <div class="tab-content active" id="tab-practice">
+    <div class="topic-grid" id="topicGrid"></div>
+    <div class="welcome-footer">
+      <div class="footer-setting">
+        <label>זמן לשאלה:</label>
+        <select id="timerSelect">
+          <option value="300" selected>5 דקות</option>
+          <option value="600">10 דקות</option>
+          <option value="0">ללא הגבלה</option>
+        </select>
+      </div>
+      <div class="footer-setting">
+        <label>מספר שאלות:</label>
+        <select id="countSelect">
+          <option value="5">5</option>
+          <option value="10" selected>10</option>
+          <option value="15">15</option>
+          <option value="0">הכל</option>
+        </select>
+      </div>
+    </div>
+    <div class="welcome-info">
+      <strong>מבנה כל שאלה:</strong> 6 תשובות - מתוכן 2 תמיד "שגיאת קומפילציה" ואחת תמיד "אף תשובה אחרת אינה נכונה". התשובה הנכונה יכולה להיות כל אחת מהשש!
+    </div>
+    <div class="keys-hint">
+      מקשי קיצור: <span class="key-badge">1</span>-<span class="key-badge">6</span> לבחירת תשובה, <span class="key-badge">Enter</span> לבדיקה/הבא
+    </div>
+  </div>
+
+  <!-- ====== EXAM TAB ====== -->
+  <div class="tab-content" id="tab-exam">
+    <div class="exam-card">
+      <h2>&#x1F3AF; מבחן סימולציה</h2>
+      <p>סימולציה של חלק ב' של המבחן - שאלות אמריקאיות מכל הנושאים</p>
+      <ul>
+        <li>שאלות מעורבבות מכל הנושאים</li>
+        <li>טיימר גלובלי של שעתיים לכל המבחן</li>
+        <li>ניתן לדלג ולחזור לשאלות</li>
+        <li>ציון מסכם בסוף</li>
+        <li>התוצאה נשמרת בסטטיסטיקות</li>
+      </ul>
+      <div class="footer-setting" style="justify-content:center;margin-bottom:12px;">
+        <label>מספר שאלות במבחן:</label>
+        <select id="examCountSelect">
+          <option value="10">10</option>
+          <option value="15">15</option>
+          <option value="20" selected>20</option>
+          <option value="0">הכל</option>
+        </select>
+      </div>
+      <button class="btn-exam" onclick="startExam()">&#x1F680; התחל מבחן</button>
+    </div>
+  </div>
+
+  <!-- ====== STATISTICS TAB ====== -->
+  <div class="tab-content" id="tab-stats">
+    <div class="stats-container" id="statsContainer">
+      <div class="stats-empty">&#x1F4CA; אין נתונים עדיין. השלם מבחן או תרגול כדי לראות סטטיסטיקות.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ======== QUIZ SCREEN ======== -->
+<div class="quiz-screen" id="quizScreen">
+  <div class="quiz-grid" id="quizGrid">
+    <div class="quiz-top-bar">
+      <button class="btn-quit" id="quitBtn" onclick="quitQuiz()" title="חזרה לתפריט">&#x2716;</button>
+      <div class="quiz-counter">&#x2753; שאלה <span id="qCurrent">1</span> מתוך <span id="qTotal">10</span></div>
+      <div class="quiz-score-display" id="scoreDisplay">ניקוד: 0</div>
+      <div class="quiz-timer" id="timerDisplay">&#x23F0; <span id="timerText">05:00</span></div>
+      <div class="exam-global-timer" id="examTimerDisplay" style="display:none">&#x23F0; מבחן: <span id="examTimerText">02:00:00</span></div>
+    </div>
+    <div class="code-panel" id="codePanel">
+      <div class="code-panel-header">
+        <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+        <span style="margin-right:8px">main.c</span>
+      </div>
+      <div class="code-content"><pre id="codeDisplay"></pre></div>
+    </div>
+    <div class="question-panel">
+      <div class="question-content">
+        <div class="question-title" id="questionTitle"></div>
+        <div class="answers-list" id="answersList"></div>
+      </div>
+      <div class="question-controls">
+        <div class="explanation-text" id="explanationText"></div>
+        <button class="btn-primary" id="actionBtn" disabled>בדיקה</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======== END SCREEN ======== -->
+<div class="end-screen" id="endScreen">
+  <div class="end-card">
+    <div class="end-emoji" id="endEmoji"></div>
+    <h2 class="end-title" id="endTitle">החידון הסתיים!</h2>
+    <p class="end-score" id="endScore"></p>
+    <p class="end-detail" id="endDetail"></p>
+    <div class="end-bar-wrap"><div class="end-bar-fill" id="endBar"></div></div>
+    <button class="btn-restart" id="reviewBtn" style="margin-bottom:12px;background:var(--cp-surface);color:var(--cp-accent);border:2px solid var(--cp-accent)">סקירת תשובות</button>
+    <button class="btn-restart" onclick="location.reload()">התחל מחדש</button>
+  </div>
+</div>
+
+<!-- ======== REVIEW OVERLAY ======== -->
+<div class="review-overlay" id="reviewOverlay">
+  <div class="review-card">
+    <h3 class="review-title">סקירת תשובות</h3>
+    <div id="reviewContent"></div>
+    <button class="review-close-btn" onclick="document.getElementById('reviewOverlay').classList.remove('visible')">סגור</button>
+  </div>
+</div>
+
+<script>
+// ============================================================
+//  QUESTIONS DATABASE
+// ============================================================
+const ALL_QUESTIONS = [
+// ======== POINTERS (hard) ========
+{
+  topic:"pointers", code:`#include <stdio.h>\nvoid f(int **p) {\n    static int val = 30;\n    *p = &val;\n}\nvoid main() {\n    int x = 10;\n    int *p = &x;\n    f(&p);\n    printf("%d %d", x, *p);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"10 30",
+  wrongs:["30 30","10 10"],
+  errors:["Compilation Error - לא ניתן להעביר כתובת של מצביע לפונקציה","Compilation Error - static int val לא ניתן לגישה מחוץ לפונקציה f"],
+  explanation:"f משנה את p להצביע ל-val (30). x לא השתנה (עדיין 10). *p כעת 30."
+},
+{
+  topic:"pointers", code:`#include <stdio.h>\nvoid main() {\n    int a[] = {2, 4, 6, 8, 10};\n    int *p = a + 1;\n    int *q = a + 4;\n    printf("%d %d %d", q - p, *q - *p, *(p + 2));\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"3 6 8",
+  wrongs:["12 6 6","3 6 6"],
+  errors:["Compilation Error - חיסור מצביעים לא מוגדר ב-C","Compilation Error - *(p + 2) חריגה מגבולות המערך"],
+  explanation:"q-p = מרחק באיברים = 3. *q-*p = 10-4 = 6. *(p+2) = a[3] = 8."
+},
+{
+  topic:"pointers", code:`#include <stdio.h>\nvoid mystery(int *a, int *b) {\n    *a = *a + *b;\n    *b = *a - *b;\n    *a = *a - *b;\n}\nvoid main() {\n    int x = 3, y = 7;\n    mystery(&x, &y);\n    mystery(&x, &y);\n    printf("%d %d", x, y);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"3 7",
+  wrongs:["7 3","10 3"],
+  errors:["Compilation Error - *a = *a + *b אינו ביטוי חוקי בהעברת כתובות","Compilation Error - חסרה הכרזת prototype לפונקציה mystery"],
+  explanation:"mystery מחליפה ערכים (swap ללא temp). קריאה ראשונה: x=7,y=3. שנייה: x=3,y=7 - חזרה למקום."
+},
+{
+  topic:"pointers", code:`#include <stdio.h>\nvoid main() {\n    char s[] = "ABCDEF";\n    char *p = s + 2;\n    while (*p) {\n        printf("%c", *p);\n        p += 2;\n    }\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"CE",
+  wrongs:["CDEF","CDE"],
+  errors:["Compilation Error - p += 2 לא חוקי על מצביע ל-char","Compilation Error - while (*p) לא חוקי כי *p הוא char ולא int"],
+  explanation:"p מתחיל ב-'C' (אינדקס 2). p+=2 -> 'E' (אינדקס 4). p+=2 -> '\\0' (אינדקס 6) -> עצירה. מודפס CE."
+},
+{
+  topic:"pointers", code:`#include <stdio.h>\n#include <stdlib.h>\nvoid f(int *p) {\n    p = (int*)malloc(sizeof(int));\n    *p = 100;\n}\nvoid main() {\n    int x = 5;\n    f(&x);\n    printf("%d", x);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"5",
+  wrongs:["100","0"],
+  errors:["Compilation Error - לא ניתן להציב malloc בתוך מצביע שהתקבל כפרמטר","Compilation Error - &x אינו מתאים לפרמטר מטיפוס int*"],
+  explanation:"בתוך f, p הוא העתק מקומי. ההשמה p = malloc משנה רק את ההעתק המקומי. x לא משתנה."
+},
+{
+  topic:"pointers", code:`#include <stdio.h>\nvoid main() {\n    int a[] = {10, 20, 30, 40};\n    int *p = a;\n    printf("%d ", ++*p);\n    printf("%d ", *++p);\n    printf("%d", *p++);\n    printf(" %d", *p);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"11 20 20 30",
+  wrongs:["11 20 30 40","10 20 30 40"],
+  errors:["Compilation Error - ++*p הוא ביטוי לא חוקי","Compilation Error - *p++ ו-*++p אינם מוגדרים על מערכים"],
+  explanation:"++*p: מקדם a[0] ל-11. *++p: מקדם p לa[1], מדפיס 20. *p++: מדפיס *p=20 ואז מקדם p. *p: כעת a[2]=30."
+},
+{
+  topic:"pointers", code:`#include <stdio.h>\nvoid main() {\n    int a = 5, b = 10, c = 15;\n    int *arr[] = {&c, &b, &a};\n    int **pp = arr;\n    printf("%d ", **pp);\n    pp++;\n    printf("%d ", *arr[2]);\n    *arr[1] = *arr[0] + **pp;\n    printf("%d", b);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"15 5 25",
+  wrongs:["15 5 20","5 15 25"],
+  errors:["Compilation Error - מערך של מצביעים אינו חוקי ב-C","Compilation Error - **pp לא מוגדר על מערך מצביעים"],
+  explanation:"**pp = *arr[0] = c = 15. *arr[2] = a = 5. pp מצביע לarr[1] = &b. *arr[1] = *arr[0] + **pp = 15 + 10 = 25. b = 25."
+},
+// ======== ARRAYS & STRINGS (hard) ========
+{
+  topic:"arrays", code:`#include <stdio.h>\nvoid f(int arr[]) {\n    printf("%d ", sizeof(arr));\n}\nvoid main() {\n    int a[] = {1, 2, 3, 4, 5};\n    printf("%d ", sizeof(a));\n    f(a);\n}`,
+  question:"מה ידפיס קטע הקוד הבא? (הנח שגודל int הוא 4 בתים וגודל מצביע הוא 4 בתים)",
+  correct:"20 4 ",
+  wrongs:["20 20 ","4 4 "],
+  errors:["Compilation Error - sizeof לא עובד על מערך שמועבר לפונקציה","Compilation Error - arr[] ללא גודל גורם לשגיאת קומפילציה"],
+  explanation:"ב-main, sizeof(a) = 5*4 = 20 בתים (מערך שלם). בפונקציה, arr הוא מצביע ולכן sizeof(arr) = 4."
+},
+{
+  topic:"arrays", code:`#include <stdio.h>\n#include <string.h>\nvoid main() {\n    char s[] = "Hello";\n    s[2] = '\\0';\n    printf("%d %d", strlen(s), sizeof(s));\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"2 6",
+  wrongs:["5 6","2 3"],
+  errors:["Compilation Error - אין אפשרות לשנות תו בתוך מחרוזת","Compilation Error - strlen לא יודע לטפל ב-null באמצע מחרוזת"],
+  explanation:"s[2]='\\0' מקצר את המחרוזת ל-\"He\" (strlen=2). sizeof לא משתנה - המערך עדיין 6 בתים."
+},
+{
+  topic:"arrays", code:`#include <stdio.h>\nvoid main() {\n    char s1[] = "abc";\n    char *s2 = "abc";\n    s1[0] = 'X';\n    printf("%s %d", s1, s2[1]);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"Xbc 98",
+  wrongs:["abc 98","Xbc b"],
+  errors:["Compilation Error - char *s2 לא יכול להצביע למחרוזת ליטרלית","Compilation Error - s2[1] לא חוקי כי s2 הוא מצביע ולא מערך"],
+  explanation:"s1 הוא מערך - ניתן לשנות. s1[0]='X' -> \"Xbc\". s2[1]='b'=98 בASCII. %d מדפיס את הערך המספרי."
+},
+{
+  topic:"arrays", code:`#include <stdio.h>\n#include <string.h>\nvoid main() {\n    char a[10] = "AB";\n    char b[10] = "CD";\n    strcat(a, b);\n    strcpy(b, a);\n    printf("%s %d", b, strlen(a) + strlen(b));\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"ABCD 8",
+  wrongs:["ABCD 4","CDAB 8"],
+  errors:["Compilation Error - strcat ו-strcpy לא יכולים לקבל מערכי char בגודל קבוע","Compilation Error - printf לא יכול לשלב %s ו-%d"],
+  explanation:"strcat(a,b): a=\"ABCD\". strcpy(b,a): b=\"ABCD\". strlen(a)+strlen(b) = 4+4 = 8."
+},
+{
+  topic:"arrays", code:`#include <stdio.h>\nvoid f(char *s) {\n    while (*s) {\n        if (*s >= 'a' && *s <= 'z')\n            *s = *s - 32;\n        s++;\n    }\n}\nvoid main() {\n    char str[] = "Hi There";\n    f(str);\n    printf("%s", str);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"HI THERE",
+  wrongs:["hi there","Hi There"],
+  errors:["Compilation Error - *s - 32 מחזיר int ולא char","Compilation Error - לא ניתן לשנות מחרוזת דרך מצביע"],
+  explanation:"הפונקציה ממירה אותיות קטנות לגדולות (הפרש 32 ב-ASCII). 'i'->I, ' ' נשאר, 't'->T וכו'."
+},
+{
+  topic:"arrays", code:`#include <stdio.h>\nvoid main() {\n    int a[3][3] = {{1,2,3},{4,5,6},{7,8,9}};\n    int sum = 0, i, j;\n    for (i = 0; i < 3; i++)\n        sum += a[i][2-i];\n    printf("%d", sum);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"15",
+  wrongs:["12","18"],
+  errors:["Compilation Error - 2-i עלול להיות אינדקס שלילי וזו שגיאת קומפילציה","Compilation Error - sum שם שמור ב-C"],
+  explanation:"a[0][2]=3, a[1][1]=5, a[2][0]=7. סכום האלכסון המשני: 3+5+7=15."
+},
+// ======== BITWISE (hard) ========
+{
+  topic:"bitwise", code:`#include <stdio.h>\nvoid main() {\n    unsigned char x = 0xC5;\n    unsigned char y = (x >> 4) | (x << 4);\n    printf("%X", y);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"5C",
+  wrongs:["C5","59"],
+  errors:["Compilation Error - אין אפשרות לשלב >> ו-<< באותו ביטוי","Compilation Error - תוצאת ההזזה חורגת מטווח unsigned char"],
+  explanation:"x>>4 = 0x0C. x<<4 = 0x50 (ביטים עליונים נחתכים ל-8 ביט). 0x0C | 0x50 = 0x5C. זו החלפת nibbles."
+},
+{
+  topic:"bitwise", code:`#include <stdio.h>\nvoid main() {\n    unsigned char a = 0xAB;\n    int count = 0;\n    while (a) {\n        count += a & 1;\n        a >>= 1;\n    }\n    printf("%d", count);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"5",
+  wrongs:["8","4"],
+  errors:["Compilation Error - a & 1 לא מוגדר בין unsigned char ו-int","Compilation Error - a >>= 1 לא חוקי על unsigned char"],
+  explanation:"0xAB = 10101011. סופרים ביטים דלוקים: 1+1+0+1+0+1+0+1 = 5."
+},
+{
+  topic:"bitwise", code:`#include <stdio.h>\nvoid main() {\n    int x = 0xABCD;\n    int y = (x & 0xFF00) >> 8;\n    printf("%X", y);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"AB",
+  wrongs:["CD","BC"],
+  errors:["Compilation Error - 0xFF00 חורג מטווח int","Compilation Error - אין אפשרות לבצע AND בין int ל-hex literal"],
+  explanation:"x & 0xFF00 = 0xAB00 (שומר רק בית שני). הזזה ימינה ב-8: 0xAB."
+},
+{
+  topic:"bitwise", code:`#include <stdio.h>\nvoid main() {\n    unsigned char x = 0x55;\n    x = x ^ 0xFF;\n    x = x ^ 0xFF;\n    printf("%X", x);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"55",
+  wrongs:["AA","FF"],
+  errors:["Compilation Error - XOR כפול גורם ל-undefined behavior","Compilation Error - 0xFF חורג מטווח unsigned char"],
+  explanation:"XOR פעמיים עם אותו ערך מחזיר למקור. 0x55 ^ 0xFF = 0xAA. 0xAA ^ 0xFF = 0x55."
+},
+// ======== CONTROL FLOW (hard) ========
+{
+  topic:"control", code:`#include <stdio.h>\nvoid main() {\n    int i, j, count = 0;\n    for (i = 1; i <= 4; i++) {\n        for (j = 1; j <= 4; j++) {\n            if (i + j == 5)\n                break;\n            count++;\n        }\n    }\n    printf("%d", count);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"6",
+  wrongs:["10","4"],
+  errors:["Compilation Error - break יוצא משתי הלולאות ולכן count לא מעודכן","Compilation Error - הגדרת count בתוך ה-for לא חוקית"],
+  explanation:"i=1: j=1,2,3 (break at j=4) -> 3. i=2: j=1,2 (break at j=3) -> 2. i=3: j=1 (break at j=2) -> 1. i=4: (break at j=1) -> 0. סה\"כ 6."
+},
+{
+  topic:"control", code:`#include <stdio.h>\nvoid main() {\n    int x = 3;\n    switch(x) {\n        case 1: printf("A"); break;\n        case 2: printf("B");\n        case 3: printf("C");\n        case 4: printf("D");\n        case 5: printf("E"); break;\n        default: printf("F");\n    }\n    printf("G");\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"CDEG",
+  wrongs:["CG","CDEFG"],
+  errors:["Compilation Error - switch לא יכול להכיל יותר מ-5 cases","Compilation Error - חסר break לפני default"],
+  explanation:"x=3 -> case 3: מדפיס C. Fall-through ל-case 4: D. Fall-through ל-case 5: E, ואז break. אחרי ה-switch: G."
+},
+{
+  topic:"control", code:`#include <stdio.h>\nvoid main() {\n    int i = 0, sum = 0;\n    while (i < 10) {\n        i++;\n        if (i % 3 == 0)\n            continue;\n        if (i > 7)\n            break;\n        sum += i;\n    }\n    printf("%d %d", sum, i);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"19 8",
+  wrongs:["22 10","19 7"],
+  errors:["Compilation Error - continue ו-break לא יכולים להופיע באותה לולאה","Compilation Error - i++ בתחילת הלולאה גורם ללולאה אינסופית"],
+  explanation:"i=1(+1),2(+2),3(skip),4(+4),5(+5),6(skip),7(+7),8(break). sum=1+2+4+5+7=19, i=8."
+},
+{
+  topic:"control", code:`#include <stdio.h>\nvoid main() {\n    int a = 1, b = 2, c = 3;\n    if (a > b)\n        if (b > c)\n            printf("X");\n        else\n            printf("Y");\n    printf("Z");\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"Z",
+  wrongs:["YZ","XZ"],
+  errors:["Compilation Error - else ללא if תואם","Compilation Error - חסרים סוגריים מסולסלים סביב ה-if המקונן"],
+  explanation:"a>b שקר (1>2), לכן כל הבלוק הפנימי (כולל ה-else) מדולג. רק Z מודפס. ה-else שייך ל-if הפנימי (dangling else)."
+},
+// ======== VARIABLES & SCOPE (hard) ========
+{
+  topic:"variables", code:`#include <stdio.h>\nint count(int reset) {\n    static int c = 0;\n    if (reset)\n        c = 0;\n    else\n        c++;\n    return c;\n}\nvoid main() {\n    printf("%d ", count(0));\n    printf("%d ", count(0));\n    printf("%d ", count(1));\n    printf("%d", count(0));\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"1 2 0 1",
+  wrongs:["1 1 0 1","1 2 0 0"],
+  errors:["Compilation Error - פרמטר reset מתנגש עם הגדרת static","Compilation Error - static int c = 0 מאותחל מחדש בכל קריאה"],
+  explanation:"c סטטי ושומר ערך. count(0): c=1. count(0): c=2. count(1): c=0. count(0): c=1."
+},
+{
+  topic:"variables", code:`#include <stdio.h>\nint g = 10;\nvoid foo(int g) {\n    g = g + 5;\n    printf("%d ", g);\n}\nvoid bar() {\n    g = g * 2;\n    printf("%d ", g);\n}\nvoid main() {\n    foo(g);\n    bar();\n    printf("%d", g);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"15 20 20",
+  wrongs:["15 30 30","15 20 10"],
+  errors:["Compilation Error - פרמטר g מתנגש עם המשתנה הגלובלי g","Compilation Error - הגדרה כפולה של g"],
+  explanation:"foo: פרמטר g מסתיר גלובלי, g_local=15 (לא משנה גלובלי). bar: g_global=10*2=20. main: g=20."
+},
+{
+  topic:"variables", code:`#include <stdio.h>\nvoid main() {\n    int i = 0;\n    for (i = 0; i < 3; i++) {\n        int i = 10;\n        printf("%d ", i);\n    }\n    printf("%d", i);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"10 10 10 3",
+  wrongs:["0 1 2 3","10 10 10 10"],
+  errors:["Compilation Error - הגדרה כפולה של i באותו scope","Compilation Error - משתנה i בתוך הלולאה מתנגש עם משתנה הלולאה"],
+  explanation:"i הפנימי (10) מסתיר את i של ה-for. בכל איטרציה מודפס 10. ה-for ממשיך עם i החיצוני. בסוף i=3."
+},
+// ======== FUNCTIONS & RECURSION (hard) ========
+{
+  topic:"functions", code:`#include <stdio.h>\nint f(int n) {\n    static int x = 0;\n    x++;\n    if (n <= 1) return x;\n    return f(n - 1) + f(n - 2);\n}\nvoid main() {\n    printf("%d", f(4));\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"__NONE__",
+  wrongs:["3","5"],
+  errors:["Compilation Error - static אינו חוקי בפונקציה רקורסיבית","Compilation Error - f(n-1) + f(n-2) חייב ערך חזרה מוגדר בכל ענף"],
+  explanation:"x סטטי ועולה בכל קריאה. f(4)->f(3)+f(2). f(3)->f(2)+f(1). f(2)->f(1)+f(0). סדר: f(4),f(3),f(2),f(1)(x=4,ret 4),f(0)(x=5,ret 5),f(1)(x=6,ret 6),f(2)(x=7,ret 7),f(1)(x=8,ret 8),f(0)(x=9,ret 9). סה\"כ: (4+5)+(6)=15 לa, שגוי. נעקוב: f(4)=f(3)+f(2). f(3)=f(2)+f(1). f(2)=f(1)+f(0). f(1): x=4, ret 4. f(0): x=5, ret 5. f(2)=9. f(1): x=6, ret 6. f(3)=9+6=15. f(2)=f(1)+f(0). f(1): x=7, ret 7. f(0): x=8, ret 8. f(2)=15. f(4)=15+15=30. התשובה 30.",
+  noneExplanation:"התשובה הנכונה היא 30"
+},
+{
+  topic:"functions", code:`#include <stdio.h>\nvoid f(int n) {\n    if (n == 0) return;\n    f(n / 2);\n    printf("%d", n % 2);\n}\nvoid main() {\n    f(13);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"1101",
+  wrongs:["1011","13"],
+  errors:["Compilation Error - n / 2 מחזיר float בחילוק","Compilation Error - f(0) ללא return value גורם לשגיאה"],
+  explanation:"הפונקציה מדפיסה את הייצוג הבינארי. f(13)->f(6)->f(3)->f(1)->f(0). חזרה: print 1, print 1, print 0, print 1. => 1101."
+},
+{
+  topic:"functions", code:`#include <stdio.h>\nint f(int a, int b) {\n    if (b == 0) return a;\n    return f(b, a % b);\n}\nvoid main() {\n    printf("%d", f(48, 18));\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"6",
+  wrongs:["18","48"],
+  errors:["Compilation Error - a % b לא מוגדר כאשר b == 0","Compilation Error - רקורסיה עם שני פרמטרים משתנים לא חוקית"],
+  explanation:"אלגוריתם GCD (מ.מ.ג). f(48,18)->f(18,12)->f(12,6)->f(6,0)->return 6."
+},
+{
+  topic:"functions", code:`#include <stdio.h>\nvoid f(int n) {\n    if (n > 0) {\n        printf("%d ", n);\n        f(n - 2);\n        printf("%d ", n);\n    }\n}\nvoid main() {\n    f(5);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"5 3 1 1 3 5 ",
+  wrongs:["5 3 1 ","1 3 5 5 3 1 "],
+  errors:["Compilation Error - f(n - 2) עלול לקבל ערך שלילי ולגרום ל-stack overflow","Compilation Error - printf אחרי קריאה רקורסיבית לא חוקי"],
+  explanation:"f(5): print 5, f(3): print 3, f(1): print 1, f(-1): return, print 1, print 3, print 5. ההדפסות עוטפות את הרקורסיה."
+},
+// ======== STRUCTS & MACROS (hard) ========
+{
+  topic:"structs", code:`#include <stdio.h>\n#define MAX(a,b) ((a)>(b)?(a):(b))\nvoid main() {\n    int x = 3, y = 5;\n    int z = MAX(x++, y++);\n    printf("%d %d %d", x, y, z);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"4 7 6",
+  wrongs:["4 6 5","3 5 5"],
+  errors:["Compilation Error - מאקרו לא יכול לקבל ביטוי עם ++","Compilation Error - MAX לא מוגדר בספריה הסטנדרטית"],
+  explanation:"MAX(x++,y++) -> ((x++)>(y++)?(x++):(y++)). x++=3, y++=5. 3>5? לא. y++=6 (y כעת 7). x=4, y=7, z=6."
+},
+{
+  topic:"structs", code:`#include <stdio.h>\n#define PRINT(x) printf("%d ", x); printf("%d\\n", x*x)\nvoid main() {\n    int a = 3;\n    if (a > 5)\n        PRINT(a);\n    else\n        printf("small\\n");\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"__NONE__",
+  wrongs:["small","3 9"],
+  errors:["Compilation Error - מאקרו לא יכול להכיל שתי פקודות printf","Compilation Error - else ללא if תואם בגלל המאקרו"],
+  explanation:"המאקרו מתפרש לשתי פקודות. ה-if שולט רק על הראשונה. printf השני תמיד רץ. ה-else שייך ל-printf השני (לא ל-if). שגיאת קומפילציה בפועל - else without matching if. אבל אם נתעלם: 9 ואז small.",
+  noneExplanation:"התשובה הנכונה היא: 9 ואז שורה חדשה ואז small - כי ה-if שולט רק על ה-printf הראשון של המאקרו"
+},
+{
+  topic:"structs", code:`#include <stdio.h>\ntypedef struct node {\n    int data;\n    struct node *next;\n} Node;\nvoid insert(Node **head, int val) {\n    Node n;\n    n.data = val;\n    n.next = *head;\n    *head = &n;\n}\nvoid main() {\n    Node a = {10, NULL};\n    Node *head = &a;\n    insert(&head, 20);\n    printf("%d %d", head->data, head->next->data);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"__NONE__",
+  wrongs:["20 10","10 20"],
+  errors:["Compilation Error - Node n חייב להיות מוקצה דינמית עם malloc","Compilation Error - &n לא חוקי כי n הוא משתנה מקומי"],
+  explanation:"n הוא משתנה מקומי ב-insert. כשהפונקציה חוזרת, head מצביע לזיכרון לא תקין (dangling pointer). ההתנהגות לא מוגדרת (Undefined Behavior).",
+  noneExplanation:"התשובה הנכונה היא Undefined Behavior - head מצביע למשתנה מקומי שכבר שוחרר"
+},
+{
+  topic:"structs", code:`#include <stdio.h>\ntypedef struct {\n    int x, y;\n} Point;\nvoid move(Point p, int dx, int dy) {\n    p.x += dx;\n    p.y += dy;\n}\nvoid moveP(Point *p, int dx, int dy) {\n    p->x += dx;\n    p->y += dy;\n}\nvoid main() {\n    Point a = {1, 2};\n    move(a, 3, 4);\n    printf("%d %d ", a.x, a.y);\n    moveP(&a, 3, 4);\n    printf("%d %d", a.x, a.y);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"1 2 4 6",
+  wrongs:["4 6 7 10","4 6 4 6"],
+  errors:["Compilation Error - struct לא ניתן להעברה by value","Compilation Error - move ו-moveP חייבים אותו prototype"],
+  explanation:"move מקבלת העתק (by value) - לא משנה a. moveP מקבלת מצביע (by reference) - משנה a. אחרי move: 1,2. אחרי moveP: 4,6."
+},
+// ======== I/O & TYPE (hard) ========
+{
+  topic:"io", code:`#include <stdio.h>\nvoid main() {\n    unsigned char a = 200;\n    unsigned char b = 100;\n    unsigned char c = a + b;\n    printf("%d", c);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"44",
+  wrongs:["300","0"],
+  errors:["Compilation Error - a + b חורג מטווח unsigned char","Compilation Error - תוצאת חיבור unsigned char חייבת להיות unsigned char"],
+  explanation:"200 + 100 = 300. unsigned char מכיל עד 255. 300 % 256 = 44 (overflow חוזר מההתחלה)."
+},
+{
+  topic:"io", code:`#include <stdio.h>\nvoid main() {\n    int a = -1;\n    unsigned int b = 1;\n    if (a > b)\n        printf("YES");\n    else\n        printf("NO");\n    printf(" %u", a);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"__NONE__",
+  wrongs:["NO 1","YES 1"],
+  errors:["Compilation Error - אין אפשרות להשוות int ו-unsigned int","Compilation Error - %u לא חוקי על int"],
+  explanation:"בהשוואה בין signed ו-unsigned, ה-signed מומר ל-unsigned. -1 הופך ל-UINT_MAX (4294967295) שגדול מ-1. לכן YES. ו-%u של -1 = 4294967295.",
+  noneExplanation:"התשובה הנכונה היא YES 4294967295"
+},
+{
+  topic:"io", code:`#include <stdio.h>\nvoid main() {\n    int x = 5;\n    int y = (x > 3) + (x > 4) + (x > 5) + (x > 6);\n    printf("%d", y);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"2",
+  wrongs:["4","0"],
+  errors:["Compilation Error - תוצאת השוואה אינה int ולא ניתן לחבר","Compilation Error - אין אפשרות לחבר ביטויים בוליאניים"],
+  explanation:"ב-C, ביטוי בוליאני מחזיר 1 (true) או 0 (false). (5>3)=1, (5>4)=1, (5>5)=0, (5>6)=0. סה\"כ 2."
+},
+{
+  topic:"io", code:`#include <stdio.h>\nvoid main() {\n    char s[] = "12345";\n    int sum = 0, i;\n    for (i = 0; s[i]; i++)\n        sum += s[i] - '0';\n    printf("%d %d", sum, i);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"15 5",
+  wrongs:["15 4","756 5"],
+  errors:["Compilation Error - s[i] לא יכול להיות תנאי בלולאה","Compilation Error - s[i] - '0' מחזיר char ולא int"],
+  explanation:"s[i]-'0' ממיר תו ספרה לערכו. 1+2+3+4+5=15. הלולאה רצה 5 פעמים (עד '\\0')."
+},
+// ======== DYNAMIC MEMORY (hard) ========
+{
+  topic:"pointers", code:`#include <stdio.h>\n#include <stdlib.h>\nvoid main() {\n    int *a = (int*)calloc(5, sizeof(int));\n    int i;\n    for (i = 0; i < 5; i++)\n        a[i] = (i + 1) * 10;\n    int *b = a;\n    b += 2;\n    printf("%d %d %d", *b, b[-1], b[2]);\n    free(a);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"30 20 50",
+  wrongs:["30 10 50","20 10 40"],
+  errors:["Compilation Error - b[-1] הוא אינדקס שלילי ולא חוקי","Compilation Error - b += 2 לא חוקי על מצביע שהוקצה עם calloc"],
+  explanation:"b מצביע ל-a[2]=30. b[-1]=a[1]=20. b[2]=a[4]=50. אינדקס שלילי חוקי כל עוד הוא בגבולות הזיכרון."
+},
+// ======== LINKED LIST (hard) ========
+{
+  topic:"structs", code:`#include <stdio.h>\ntypedef struct node {\n    int data;\n    struct node *next;\n} Node;\nvoid removeSecond(Node *head) {\n    if (head && head->next) {\n        Node *temp = head->next;\n        head->next = temp->next;\n    }\n}\nvoid main() {\n    Node d = {40, NULL};\n    Node c = {30, &d};\n    Node b = {20, &c};\n    Node a = {10, &b};\n    removeSecond(&a);\n    Node *p = &a;\n    while (p) {\n        printf("%d ", p->data);\n        p = p->next;\n    }\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"10 30 40 ",
+  wrongs:["10 20 40 ","10 20 30 "],
+  errors:["Compilation Error - head->next = temp->next גורם לדליפת זיכרון ושגיאת קומפילציה","Compilation Error - Node d חייב להיות מוקצה דינמית"],
+  explanation:"removeSecond מסיר את האיבר השני (20). a->next עכשיו מצביע ל-c (30). הרשימה: 10->30->40."
+},
+// ======== COMPILER ERROR (correct = error) ========
+{
+  topic:"arrays", code:`#include <stdio.h>\nvoid main() {\n    char *s = "Hello";\n    s[0] = 'h';\n    printf("%s", s);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"__CE__",
+  correctError:"Compilation Error - לא ניתן לשנות מחרוזת ליטרלית (string literal) שמוצבעת ע\"י char*",
+  wrongs:["hello","Hello"],
+  errors:["Compilation Error - לא ניתן לשנות מחרוזת ליטרלית (string literal) שמוצבעת ע\"י char*","Compilation Error - char *s חייב להיות מוגדר כ-const char*"],
+  explanation:"s מצביע למחרוזת ליטרלית הנמצאת באזור read-only בזיכרון. ניסיון שינוי גורם ל-Undefined Behavior (בדרך כלל runtime error, אך קומפיילרים מסוימים ייתנו אזהרה/שגיאה)."
+},
+{
+  topic:"pointers", code:`#include <stdio.h>\nvoid main() {\n    int a = 5;\n    int b = 10;\n    int *p;\n    printf("%d", *p);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"__CE__",
+  correctError:"Compilation Error - שימוש במצביע p ללא אתחול (uninitialized pointer)",
+  wrongs:["0","5"],
+  errors:["Compilation Error - שימוש במצביע p ללא אתחול (uninitialized pointer)","Compilation Error - p חייב להיות מאותחל ל-NULL"],
+  explanation:"p לא אותחל ומצביע למקום אקראי. גישה ל-*p היא Undefined Behavior. קומפיילרים רבים יתנו אזהרה או שגיאה."
+},
+// ======== NONE-OF-ABOVE (correct = none) ========
+{
+  topic:"control", code:`#include <stdio.h>\nvoid main() {\n    int i, sum = 0;\n    for (i = 1; i <= 100; i++)\n        if (i % 7 == 0 && i % 5 == 0)\n            sum += i;\n    printf("%d", sum);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"__NONE__",
+  wrongs:["35","70"],
+  errors:["Compilation Error - אין אפשרות לשלב && בתוך תנאי if","Compilation Error - i % 7 == 0 && i % 5 == 0 דורש סוגריים"],
+  explanation:"מספרים שמתחלקים ב-7 וגם ב-5 (כלומר ב-35) עד 100: 35 ו-70. סכום: 35 + 70 = 105.",
+  noneExplanation:"התשובה הנכונה היא 105"
+},
+{
+  topic:"pointers", code:`#include <stdio.h>\nvoid main() {\n    int x = 10;\n    int *p = &x;\n    int **pp = &p;\n    *p += 5;\n    **pp *= 2;\n    printf("%d", x);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"__NONE__",
+  wrongs:["15","20"],
+  errors:["Compilation Error - **pp *= 2 אינו ביטוי חוקי","Compilation Error - אין אפשרות לבצע *= על מצביע כפול"],
+  explanation:"*p += 5: x = 15. **pp *= 2: x = 30. כל המצביעים מצביעים לאותו x.",
+  noneExplanation:"התשובה הנכונה היא 30"
+}
+];
+
+// ============================================================
+//  TOPICS CONFIG
+// ============================================================
+const TOPICS = [
+  {id:"all",   label:"כל הנושאים",      icon:"&#x1F4DA;"},
+  {id:"pointers", label:"מצביעים",       icon:"&#x1F4CD;"},
+  {id:"arrays",   label:"מערכים ומחרוזות", icon:"&#x1F4C4;"},
+  {id:"bitwise",  label:"ביטים",          icon:"&#x1F9EE;"},
+  {id:"control",  label:"בקרה",           icon:"&#x1F500;"},
+  {id:"variables",label:"משתנים",         icon:"&#x1F4E6;"},
+  {id:"functions",label:"פונקציות ורקורסיה", icon:"&#x2699;"},
+  {id:"structs",  label:"מבנים, רשימות ומאקרו", icon:"&#x1F9F1;"},
+  {id:"io",       label:"קלט/פלט וטיפוסים",  icon:"&#x1F4BB;"},
+];
+const NONE_TEXT = "אף תשובה אחרת אינה נכונה";
+
+// ============================================================
+//  STATE
+// ============================================================
+let quizQuestions = [];
+let currentQ = 0;
+let score = 0;
+let selectedIdx = null;
+let answered = false;
+let timerInterval = null;
+let timeLeft = 0;
+let timerSetting = 300;
+let results = []; // {qIdx, correct, selected, timedOut}
+
+// ============================================================
+//  INIT WELCOME
+// ============================================================
+const $=id=>document.getElementById(id);
+function initWelcome() {
+  const grid = $("topicGrid");
+  grid.innerHTML = "";
+  TOPICS.forEach(t => {
+    const btn = document.createElement("button");
+    btn.className = "topic-btn" + (t.id==="all"?" all-topics":"");
+    btn.innerHTML = t.icon + " " + t.label;
+    btn.onclick = () => startQuiz(t.id);
+    grid.appendChild(btn);
+  });
+}
+
+// ============================================================
+//  SYNTAX HIGHLIGHTING (simple)
+// ============================================================
+function highlightC(code) {
+  // Escape HTML
+  let h = code.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  // Preprocessor
+  h = h.replace(/^(#\w+.*?)$/gm, '<span class="pp">$1</span>');
+  // Strings
+  h = h.replace(/"([^"\\]|\\.)*"/g, '<span class="str">$&</span>');
+  // Chars
+  h = h.replace(/'(\\.|[^'\\])'/g, '<span class="str">$&</span>');
+  // Comments
+  h = h.replace(/\/\/.*$/gm, '<span class="cm">$&</span>');
+  // Numbers
+  h = h.replace(/\b(0x[0-9A-Fa-f]+|\d+\.?\d*[fF]?)\b/g, '<span class="num">$1</span>');
+  // Keywords
+  const kws = ["void","int","float","double","char","unsigned","signed","short","long","const","static","extern","return","if","else","for","while","do","switch","case","default","break","continue","typedef","struct","sizeof","NULL","true","false","printf","scanf","malloc","calloc","realloc","free","strlen","strcmp","strcpy","strcat","main","sizeof"];
+  kws.forEach(kw => {
+    h = h.replace(new RegExp("\\b("+kw+")\\b","g"), (m,p1) => {
+      // Don't re-highlight inside existing spans
+      return '<span class="kw">'+p1+'</span>';
+    });
+  });
+  // Types
+  h = h.replace(/\b(Node|Point|ListNode|TreeNode|Tree|List|BYTE|size_t)\b/g, '<span class="tp">$1</span>');
+  // Add line numbers
+  const lines = h.split("\n");
+  return lines.map((l,i) => '<span class="line-num">'+(i+1)+'</span>'+l).join("\n");
+}
+
+// ============================================================
+//  SHUFFLE
+// ============================================================
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length-1; i > 0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+// ============================================================
+//  BUILD ANSWERS (always 6: 3 regular + 2 CE + 1 none)
+// ============================================================
+function buildAnswers(q) {
+  let answers = [];
+  if (q.correct === "__CE__") {
+    // Correct answer is a compiler error
+    answers.push({text: q.correctError, isCorrect: true, type:"error"});
+    // Add the other CE (wrong)
+    const otherCE = q.errors.find(e => e !== q.correctError);
+    answers.push({text: otherCE || q.errors[1], isCorrect: false, type:"error"});
+    // Add wrong regular answers
+    q.wrongs.forEach(w => answers.push({text: w, isCorrect: false, type:"regular"}));
+    // None of above
+    answers.push({text: NONE_TEXT, isCorrect: false, type:"none"});
+  } else if (q.correct === "__NONE__") {
+    // Correct is "none of the above"
+    q.wrongs.forEach(w => answers.push({text: w, isCorrect: false, type:"regular"}));
+    // Fill to 3 regular
+    if (answers.length < 3) answers.push({text: "0", isCorrect: false, type:"regular"});
+    q.errors.forEach(e => answers.push({text: e, isCorrect: false, type:"error"}));
+    answers.push({text: NONE_TEXT, isCorrect: true, type:"none"});
+  } else {
+    // Normal: correct is a regular answer
+    answers.push({text: q.correct, isCorrect: true, type:"regular"});
+    q.wrongs.forEach(w => answers.push({text: w, isCorrect: false, type:"regular"}));
+    q.errors.forEach(e => answers.push({text: e, isCorrect: false, type:"error"}));
+    answers.push({text: NONE_TEXT, isCorrect: false, type:"none"});
+  }
+  return shuffle(answers);
+}
+
+// ============================================================
+//  START QUIZ
+// ============================================================
+function startQuiz(topicId) {
+  timerSetting = parseInt($("timerSelect").value);
+  let count = parseInt($("countSelect").value);
+  let pool = topicId === "all" ? [...ALL_QUESTIONS] : ALL_QUESTIONS.filter(q=>q.topic===topicId);
+  pool = shuffle(pool);
+  if (count > 0) pool = pool.slice(0, count);
+  if (pool.length === 0) { alert("אין שאלות בנושא זה"); return; }
+  quizQuestions = pool;
+  currentQ = 0;
+  score = 0;
+  results = [];
+  $("welcomeScreen").classList.add("hidden");
+  $("quizScreen").classList.add("visible");
+  $("qTotal").textContent = quizQuestions.length;
+  renderQuestion();
+}
+
+// ============================================================
+//  RENDER QUESTION
+// ============================================================
+function renderQuestion() {
+  const q = quizQuestions[currentQ];
+  answered = false;
+  selectedIdx = null;
+  $("qCurrent").textContent = currentQ + 1;
+  $("scoreDisplay").textContent = "ניקוד: " + score + "/" + (currentQ);
+  $("questionTitle").textContent = q.question;
+  $("explanationText").textContent = "";
+  $("actionBtn").textContent = "בדיקה";
+  $("actionBtn").disabled = true;
+
+  // Code
+  if (q.code) {
+    $("codePanel").style.display = "";
+    $("quizGrid").classList.remove("no-code");
+    $("codeDisplay").innerHTML = highlightC(q.code);
+  } else {
+    $("codePanel").style.display = "none";
+    $("quizGrid").classList.add("no-code");
+  }
+
+  // Answers
+  const answers = buildAnswers(q);
+  q._answers = answers;
+  const list = $("answersList");
+  list.innerHTML = "";
+  answers.forEach((a, i) => {
+    const btn = document.createElement("button");
+    btn.className = "answer-btn";
+    btn.innerHTML = `<span class="answer-num">${i+1}</span><span class="answer-text">${escapeHTML(a.text)}</span><span class="answer-icon"></span>`;
+    btn.onclick = () => selectAnswer(i);
+    list.appendChild(btn);
+  });
+
+  // Timer
+  startTimer();
+}
+
+function escapeHTML(s) {
+  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+// ============================================================
+//  SELECT ANSWER
+// ============================================================
+function selectAnswer(idx) {
+  if (answered) return;
+  selectedIdx = idx;
+  const btns = $("answersList").children;
+  for (let i = 0; i < btns.length; i++) {
+    btns[i].classList.toggle("selected", i === idx);
+  }
+  $("actionBtn").disabled = false;
+}
+
+// ============================================================
+//  CHECK / NEXT
+// ============================================================
+$("actionBtn").addEventListener("click", () => {
+  if (!answered) checkAnswer();
+  else nextQuestion();
+});
+
+function checkAnswer() {
+  if (selectedIdx === null) return;
+  answered = true;
+  clearInterval(timerInterval);
+  const q = quizQuestions[currentQ];
+  const answers = q._answers;
+  const btns = $("answersList").children;
+  const isCorrect = answers[selectedIdx].isCorrect;
+
+  if (isCorrect) score++;
+
+  // Mark answers
+  for (let i = 0; i < btns.length; i++) {
+    btns[i].classList.add("disabled");
+    if (answers[i].isCorrect) {
+      btns[i].classList.add("correct");
+      btns[i].querySelector(".answer-icon").textContent = "✓";
+    }
+    if (i === selectedIdx && !isCorrect) {
+      btns[i].classList.add("incorrect");
+      btns[i].querySelector(".answer-icon").textContent = "✗";
+    }
+  }
+
+  // Explanation
+  let expText = q.explanation || "";
+  if (q.correct === "__NONE__" && q.noneExplanation) {
+    expText = q.noneExplanation + ". " + expText;
+  }
+  $("explanationText").textContent = expText;
+  $("scoreDisplay").textContent = "ניקוד: " + score + "/" + (currentQ + 1);
+  $("actionBtn").textContent = currentQ < quizQuestions.length - 1 ? "הבא ←" : "סיום";
+  $("actionBtn").disabled = false;
+
+  results.push({qIdx: currentQ, correct: isCorrect, selected: selectedIdx, timedOut: false});
+}
+
+function handleTimeout() {
+  if (answered) return;
+  answered = true;
+  const q = quizQuestions[currentQ];
+  const answers = q._answers;
+  const btns = $("answersList").children;
+  for (let i = 0; i < btns.length; i++) {
+    btns[i].classList.add("disabled");
+    if (answers[i].isCorrect) {
+      btns[i].classList.add("correct");
+      btns[i].querySelector(".answer-icon").textContent = "✓";
+    }
+  }
+  $("explanationText").textContent = "⏰ נגמר הזמן! " + (q.explanation || "");
+  $("scoreDisplay").textContent = "ניקוד: " + score + "/" + (currentQ + 1);
+  $("actionBtn").textContent = currentQ < quizQuestions.length - 1 ? "הבא ←" : "סיום";
+  $("actionBtn").disabled = false;
+  results.push({qIdx: currentQ, correct: false, selected: -1, timedOut: true});
+}
+
+function nextQuestion() {
+  currentQ++;
+  if (currentQ >= quizQuestions.length) {
+    showEnd();
+  } else {
+    renderQuestion();
+  }
+}
+
+// ============================================================
+//  TIMER
+// ============================================================
+function startTimer() {
+  clearInterval(timerInterval);
+  if (timerSetting === 0) {
+    $("timerDisplay").classList.remove("warning");
+    $("timerText").textContent = "∞";
+    return;
+  }
+  timeLeft = timerSetting;
+  updateTimerDisplay();
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    updateTimerDisplay();
+    if (timeLeft <= 30) $("timerDisplay").classList.add("warning");
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      handleTimeout();
+    }
+  }, 1000);
+}
+function updateTimerDisplay() {
+  $("timerDisplay").classList.remove("warning");
+  const m = Math.floor(timeLeft / 60);
+  const s = timeLeft % 60;
+  $("timerText").textContent = String(m).padStart(2,"0") + ":" + String(s).padStart(2,"0");
+  if (timeLeft <= 30) $("timerDisplay").classList.add("warning");
+}
+
+// ============================================================
+//  END SCREEN
+// ============================================================
+function showEnd() {
+  $("quizScreen").classList.remove("visible");
+  $("endScreen").classList.add("visible");
+  const pct = Math.round(score / quizQuestions.length * 100);
+  let emoji = "😢", title = "אפשר לשפר...";
+  if (pct >= 90) { emoji = "🏆"; title = "מעולה!"; }
+  else if (pct >= 70) { emoji = "😎"; title = "כל הכבוד!"; }
+  else if (pct >= 50) { emoji = "🙂"; title = "לא רע!"; }
+  $("endEmoji").textContent = emoji;
+  $("endTitle").textContent = title;
+  $("endScore").textContent = score + " מתוך " + quizQuestions.length + " (" + pct + "%)";
+  $("endDetail").textContent = results.filter(r=>r.timedOut).length > 0
+    ? results.filter(r=>r.timedOut).length + " שאלות ללא תשובה (זמן)"
+    : "";
+  const bar = $("endBar");
+  bar.style.width = "0%";
+  bar.style.background = pct >= 70 ? "var(--cp-success)" : pct >= 50 ? "var(--cp-warning)" : "var(--cp-danger)";
+  setTimeout(() => bar.style.width = pct + "%", 100);
+  $("reviewBtn").onclick = showReview;
+}
+
+function showReview() {
+  const div = $("reviewContent");
+  div.innerHTML = "";
+  results.forEach((r, i) => {
+    const q = quizQuestions[r.qIdx];
+    const item = document.createElement("div");
+    item.className = "review-item";
+    let tag = r.timedOut ? '<span class="review-q-result timeout-tag">⏰ זמן</span>'
+            : r.correct ? '<span class="review-q-result correct-tag">✓ נכון</span>'
+            : '<span class="review-q-result wrong-tag">✗ שגוי</span>';
+    let correctText = q.correct;
+    if (q.correct === "__CE__") correctText = q.correctError;
+    else if (q.correct === "__NONE__") correctText = NONE_TEXT + (q.noneExplanation ? " (" + q.noneExplanation + ")" : "");
+    item.innerHTML = `<div class="review-q-num">שאלה ${i+1} ${tag}</div>
+      <div class="review-answers-mini">תשובה נכונה: ${escapeHTML(correctText)}</div>`;
+    div.appendChild(item);
+  });
+  $("reviewOverlay").classList.add("visible");
+}
+
+// ============================================================
+//  QUIT / RETURN
+// ============================================================
+function quitQuiz() {
+  const msg = isExamMode
+    ? "\u05D4\u05D0\u05DD \u05DC\u05E6\u05D0\u05EA \u05DE\u05D4\u05DE\u05D1\u05D7\u05DF? \u05D4\u05EA\u05D5\u05E6\u05D0\u05D5\u05EA \u05DC\u05D0 \u05D9\u05D9\u05E9\u05DE\u05E8\u05D5."
+    : "\u05D4\u05D0\u05DD \u05DC\u05D7\u05D6\u05D5\u05E8 \u05DC\u05EA\u05E4\u05E8\u05D9\u05D8? \u05D4\u05EA\u05E7\u05D3\u05DE\u05D5\u05EA \u05DC\u05D0 \u05D9\u05D9\u05E9\u05DE\u05E8\u05D5.";
+  if (!confirm(msg)) return;
+  clearInterval(timerInterval);
+  clearInterval(examTimerInterval);
+  isExamMode = false;
+  $("quizScreen").classList.remove("visible");
+  $("endScreen").classList.remove("visible");
+  $("welcomeScreen").classList.remove("hidden");
+  $("timerDisplay").style.display = "";
+  $("examTimerDisplay").style.display = "none";
+  $("examTimerDisplay").classList.remove("warning");
+}
+
+// ============================================================
+//  KEYBOARD
+// ============================================================
+document.addEventListener("keydown", (e) => {
+  if ($("quizScreen").classList.contains("visible")) {
+    if (e.key >= "1" && e.key <= "6" && !answered) {
+      const idx = parseInt(e.key) - 1;
+      const btns = $("answersList").children;
+      if (idx < btns.length) selectAnswer(idx);
+    }
+    if (e.key === "Enter") {
+      e.preventDefault();
+      if (!answered && selectedIdx !== null) checkAnswer();
+      else if (answered) nextQuestion();
+    }
+    if (e.key === "Escape") {
+      quitQuiz();
+    }
+  }
+});
+
+// ============================================================
+//  TABS
+// ============================================================
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    $('tab-' + btn.dataset.tab).classList.add('active');
+    if (btn.dataset.tab === 'stats') renderStats();
+  });
+});
+
+// ============================================================
+//  EXAM MODE
+// ============================================================
+let isExamMode = false;
+let examTimeLeft = 0;
+let examTimerInterval = null;
+let examStartTime = null;
+
+function startExam() {
+  isExamMode = true;
+  examTimeLeft = 2 * 60 * 60; // 2 hours
+  examStartTime = Date.now();
+  timerSetting = 0; // no per-question timer in exam mode
+  let count = parseInt($("examCountSelect").value);
+  let pool = shuffle([...ALL_QUESTIONS]);
+  if (count > 0) pool = pool.slice(0, count);
+  quizQuestions = pool;
+  currentQ = 0;
+  score = 0;
+  results = new Array(pool.length).fill(null);
+  $("welcomeScreen").classList.add("hidden");
+  $("quizScreen").classList.add("visible");
+  $("qTotal").textContent = quizQuestions.length;
+  $("timerDisplay").style.display = "none";
+  $("examTimerDisplay").style.display = "";
+  startExamTimer();
+  renderQuestion();
+}
+
+function startExamTimer() {
+  clearInterval(examTimerInterval);
+  updateExamTimerDisplay();
+  examTimerInterval = setInterval(() => {
+    examTimeLeft--;
+    updateExamTimerDisplay();
+    if (examTimeLeft <= 300) $("examTimerDisplay").classList.add("warning");
+    if (examTimeLeft <= 0) {
+      clearInterval(examTimerInterval);
+      autoFinishExam();
+    }
+  }, 1000);
+}
+
+function updateExamTimerDisplay() {
+  const h = Math.floor(examTimeLeft / 3600);
+  const m = Math.floor((examTimeLeft % 3600) / 60);
+  const s = examTimeLeft % 60;
+  $("examTimerText").textContent = String(h).padStart(2,"0") + ":" + String(m).padStart(2,"0") + ":" + String(s).padStart(2,"0");
+}
+
+function autoFinishExam() {
+  // Mark unanswered questions as timed out
+  for (let i = 0; i < quizQuestions.length; i++) {
+    if (!results[i]) {
+      results[i] = {qIdx: i, correct: false, selected: -1, timedOut: true};
+    }
+  }
+  showEnd();
+}
+
+// Override startQuiz to handle practice mode properly
+const _origStartQuiz = startQuiz;
+function startQuiz(topicId) {
+  isExamMode = false;
+  $("timerDisplay").style.display = "";
+  $("examTimerDisplay").style.display = "none";
+  clearInterval(examTimerInterval);
+
+  timerSetting = parseInt($("timerSelect").value);
+  let count = parseInt($("countSelect").value);
+  let pool = topicId === "all" ? [...ALL_QUESTIONS] : ALL_QUESTIONS.filter(q=>q.topic===topicId);
+  pool = shuffle(pool);
+  if (count > 0) pool = pool.slice(0, count);
+  if (pool.length === 0) { alert("אין שאלות בנושא זה"); return; }
+  quizQuestions = pool;
+  currentQ = 0;
+  score = 0;
+  results = [];
+  $("welcomeScreen").classList.add("hidden");
+  $("quizScreen").classList.add("visible");
+  $("qTotal").textContent = quizQuestions.length;
+  renderQuestion();
+}
+
+// Override checkAnswer to handle exam mode array-based results
+const _origCheckAnswer = checkAnswer;
+function checkAnswer() {
+  if (selectedIdx === null) return;
+  answered = true;
+  if (!isExamMode) clearInterval(timerInterval);
+  const q = quizQuestions[currentQ];
+  const answers = q._answers;
+  const btns = $("answersList").children;
+  const isCorrect = answers[selectedIdx].isCorrect;
+
+  if (isCorrect) score++;
+
+  for (let i = 0; i < btns.length; i++) {
+    btns[i].classList.add("disabled");
+    if (answers[i].isCorrect) {
+      btns[i].classList.add("correct");
+      btns[i].querySelector(".answer-icon").textContent = "\u2713";
+    }
+    if (i === selectedIdx && !isCorrect) {
+      btns[i].classList.add("incorrect");
+      btns[i].querySelector(".answer-icon").textContent = "\u2717";
+    }
+  }
+
+  let expText = q.explanation || "";
+  if (q.correct === "__NONE__" && q.noneExplanation) {
+    expText = q.noneExplanation + ". " + expText;
+  }
+  $("explanationText").textContent = expText;
+  $("scoreDisplay").textContent = "\u05E0\u05D9\u05E7\u05D5\u05D3: " + score + "/" + (isExamMode ? quizQuestions.length : currentQ + 1);
+  $("actionBtn").textContent = currentQ < quizQuestions.length - 1 ? "\u05D4\u05D1\u05D0 \u2190" : "\u05E1\u05D9\u05D5\u05DD";
+  $("actionBtn").disabled = false;
+
+  const result = {qIdx: currentQ, correct: isCorrect, selected: selectedIdx, timedOut: false, topic: q.topic};
+  if (isExamMode) {
+    results[currentQ] = result;
+  } else {
+    results.push(result);
+  }
+}
+
+// Override showEnd to save stats
+const _origShowEnd = showEnd;
+function showEnd() {
+  clearInterval(examTimerInterval);
+  $("quizScreen").classList.remove("visible");
+  $("endScreen").classList.add("visible");
+
+  // Calculate from results array
+  const answered = isExamMode ? results.filter(r => r !== null) : results;
+  const correctCount = answered.filter(r => r && r.correct).length;
+  const total = quizQuestions.length;
+  score = correctCount;
+  const pct = Math.round(correctCount / total * 100);
+
+  let emoji = "\uD83D\uDE22", title = "\u05D0\u05E4\u05E9\u05E8 \u05DC\u05E9\u05E4\u05E8...";
+  if (pct >= 90) { emoji = "\uD83C\uDFC6"; title = "\u05DE\u05E2\u05D5\u05DC\u05D4!"; }
+  else if (pct >= 70) { emoji = "\uD83D\uDE0E"; title = "\u05DB\u05DC \u05D4\u05DB\u05D1\u05D5\u05D3!"; }
+  else if (pct >= 50) { emoji = "\uD83D\uDE42"; title = "\u05DC\u05D0 \u05E8\u05E2!"; }
+  $("endEmoji").textContent = emoji;
+  $("endTitle").textContent = (isExamMode ? "\uD83D\uDCCB \u05D4\u05DE\u05D1\u05D7\u05DF \u05D4\u05E1\u05EA\u05D9\u05D9\u05DD!" : title);
+  $("endScore").textContent = correctCount + " \u05DE\u05EA\u05D5\u05DA " + total + " (" + pct + "%)";
+  const timedOut = answered.filter(r => r && r.timedOut).length;
+  $("endDetail").textContent = timedOut > 0
+    ? timedOut + " \u05E9\u05D0\u05DC\u05D5\u05EA \u05DC\u05DC\u05D0 \u05EA\u05E9\u05D5\u05D1\u05D4 (\u05D6\u05DE\u05DF)"
+    : "";
+  const bar = $("endBar");
+  bar.style.width = "0%";
+  bar.style.background = pct >= 70 ? "var(--cp-success)" : pct >= 50 ? "var(--cp-warning)" : "var(--cp-danger)";
+  setTimeout(() => bar.style.width = pct + "%", 100);
+  $("reviewBtn").onclick = showReview;
+
+  // Save to localStorage
+  saveResult(isExamMode ? "exam" : "practice", correctCount, total, answered);
+}
+
+// ============================================================
+//  LOCALSTORAGE PERSISTENCE
+// ============================================================
+function saveResult(type, correct, total, resultDetails) {
+  const history = JSON.parse(localStorage.getItem("cquiz_history") || "[]");
+  const topicBreakdown = {};
+  resultDetails.forEach(r => {
+    if (!r) return;
+    const t = r.topic || quizQuestions[r.qIdx]?.topic || "unknown";
+    if (!topicBreakdown[t]) topicBreakdown[t] = {correct: 0, total: 0};
+    topicBreakdown[t].total++;
+    if (r.correct) topicBreakdown[t].correct++;
+  });
+  history.push({
+    type,
+    date: new Date().toISOString(),
+    correct,
+    total,
+    pct: Math.round(correct / total * 100),
+    topics: topicBreakdown,
+    duration: isExamMode ? (2*60*60 - examTimeLeft) : null
+  });
+  localStorage.setItem("cquiz_history", JSON.stringify(history));
+}
+
+// ============================================================
+//  STATISTICS
+// ============================================================
+function renderStats() {
+  const container = $("statsContainer");
+  const history = JSON.parse(localStorage.getItem("cquiz_history") || "[]");
+
+  if (history.length === 0) {
+    container.innerHTML = '<div class="stats-empty">&#x1F4CA; \u05D0\u05D9\u05DF \u05E0\u05EA\u05D5\u05E0\u05D9\u05DD \u05E2\u05D3\u05D9\u05D9\u05DF. \u05D4\u05E9\u05DC\u05DD \u05DE\u05D1\u05D7\u05DF \u05D0\u05D5 \u05EA\u05E8\u05D2\u05D5\u05DC \u05DB\u05D3\u05D9 \u05DC\u05E8\u05D0\u05D5\u05EA \u05E1\u05D8\u05D8\u05D9\u05E1\u05D8\u05D9\u05E7\u05D5\u05EA.</div>';
+    return;
+  }
+
+  const exams = history.filter(h => h.type === "exam");
+  const practices = history.filter(h => h.type === "practice");
+  const allPcts = history.map(h => h.pct);
+  const avgPct = Math.round(allPcts.reduce((a,b)=>a+b,0) / allPcts.length);
+  const bestPct = Math.max(...allPcts);
+  const totalQ = history.reduce((a,h)=>a+h.total, 0);
+  const totalCorrect = history.reduce((a,h)=>a+h.correct, 0);
+
+  // Topic aggregate
+  const topicAgg = {};
+  history.forEach(h => {
+    Object.entries(h.topics || {}).forEach(([t, v]) => {
+      if (!topicAgg[t]) topicAgg[t] = {correct:0, total:0};
+      topicAgg[t].correct += v.correct;
+      topicAgg[t].total += v.total;
+    });
+  });
+
+  const topicLabels = {
+    pointers: "\u05DE\u05E6\u05D1\u05D9\u05E2\u05D9\u05DD",
+    arrays: "\u05DE\u05E2\u05E8\u05DB\u05D9\u05DD \u05D5\u05DE\u05D7\u05E8\u05D5\u05D6\u05D5\u05EA",
+    bitwise: "\u05D1\u05D9\u05D8\u05D9\u05DD",
+    control: "\u05D1\u05E7\u05E8\u05D4",
+    variables: "\u05DE\u05E9\u05EA\u05E0\u05D9\u05DD",
+    functions: "\u05E4\u05D5\u05E0\u05E7\u05E6\u05D9\u05D5\u05EA",
+    structs: "\u05DE\u05D1\u05E0\u05D9\u05DD \u05D5\u05DE\u05D0\u05E7\u05E8\u05D5",
+    io: "\u05E7\u05DC\u05D8/\u05E4\u05DC\u05D8"
+  };
+
+  let html = '';
+
+  // Summary cards
+  html += '<div class="stats-summary">';
+  html += `<div class="stat-card"><div class="stat-value">${history.length}</div><div class="stat-label">\u05E1\u05D4"\u05DB \u05DE\u05D1\u05D7\u05E0\u05D9\u05DD</div></div>`;
+  html += `<div class="stat-card"><div class="stat-value">${exams.length}</div><div class="stat-label">\u05DE\u05D1\u05D7\u05E0\u05D9 \u05E1\u05D9\u05DE\u05D5\u05DC\u05E6\u05D9\u05D4</div></div>`;
+  html += `<div class="stat-card"><div class="stat-value">${avgPct}%</div><div class="stat-label">\u05DE\u05DE\u05D5\u05E6\u05E2</div></div>`;
+  html += `<div class="stat-card"><div class="stat-value">${bestPct}%</div><div class="stat-label">\u05E9\u05D9\u05D0 \u05D0\u05D9\u05E9\u05D9</div></div>`;
+  html += `<div class="stat-card"><div class="stat-value">${totalQ}</div><div class="stat-label">\u05E9\u05D0\u05DC\u05D5\u05EA \u05E0\u05E2\u05E0\u05D5</div></div>`;
+  html += `<div class="stat-card"><div class="stat-value">${Math.round(totalCorrect/totalQ*100)}%</div><div class="stat-label">\u05D0\u05D7\u05D5\u05D6 \u05E0\u05DB\u05D5\u05E0\u05D5\u05EA</div></div>`;
+  html += '</div>';
+
+  // Trend chart (last 20 results)
+  const recent = history.slice(-20);
+  if (recent.length > 1) {
+    html += '<div class="stats-section"><h3>&#x1F4C8; \u05DE\u05D2\u05DE\u05EA \u05E6\u05D9\u05D5\u05E0\u05D9\u05DD</h3>';
+    html += '<div class="stats-chart">';
+    recent.forEach((h, i) => {
+      const height = Math.max(h.pct, 3);
+      const color = h.pct >= 70 ? 'var(--cp-success)' : h.pct >= 50 ? 'var(--cp-warning)' : 'var(--cp-danger)';
+      const icon = h.type === 'exam' ? '\uD83D\uDCCB' : '\uD83D\uDCDD';
+      const dateStr = new Date(h.date).toLocaleDateString('he-IL', {day:'2-digit', month:'2-digit'});
+      html += `<div class="chart-bar" style="height:${height}%;background:${color}" data-tooltip="${icon} ${h.pct}% (${dateStr})"></div>`;
+    });
+    html += '</div>';
+    html += '<div class="chart-labels">';
+    recent.forEach((h) => {
+      const d = new Date(h.date);
+      html += `<span>${d.getDate()}/${d.getMonth()+1}</span>`;
+    });
+    html += '</div></div>';
+  }
+
+  // Topic breakdown
+  html += '<div class="stats-section"><h3>&#x1F4CA; \u05E4\u05D9\u05E8\u05D5\u05D8 \u05DC\u05E4\u05D9 \u05E0\u05D5\u05E9\u05D0</h3>';
+  html += '<table class="stats-table"><tr><th>\u05E0\u05D5\u05E9\u05D0</th><th>\u05E0\u05DB\u05D5\u05E0\u05D5\u05EA</th><th>\u05E9\u05D0\u05DC\u05D5\u05EA</th><th>\u05D0\u05D7\u05D5\u05D6</th><th>\u05E8\u05DE\u05D4</th></tr>';
+  Object.entries(topicAgg).sort((a,b) => (a[1].correct/a[1].total) - (b[1].correct/b[1].total)).forEach(([t, v]) => {
+    const tPct = Math.round(v.correct / v.total * 100);
+    const cls = tPct >= 70 ? 'score-high' : tPct >= 50 ? 'score-mid' : 'score-low';
+    const color = tPct >= 70 ? 'var(--cp-success)' : tPct >= 50 ? 'var(--cp-warning)' : 'var(--cp-danger)';
+    html += `<tr>
+      <td>${topicLabels[t] || t}</td>
+      <td>${v.correct}/${v.total}</td>
+      <td>${v.total}</td>
+      <td class="${cls}">${tPct}%</td>
+      <td><div class="topic-bar-wrap"><div class="topic-bar-fill" style="width:${tPct}%;background:${color}"></div></div></td>
+    </tr>`;
+  });
+  html += '</table></div>';
+
+  // Exam history table
+  if (exams.length > 0) {
+    html += '<div class="stats-section"><h3>&#x1F4CB; \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D9\u05EA \u05DE\u05D1\u05D7\u05E0\u05D9\u05DD</h3>';
+    html += '<table class="stats-table"><tr><th>#</th><th>\u05EA\u05D0\u05E8\u05D9\u05DA</th><th>\u05E6\u05D9\u05D5\u05DF</th><th>\u05E9\u05D0\u05DC\u05D5\u05EA</th><th>\u05D6\u05DE\u05DF</th></tr>';
+    exams.slice().reverse().forEach((h, i) => {
+      const cls = h.pct >= 70 ? 'score-high' : h.pct >= 50 ? 'score-mid' : 'score-low';
+      const dateStr = new Date(h.date).toLocaleDateString('he-IL', {day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'});
+      let dur = '-';
+      if (h.duration) {
+        const dm = Math.floor(h.duration / 60);
+        const ds = h.duration % 60;
+        dur = dm + ':' + String(ds).padStart(2,'0');
+      }
+      html += `<tr><td>${exams.length - i}</td><td>${dateStr}</td><td class="${cls}">${h.pct}%</td><td>${h.correct}/${h.total}</td><td>${dur}</td></tr>`;
+    });
+    html += '</table></div>';
+  }
+
+  // Practice history
+  if (practices.length > 0) {
+    html += '<div class="stats-section"><h3>&#x1F4DD; \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D9\u05EA \u05EA\u05E8\u05D2\u05D5\u05DC</h3>';
+    html += '<table class="stats-table"><tr><th>#</th><th>\u05EA\u05D0\u05E8\u05D9\u05DA</th><th>\u05E6\u05D9\u05D5\u05DF</th><th>\u05E9\u05D0\u05DC\u05D5\u05EA</th></tr>';
+    practices.slice().reverse().slice(0, 20).forEach((h, i) => {
+      const cls = h.pct >= 70 ? 'score-high' : h.pct >= 50 ? 'score-mid' : 'score-low';
+      const dateStr = new Date(h.date).toLocaleDateString('he-IL', {day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'});
+      html += `<tr><td>${practices.length - i}</td><td>${dateStr}</td><td class="${cls}">${h.pct}%</td><td>${h.correct}/${h.total}</td></tr>`;
+    });
+    html += '</table></div>';
+  }
+
+  // Clear button
+  html += '<div style="text-align:center"><button class="btn-clear-stats" onclick="clearStats()">\u26A0 \u05DE\u05D7\u05E7 \u05D0\u05EA \u05DB\u05DC \u05D4\u05E0\u05EA\u05D5\u05E0\u05D9\u05DD</button></div>';
+
+  container.innerHTML = html;
+}
+
+function clearStats() {
+  if (confirm("\u05D4\u05D0\u05DD \u05DC\u05DE\u05D7\u05D5\u05E7 \u05D0\u05EA \u05DB\u05DC \u05D4\u05E1\u05D8\u05D8\u05D9\u05E1\u05D8\u05D9\u05E7\u05D5\u05EA?")) {
+    localStorage.removeItem("cquiz_history");
+    renderStats();
+  }
+}
+
+// ============================================================
+//  BOOT
+// ============================================================
+initWelcome();
+</script>
+</body>
+</html>
