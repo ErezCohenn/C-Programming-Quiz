@@ -1293,6 +1293,120 @@ const ALL_QUESTIONS = [
   errors:["Compilation Error - **pp *= 2 אינו ביטוי חוקי","Compilation Error - אין אפשרות לבצע *= על מצביע כפול"],
   explanation:"*p += 5: x = 15. **pp *= 2: x = 30. כל המצביעים מצביעים לאותו x.",
   noneExplanation:"התשובה הנכונה היא 30"
+},
+// ======== FROM EXAMS ========
+{
+  topic:"bitwise", code:`#include <stdio.h>\n#define SFUNC(a, b, c) (a | b & c)\nvoid main() {\n    unsigned char x[4] = {0x11, 0x96, 0x8C, 0x1C};\n    unsigned char res;\n    res = SFUNC(x[0], x[1], x[2]^x[3]);\n    printf("RES = %x", res);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"RES = 99",
+  wrongs:["RES = 91","RES = b7"],
+  errors:["Compilation Error - XOR לא מוגדר בין איברי מערך unsigned char","Compilation Error - מאקרו SFUNC לא יכול לקבל ביטוי עם אופרטורים"],
+  explanation:"המאקרו מתפרש ל-(x[0] | x[1] & x[2]^x[3]). קדימות: & > ^ > |. 0x96 & 0x8C = 0x84. 0x84 ^ 0x1C = 0x98. 0x11 | 0x98 = 0x99."
+},
+{
+  topic:"variables", code:`#include <stdio.h>\nchar *s = "abcdefghijklmnopqrstuvwxyz";\nint a;\n\nint f(char *s) {\n    static int a = 2;\n    int b = 2;\n    printf("%c ", *(s+(a++)+(--b)));\n}\n\nvoid main() {\n    f(s+a++);\n    {\n        int a = 3;\n        f(s+a++);\n    }\n    f(s+a++);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"d h g ",
+  wrongs:["f i h ","d g f "],
+  errors:["Compilation Error - static int a מתנגש עם הפרמטר של הפונקציה","Compilation Error - int a = 3 בבלוק מתנגש עם ההגדרה הגלובלית"],
+  explanation:"a גלובלי=0. static a ב-f שומר ערך בין קריאות: 2, אחר כך 3, ואז 4. b=2 בכל קריאה ולכן --b נותן 1. הקריאות הן: f(s+0) -> 'd', אחר כך f(s+3) -> 'h', ולבסוף f(s+1) -> 'g'."
+},
+{
+  topic:"bitwise", code:`#include <stdio.h>\nint main() {\n    unsigned char x = 0xAA;\n    unsigned char y = 0x55;\n    unsigned char result = (x | y) ^ (x & y);\n    printf("%d", result);\n    return 0;\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"255",
+  wrongs:["0","170"],
+  errors:["Compilation Error - אין אפשרות לשלב | ו-^ באותו ביטוי","Compilation Error - תוצאת XOR חורגת מטווח unsigned char"],
+  explanation:"x|y = 0xFF, x&y = 0x00. לכן 0xFF ^ 0x00 = 0xFF = 255. זה שקול גם ל-x^y."
+},
+{
+  topic:"structs", code:`#include <stdio.h>\n#define PRINT(i, limit) if(i < ++limit) printf("1"); else printf("0");\nvoid main() {\n    int x = 1, y = 0;\n    PRINT(x, y);\n    PRINT(x, y);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"01",
+  wrongs:["10","11"],
+  errors:["Compilation Error - מאקרו PRINT לא יכול להכיל if-else","Compilation Error - ++limit לא חוקי בתוך מאקרו"],
+  explanation:"PRINT מתפרש ל-if(i < ++limit). בקריאה הראשונה ++y=1 ולכן 1<1 שקר ומודפס 0. בקריאה השנייה ++y=2 ולכן 1<2 אמת ומודפס 1."
+},
+{
+  topic:"bitwise", code:`#include <stdio.h>\nvoid func() {\n    unsigned char c = 0xD6;\n    unsigned char res = 0;\n    int i;\n    for (i = 0; i < 8; i++) {\n        if (!(c & (1 << i)))\n            res |= (1 << (7 - i));\n    }\n    printf("%X", res);\n}\nvoid main() { func(); }`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"94",
+  wrongs:["D6","29"],
+  errors:["Compilation Error - 1 << i חורג מטווח unsigned char","Compilation Error - !(c & (1 << i)) לא חוקי בביטוי בוליאני"],
+  explanation:"c=0xD6=11010110. הביטים הכבויים הם 0, 3, 5 והם מועתקים למיקום המשוקף 7, 4, 2. לכן res = 10010100 = 0x94."
+},
+{
+  topic:"structs", code:`#include <stdio.h>\n#define M(x, y) (x * 3) >= (y / 3) ? (x / 3) : (y * 3)\nvoid main() {\n    double num;\n    num = M(2 + 5, 4 + 7);\n    printf("%.1f", num);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"3.0",
+  wrongs:["25.0","7.0"],
+  errors:["Compilation Error - מאקרו M לא יכול להחזיר double","Compilation Error - אין אפשרות להשוות >= בתוך מאקרו עם ?:"],
+  explanation:"בגלל שחסרים סוגריים סביב הפרמטרים, M(2+5,4+7) מתפרש ל-(2+5*3)>=(4+7/3)?(2+5/3):(4+7*3). עם חילוק שלמים מתקבל 17>=6 ולכן מוחזר 3, שמודפס כ-3.0."
+},
+{
+  topic:"structs", code:`#include <stdio.h>\n#define X 3\nvoid main() {\n#if !X\n    printf("Hello");\n#else\n    printf("World");\n#endif\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"World",
+  wrongs:["Hello","HelloWorld"],
+  errors:["Compilation Error - #if !X לא חוקי כי X מוגדר כמספר","Compilation Error - #if ו-#else לא יכולים להופיע בתוך פונקציה"],
+  explanation:"X הוא 3 ולכן !X הוא 0. תנאי ה-#if שקרי, בלוק ה-#else נכלל בקומפילציה, ומודפס World."
+},
+{
+  topic:"structs", code:`#include <stdio.h>\n#define INCREMENT(x) ((x)+1)\n#define SQUARE(x) (x * x)\nint main() {\n    int num = 2;\n    int res = SQUARE(INCREMENT(num));\n    printf("%d", res);\n    return 0;\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"9",
+  wrongs:["8","16"],
+  errors:["Compilation Error - אין אפשרות לקנן מאקרו בתוך מאקרו","Compilation Error - INCREMENT מחזיר double ולא int"],
+  explanation:"INCREMENT(num) מתרחב ל-((num)+1), ולכן SQUARE(INCREMENT(num)) נהיה (((num)+1) * ((num)+1)). עבור num=2 מתקבל 3*3 = 9."
+},
+{
+  topic:"structs", code:`#include <stdio.h>\n#define INCREMENT(x) (x+1)\n#define SQUARE(x) (x * x)\nint main() {\n    int num = 2;\n    int res = SQUARE(INCREMENT(num+1));\n    printf("%d", res);\n    return 0;\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"__NONE__",
+  wrongs:["9","25"],
+  errors:["Compilation Error - אין אפשרות לקנן מאקרו בתוך מאקרו","Compilation Error - num+1 לא חוקי כארגומנט למאקרו"],
+  explanation:"INCREMENT(num+1) מתרחב ל-(num+1+1). אחר כך SQUARE מפעיל את הביטוי פעמיים: ((num+1+1) * (num+1+1)). עבור num=2 מתקבל 4*4 = 16.",
+  noneExplanation:"התשובה הנכונה היא 16 - כי סוגריי הקריאה ל-INCREMENT שומרים על הביטוי"
+},
+{
+  topic:"bitwise", code:`#include <stdio.h>\nunsigned char func(unsigned char a, int num) {\n    unsigned char tmp;\n    int i;\n    unsigned char mask = 0;\n    for (i = 0; i < num; i++) {\n        mask <<= 1;\n        mask |= 1;\n    }\n    tmp = a & mask;\n    a >>= num;\n    tmp <<= 8 - num;\n    a = a | tmp;\n    return a;\n}\nvoid main() {\n    printf("%X", func(0xAB, 3));\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"75",
+  wrongs:["AB","D5"],
+  errors:["Compilation Error - mask <<= 1 לא חוקי על unsigned char","Compilation Error - tmp <<= 8 - num עלול לגרום לחריגה"],
+  explanation:"הפונקציה מבצעת סיבוב ימינה ב-num ביטים. עבור 0xAB=10101011 ו-num=3: mask=0x07, tmp=00000011, a>>=3 נותן 00010101, tmp<<=5 נותן 01100000, ובסוף OR נותן 01110101 = 0x75."
+},
+{
+  topic:"pointers", code:`#include <stdio.h>\n#include <string.h>\nchar a[100] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";\nint m, n;\n\nint f(char *b, int t) {\n    char s[100];\n    strcpy(s, b);\n    strcpy(s, a + t);\n    strcpy(b, s);\n    return t;\n}\n\nvoid main() {\n    int m = 1;\n    n = f(a, m + n);\n    n = f(a, m + n);\n    printf("%s", a);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"DEFGHIJKLMNOPQRSTUVWXYZ",
+  wrongs:["BCDEFGHIJKLMNOPQRSTUVWXYZ","CDEFGHIJKLMNOPQRSTUVWXYZ"],
+  errors:["Compilation Error - strcpy לא יכולה לעבוד עם מערך גלובלי","Compilation Error - f מחזירה int אך משתמשת ב-strcpy שמחזירה char*"],
+  explanation:"ההשמה המשמעותית בתוך f היא strcpy(b, a + t), ולכן בפועל מוזזת תחילת המחרוזת. בקריאה הראשונה t=1 ולכן a נהיית \"BCDEFGHIJKLMNOPQRSTUVWXYZ\". אחר כך n=1, ובקריאה השנייה t=2 מתוך המחרוזת החדשה, לכן מתקבל \"DEFGHIJKLMNOPQRSTUVWXYZ\"."
+},
+{
+  topic:"variables", code:`#include <stdio.h>\n#include <stdbool.h>\n\nbool f(char* str) {\n    static char* p = NULL;\n    if (p == NULL) {\n        p = str;\n        return 1;\n    }\n    else if (*p == '\\0')\n        return 0;\n    else {\n        *str = *p;\n        p++;\n        return 1;\n    }\n}\n\nint main() {\n    char name[] = "Yuval";\n    while (f(name))\n        ;\n    printf("%s", name);\n    return 0;\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"luval",
+  wrongs:["Yuval","lavuY"],
+  errors:["Compilation Error - bool לא מוגדר ב-C ללא stdbool.h","Compilation Error - static char* p לא יכול לשמור כתובת של משתנה מקומי"],
+  explanation:"בקריאה הראשונה p מאותחל ל-name. אחר כך בכל קריאה נכתב *p אל name[0], כי הפרמטר str תמיד מצביע לתחילת המחרוזת ולא מתקדם. לכן name[0] משתנה לפי התווים Y,u,v,a,l, ובסוף נשאר 'l'. המחרוזת הסופית היא luval."
+},
+{
+  topic:"io", code:`#include <stdio.h>\nvoid main() {\n    float x = 10;\n    int y = 20;\n    float arr[] = {2.1, 4.3, 6.4, 8, 9.5, 10, 12.8, 14.1, 16.22, 18.9};\n    float *ptr1, *ptr2;\n    ptr1 = arr;\n    *(ptr1 + 2) = y;\n    ptr2 = &x + 3;\n    printf("%.2f\\n", *(ptr1 + 2));\n}`,
+  question:"מה ידפיס קטע הקוד הבא? (הנח שכתובת x היא 1000 והזיכרון רציף)",
+  correct:"20.00",
+  wrongs:["6.40","10.00"],
+  errors:["Compilation Error - &x + 3 לא חוקי על float","Compilation Error - *(ptr1 + 2) = y השמת int ל-float דורשת casting"],
+  explanation:"ptr1 מצביע לתחילת arr. ההשמה *(ptr1 + 2) = y מעדכנת את arr[2] ל-20.0, כי int מומר אוטומטית ל-float. ptr2 כלל לא משמש בהמשך. לכן printf מדפיס 20.00."
+},
+{
+  topic:"bitwise", code:`#include <stdio.h>\nint main() {\n    unsigned char x = 224;\n    unsigned char y = 31;\n    unsigned char result = (x | y) & ~(x & y);\n    printf("%d", result);\n    return 0;\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"255",
+  wrongs:["0","224"],
+  errors:["Compilation Error - ~ (NOT) לא מוגדר על unsigned char","Compilation Error - אין אפשרות לשלב | ו-& ו-~ באותו ביטוי"],
+  explanation:"x=224=11100000 ו-y=31=00011111. לכן x|y = 11111111, x&y = 00000000, ו-~(x&y) משאיר את כל הביטים דלוקים. התוצאה היא 11111111 = 255. זהו גם ביטוי שקול ל-x^y."
 }
 ];
 
