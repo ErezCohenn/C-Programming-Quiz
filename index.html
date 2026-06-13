@@ -1407,6 +1407,137 @@ const ALL_QUESTIONS = [
   wrongs:["0","224"],
   errors:["Compilation Error - ~ (NOT) לא מוגדר על unsigned char","Compilation Error - אין אפשרות לשלב | ו-& ו-~ באותו ביטוי"],
   explanation:"x=224=11100000 ו-y=31=00011111. לכן x|y = 11111111, x&y = 00000000, ו-~(x&y) משאיר את כל הביטים דלוקים. התוצאה היא 11111111 = 255. זהו גם ביטוי שקול ל-x^y."
+},
+// ======== LINKED LISTS (hard) ========
+{
+  topic:"lists", code:`#include <stdio.h>\ntypedef struct node {\n    int data;\n    struct node *next;\n} ListNode;\nvoid f(ListNode *p) {\n    if (p == NULL) return;\n    f(p->next);\n    printf("%d ", p->data);\n}\nvoid main() {\n    ListNode d = {4, NULL};\n    ListNode c = {3, &d};\n    ListNode b = {2, &c};\n    ListNode a = {1, &b};\n    f(a.next);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"4 3 2 ",
+  wrongs:["1 2 3 4 ","2 3 4 "],
+  errors:["Compilation Error - a.next לא חוקי, צריך a->next","Compilation Error - לא ניתן להעביר שדה next כפרמטר לפונקציה רקורסיבית"],
+  explanation:"f מקבלת a.next = &b (לא &a!). הרקורסיה יורדת עד NULL ואז מדפיסה בחזרה: d(4), c(3), b(2). a לא מודפס כי הקריאה התחילה מ-b."
+},
+{
+  topic:"lists", code:`#include <stdio.h>\ntypedef struct node {\n    int data;\n    struct node *next;\n} ListNode;\nvoid main() {\n    ListNode d = {40, NULL};\n    ListNode c = {30, &d};\n    ListNode b = {20, &c};\n    ListNode a = {10, &b};\n    a.next->next->next = &a;\n    ListNode *p = &a;\n    int i, sum = 0;\n    for (i = 0; i < 6; i++) {\n        sum += p->data;\n        p = p->next;\n    }\n    printf("%d", sum);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"__NONE__",
+  wrongs:["100","130"],
+  errors:["Compilation Error - a.next->next->next = &a יוצר מעגל ולא חוקי","Compilation Error - לולאה על רשימה מעגלית גורמת לשגיאת קומפילציה"],
+  explanation:"a.next->next->next הוא c.next. ההשמה c.next = &a יוצרת רשימה מעגלית: a(10)->b(20)->c(30)->a(10)->... הצומת d מנותק. 6 איטרציות: 10+20+30+10+20+30 = 120.",
+  noneExplanation:"התשובה הנכונה היא 120"
+},
+{
+  topic:"lists", code:`#include <stdio.h>\n#include <stdlib.h>\ntypedef struct node {\n    int data;\n    struct node *next;\n} ListNode;\ntypedef struct {\n    ListNode *head;\n} List;\nvoid addToStart(List lst, int data) {\n    ListNode *n = (ListNode*)malloc(sizeof(ListNode));\n    n->data = data;\n    n->next = lst.head;\n    lst.head = n;\n}\nvoid main() {\n    ListNode b = {20, NULL};\n    ListNode a = {10, &b};\n    List lst;\n    lst.head = &a;\n    addToStart(lst, 5);\n    printf("%d %d", lst.head->data, lst.head->next->data);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"10 20",
+  wrongs:["5 10","5 20"],
+  errors:["Compilation Error - lst.head = &a לא חוקי כי a הוגדר על המחסנית","Compilation Error - addToStart צריכה להחזיר List ולא void"],
+  explanation:"addToStart מקבלת את lst בהעברת ערך (by value). לכן השינוי lst.head = n בתוך הפונקציה לא משפיע על lst ב-main. הרשימה נשארת a(10)->b(20). נדרשת העברת כתובת (List*) כדי לשנות את head."
+},
+{
+  topic:"lists", code:`#include <stdio.h>\ntypedef struct node {\n    int data;\n    struct node *next;\n} ListNode;\nvoid removeFirst(ListNode **head) {\n    *head = (*head)->next;\n}\nvoid main() {\n    ListNode c = {30, NULL};\n    ListNode b = {20, &c};\n    ListNode a = {10, &b};\n    ListNode *head = &a;\n    removeFirst(&head);\n    removeFirst(&head);\n    printf("%d", head->data);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"30",
+  wrongs:["10","20"],
+  errors:["Compilation Error - ListNode **head הוא מצביע כפול ולא מוגדר על struct","Compilation Error - (*head)->next דורש casting מפורש"],
+  explanation:"removeFirst משנה את *head (את המצביע head ב-main) להצביע ל-next. קריאה ראשונה: head = &b (10 הוסר). קריאה שנייה: head = &c (20 הוסר). נשאר: c(30)."
+},
+{
+  topic:"lists", code:`#include <stdio.h>\ntypedef struct node {\n    int data;\n    struct node *next;\n} ListNode;\nint count = 0;\nvoid f(ListNode *p) {\n    if (p == NULL) return;\n    count++;\n    f(p->next);\n    printf("%d ", p->data + count);\n}\nvoid main() {\n    ListNode c = {10, NULL};\n    ListNode b = {20, &c};\n    ListNode a = {30, &b};\n    f(&a);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"13 23 33 ",
+  wrongs:["33 23 13 ","31 22 13 "],
+  errors:["Compilation Error - משתנה גלובלי count מתנגש עם מילה שמורה","Compilation Error - p->data + count לא חוקי כי count הוא גלובלי"],
+  explanation:"f רקורסיבית: count עולה ל-3 (גלובלי). ההדפסה בחזרה מהרקורסיה: c: 10+3=13, b: 20+3=23, a: 30+3=33. count כבר 3 בכל ההדפסות כי הוא גלובלי ולא משתנה בחזרה."
+},
+{
+  topic:"lists", code:`#include <stdio.h>\n#include <stdlib.h>\ntypedef struct node {\n    int data;\n    struct node *next;\n} ListNode;\nvoid insertAfter(ListNode *prev, int data) {\n    ListNode *n = (ListNode*)malloc(sizeof(ListNode));\n    n->data = data;\n    n->next = prev->next;\n    prev->next = n;\n}\nvoid main() {\n    ListNode c = {30, NULL};\n    ListNode b = {20, &c};\n    ListNode a = {10, &b};\n    insertAfter(&a, 15);\n    insertAfter(&b, 25);\n    ListNode *p = &a;\n    while (p) {\n        printf("%d ", p->data);\n        p = p->next;\n    }\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"10 15 20 25 30 ",
+  wrongs:["10 20 15 25 30 ","10 15 25 20 30 "],
+  errors:["Compilation Error - insertAfter משנה struct שהוקצה על המחסנית","Compilation Error - prev->next = n גורם לדליפת זיכרון ושגיאת קומפילציה"],
+  explanation:"insertAfter(&a, 15): מכניס 15 אחרי a. הרשימה: a(10)->15->b(20)->c(30). insertAfter(&b, 25): מכניס 25 אחרי b. הרשימה: a(10)->15->b(20)->25->c(30)."
+},
+{
+  topic:"lists", code:`#include <stdio.h>\ntypedef struct node {\n    int data;\n    struct node *next;\n} ListNode;\nint mystery(ListNode *head) {\n    if (head == NULL) return 0;\n    if (head->data % 2 == 0)\n        return mystery(head->next);\n    return 1 + mystery(head->next);\n}\nvoid main() {\n    ListNode f = {6, NULL};\n    ListNode e = {5, &f};\n    ListNode d = {4, &e};\n    ListNode c = {3, &d};\n    ListNode b = {2, &c};\n    ListNode a = {1, &b};\n    printf("%d", mystery(&a));\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"3",
+  wrongs:["6","4"],
+  errors:["Compilation Error - head->data % 2 לא מוגדר על struct","Compilation Error - רקורסיה עם שני return לא חוקית ב-C"],
+  explanation:"mystery סופרת רק איברים אי-זוגיים ברשימה. הרשימה: 1,2,3,4,5,6. אי-זוגיים: 1,3,5 - סה\"כ 3."
+},
+{
+  topic:"lists", code:`#include <stdio.h>\ntypedef struct node {\n    int data;\n    struct node *next;\n} ListNode;\nint f(ListNode *p, int n) {\n    static int calls = 0;\n    calls++;\n    if (p->next == NULL)\n        return p->data;\n    return p->data + f(p->next, n + 1) + calls;\n}\nvoid main() {\n    ListNode c = {1, NULL};\n    ListNode b = {2, &c};\n    ListNode a = {3, &b};\n    printf("%d", f(&a, 0));\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"12",
+  wrongs:["6","9"],
+  errors:["Compilation Error - static int calls בתוך פונקציה רקורסיבית לא חוקי","Compilation Error - calls משתנה סטטי ולא ניתן לקרוא לו מחוץ לפונקציה"],
+  explanation:"f(&a,0): calls=1, return 3 + f(&b,1) + calls. f(&b,1): calls=2, return 2 + f(&c,2) + calls. f(&c,2): calls=3, p->next==NULL, return 1. חזרה: f(&b)=2+1+3=6. f(&a)=3+6+3=12. calls הוא static ושווה 3 בכל החזרות."
+},
+// ======== BINARY TREES (hard) ========
+{
+  topic:"trees", code:`#include <stdio.h>\n#include <stdlib.h>\ntypedef struct treeNode {\n    int data;\n    struct treeNode *left, *right;\n} TreeNode;\nvoid inOrder(TreeNode *root) {\n    if (root == NULL) return;\n    inOrder(root->left);\n    printf("%d ", root->data);\n    inOrder(root->right);\n}\nvoid main() {\n    TreeNode *n1, *n2, *n3, *n4, *n5;\n    n1 = (TreeNode*)malloc(sizeof(TreeNode));\n    n2 = (TreeNode*)malloc(sizeof(TreeNode));\n    n3 = (TreeNode*)malloc(sizeof(TreeNode));\n    n4 = (TreeNode*)malloc(sizeof(TreeNode));\n    n5 = (TreeNode*)malloc(sizeof(TreeNode));\n    n1->data=1; n1->left=n1->right=NULL;\n    n2->data=3; n2->left=n2->right=NULL;\n    n3->data=2; n3->left=n1; n3->right=n2;\n    n4->data=7; n4->left=n4->right=NULL;\n    n5->data=5; n5->left=n3; n5->right=n4;\n    inOrder(n5);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"1 2 3 5 7 ",
+  wrongs:["5 2 1 3 7 ","1 3 2 7 5 "],
+  errors:["Compilation Error - n1->left=n1->right=NULL השמה כפולה לא חוקית","Compilation Error - struct treeNode חייב להכיל typedef לפני השימוש בפונקציה"],
+  explanation:"העץ: 5 (שורש), שמאל: 2 (עם בנים 1,3), ימין: 7. InOrder (LDR): שמאל-שורש-ימין. 1, 2, 3, 5, 7."
+},
+{
+  topic:"trees", code:`#include <stdio.h>\ntypedef struct treeNode {\n    int data;\n    struct treeNode *left, *right;\n} TreeNode;\nvoid preOrder(TreeNode *root) {\n    if (root == NULL) return;\n    printf("%d ", root->data);\n    preOrder(root->left);\n    preOrder(root->right);\n}\nvoid main() {\n    TreeNode f = {9, NULL, NULL};\n    TreeNode e = {7, NULL, &f};\n    TreeNode d = {6, NULL, NULL};\n    TreeNode c = {4, &d, NULL};\n    TreeNode b = {3, &c, &e};\n    TreeNode a = {1, &b, NULL};\n    preOrder(&a);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"1 3 4 6 7 9 ",
+  wrongs:["6 4 3 9 7 1 ","1 3 7 4 6 9 "],
+  errors:["Compilation Error - TreeNode f מוגדר לפני TreeNode e שמשתמש בו","Compilation Error - &f לא חוקי כי f הוא struct על המחסנית"],
+  explanation:"העץ: 1->(3->(4->6, 7->9)). PreOrder (DLR): שורש-שמאל-ימין. 1, 3, 4, 6, 7, 9."
+},
+{
+  topic:"trees", code:`#include <stdio.h>\ntypedef struct treeNode {\n    int data;\n    struct treeNode *left, *right;\n} TreeNode;\nint height(TreeNode *root) {\n    if (root == NULL) return -1;\n    int hL = height(root->left);\n    int hR = height(root->right);\n    return (hL > hR ? hL : hR) + 1;\n}\nvoid main() {\n    TreeNode f = {6, NULL, NULL};\n    TreeNode e = {5, &f, NULL};\n    TreeNode d = {4, NULL, NULL};\n    TreeNode c = {3, NULL, NULL};\n    TreeNode b = {2, &d, &e};\n    TreeNode a = {1, &b, &c};\n    printf("%d", height(&a));\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"3",
+  wrongs:["2","4"],
+  errors:["Compilation Error - return -1 לא חוקי כערך החזרה עבור גובה עץ","Compilation Error - הביטוי hL > hR ? hL : hR דורש סוגריים חיצוניים"],
+  explanation:"העץ: 1->(2->(4, 5->6), 3). המסלול הארוך ביותר: 1->2->5->6 = 3 קשתות. height(NULL)=-1, height(עלה)=0. height(5)=1, height(2)=2, height(1)=3."
+},
+{
+  topic:"trees", code:`#include <stdio.h>\ntypedef struct treeNode {\n    int data;\n    struct treeNode *left, *right;\n} TreeNode;\nint numLeaves(TreeNode *root) {\n    if (root == NULL) return 0;\n    if (root->left == NULL && root->right == NULL) return 1;\n    return numLeaves(root->left) + numLeaves(root->right);\n}\nvoid main() {\n    TreeNode g = {7, NULL, NULL};\n    TreeNode f = {6, NULL, NULL};\n    TreeNode e = {5, NULL, NULL};\n    TreeNode d = {4, NULL, &g};\n    TreeNode c = {3, &f, NULL};\n    TreeNode b = {2, &d, &e};\n    TreeNode a = {1, &b, &c};\n    printf("%d", numLeaves(&a));\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"3",
+  wrongs:["4","7"],
+  errors:["Compilation Error - root->left == NULL && root->right == NULL דורש סוגריים","Compilation Error - numLeaves לא יכולה להחזיר 0 ו-1 באותו הגדרה"],
+  explanation:"העץ: 1->(2->(4->7, 5), 3->(6)). עלים הם צמתים ללא בנים: 7, 5, 6. סה\"כ 3 עלים. d(4) אינו עלה כי יש לו בן ימני (7)."
+},
+{
+  topic:"trees", code:`#include <stdio.h>\ntypedef struct treeNode {\n    int data;\n    struct treeNode *left, *right;\n} TreeNode;\nint mystery(TreeNode *root, int level) {\n    if (root == NULL) return 0;\n    if (level == 0) return root->data;\n    return mystery(root->left, level-1) + mystery(root->right, level-1);\n}\nvoid main() {\n    TreeNode d = {8, NULL, NULL};\n    TreeNode e = {2, NULL, NULL};\n    TreeNode f = {6, NULL, NULL};\n    TreeNode b = {4, &d, &e};\n    TreeNode c = {5, &f, NULL};\n    TreeNode a = {1, &b, &c};\n    printf("%d", mystery(&a, 2));\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"16",
+  wrongs:["10","26"],
+  errors:["Compilation Error - level-1 לא חוקי כפרמטר רקורסיבי","Compilation Error - mystery חייבת לקבל TreeNode ולא TreeNode*"],
+  explanation:"mystery מחשבת סכום ערכי הצמתים ברמה מסוימת. העץ: 1->(4->(8,2), 5->(6)). ברמה 2: mystery(b,1)=mystery(d,0)+mystery(e,0)=8+2=10. mystery(c,1)=mystery(f,0)+mystery(NULL,0)=6+0=6. סה\"כ: 16."
+},
+{
+  topic:"trees", code:`#include <stdio.h>\ntypedef struct treeNode {\n    int data;\n    struct treeNode *left, *right;\n} TreeNode;\nvoid addDepth(TreeNode *root, int depth) {\n    if (root == NULL) return;\n    root->data += depth;\n    addDepth(root->left, depth + 1);\n    addDepth(root->right, depth + 1);\n}\nvoid inOrder(TreeNode *root) {\n    if (root == NULL) return;\n    inOrder(root->left);\n    printf("%d ", root->data);\n    inOrder(root->right);\n}\nvoid main() {\n    TreeNode d = {10, NULL, NULL};\n    TreeNode e = {10, NULL, NULL};\n    TreeNode b = {10, &d, &e};\n    TreeNode c = {10, NULL, NULL};\n    TreeNode a = {10, &b, &c};\n    addDepth(&a, 0);\n    inOrder(&a);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"12 11 12 10 11 ",
+  wrongs:["10 11 12 11 12 ","10 10 10 10 10 "],
+  errors:["Compilation Error - root->data += depth משנה struct שמועבר כמצביע, לא חוקי","Compilation Error - שתי פונקציות רקורסיביות באותו קובץ גורמות להתנגשות"],
+  explanation:"addDepth מוסיפה את העומק לכל צומת. a(רמה 0)=10, b(רמה 1)=11, c(רמה 1)=11, d(רמה 2)=12, e(רמה 2)=12. InOrder (LDR): d(12) b(11) e(12) a(10) c(11)."
+},
+{
+  topic:"trees", code:`#include <stdio.h>\n#include <stdlib.h>\ntypedef struct treeNode {\n    int data;\n    struct treeNode *left, *right;\n} TreeNode;\nTreeNode* create(int data, TreeNode *l, TreeNode *r) {\n    TreeNode *n = (TreeNode*)malloc(sizeof(TreeNode));\n    n->data = data; n->left = l; n->right = r;\n    return n;\n}\nvoid printPath(TreeNode *root) {\n    if (root == NULL) return;\n    printf("%d ", root->data);\n    if (root->left != NULL)\n        printPath(root->left);\n    else\n        printPath(root->right);\n}\nvoid main() {\n    TreeNode *t = create(1,\n        create(2, NULL, create(5, NULL, NULL)),\n        create(3, create(6, NULL, NULL), NULL));\n    printPath(t);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"1 2 5 ",
+  wrongs:["1 2 ","1 3 6 "],
+  errors:["Compilation Error - create מחזירה מצביע ולכן לא ניתן להעביר כפרמטר ל-create","Compilation Error - קריאות create מקוננות גורמות ל-stack overflow בקומפילציה"],
+  explanation:"העץ: 1->(2->(NULL,5), 3->(6,NULL)). printPath הולכת שמאלה אם אפשר, אחרת ימינה. מ-1: שמאל קיים (2). מ-2: שמאל NULL, הולכת ימינה (5). מ-5: שמאל NULL, ימין NULL - return. תוצאה: 1 2 5."
+},
+{
+  topic:"trees", code:`#include <stdio.h>\ntypedef struct treeNode {\n    int data;\n    struct treeNode *left, *right;\n} TreeNode;\nvoid postOrder(TreeNode *root) {\n    if (root == NULL) return;\n    postOrder(root->left);\n    postOrder(root->right);\n    printf("%d ", root->data);\n}\nvoid main() {\n    TreeNode g = {7, NULL, NULL};\n    TreeNode f = {6, NULL, NULL};\n    TreeNode e = {5, NULL, NULL};\n    TreeNode d = {4, NULL, NULL};\n    TreeNode c = {3, &f, &g};\n    TreeNode b = {2, &d, &e};\n    TreeNode a = {1, &b, &c};\n    postOrder(&a);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"4 5 2 6 7 3 1 ",
+  wrongs:["1 2 4 5 3 6 7 ","4 2 5 6 3 7 1 "],
+  errors:["Compilation Error - postOrder מוגדרת לפני main אך ללא prototype","Compilation Error - root->left ו-root->right חייבים להיות מאותחלים ב-malloc"],
+  explanation:"העץ: 1->(2->(4,5), 3->(6,7)). PostOrder (LRD): שמאל-ימין-שורש. תת-עץ שמאלי: 4,5,2. תת-עץ ימני: 6,7,3. שורש: 1. תוצאה: 4 5 2 6 7 3 1."
 }
 ];
 
@@ -1423,6 +1554,8 @@ const TOPICS = [
   {id:"functions",label:"פונקציות ורקורסיה", icon:"&#x2699;"},
   {id:"structs",  label:"מבנים, רשימות ומאקרו", icon:"&#x1F9F1;"},
   {id:"io",       label:"קלט/פלט וטיפוסים",  icon:"&#x1F4BB;"},
+  {id:"lists",    label:"רשימות מקושרות",    icon:"&#x1F517;"},
+  {id:"trees",    label:"עצים בינאריים",     icon:"&#x1F333;"},
 ];
 const NONE_TEXT = "אף תשובה אחרת אינה נכונה";
 
