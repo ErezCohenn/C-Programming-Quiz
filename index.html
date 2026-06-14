@@ -438,6 +438,20 @@ html[data-theme="light"] .tp { color: #b07800; }
   max-width: 60%;
   line-height: 1.5;
 }
+.btn-show-explanation {
+  background: var(--cp-surface-soft);
+  color: var(--cp-accent);
+  border: 1px solid var(--cp-accent);
+  border-radius: 0.5rem;
+  padding: 6px 16px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+.btn-show-explanation:hover { background: var(--cp-accent-soft); }
+.filter-toggle { display:flex; align-items:center; gap:8px; margin:8px 0; font-size:0.85rem; color:var(--cp-text-muted); }
+.filter-toggle input { accent-color: var(--cp-accent); }
 
 /* ========== END SCREEN ========== */
 .end-screen {
@@ -839,6 +853,10 @@ html[data-theme="light"] .tp { color: #b07800; }
           <option value="0">הכל</option>
         </select>
       </div>
+      <div class="filter-toggle">
+        <input type="checkbox" id="newOnlyCheck" checked>
+        <label for="newOnlyCheck">הצג רק שאלות חדשות / שנכשלתי בהן</label>
+      </div>
     </div>
     <div class="welcome-info">
       <strong>מבנה כל שאלה:</strong> 6 תשובות - מתוכן 2 תמיד "שגיאת קומפילציה" ואחת תמיד "אף תשובה אחרת אינה נכונה". התשובה הנכונה יכולה להיות כל אחת מהשש!
@@ -868,6 +886,10 @@ html[data-theme="light"] .tp { color: #b07800; }
           <option value="20" selected>20</option>
           <option value="0">הכל</option>
         </select>
+      </div>
+      <div class="filter-toggle" style="justify-content:center;">
+        <input type="checkbox" id="examNewOnlyCheck" checked>
+        <label for="examNewOnlyCheck">רק שאלות חדשות / שנכשלתי בהן</label>
       </div>
       <button class="btn-exam" onclick="startExam()">&#x1F680; התחל מבחן</button>
     </div>
@@ -904,7 +926,10 @@ html[data-theme="light"] .tp { color: #b07800; }
         <div class="answers-list" id="answersList"></div>
       </div>
       <div class="question-controls">
-        <div class="explanation-text" id="explanationText"></div>
+        <div class="explanation-wrap" id="explanationWrap" style="display:none">
+          <button class="btn-show-explanation" id="showExplanationBtn">הצג הסבר</button>
+          <div class="explanation-text" id="explanationText" style="display:none"></div>
+        </div>
         <button class="btn-primary" id="actionBtn" disabled>בדיקה</button>
       </div>
     </div>
@@ -1412,7 +1437,1623 @@ const ALL_QUESTIONS = [
   wrongs:["0","224"],
   errors:["Compilation Error - ~ (NOT) לא מוגדר על unsigned char","Compilation Error - אין אפשרות לשלב | ו-& ו-~ באותו ביטוי"],
   explanation:"x=224=11100000 ו-y=31=00011111. לכן x|y = 11111111, x&y = 00000000, ו-~(x&y) משאיר את כל הביטים דלוקים. התוצאה היא 11111111 = 255. זהו גם ביטוי שקול ל-x^y."
+},
+// ======== LINKED LISTS (hard) ========
+{
+  topic:"lists", code:`#include <stdio.h>\ntypedef struct node {\n    int data;\n    struct node *next;\n} ListNode;\nvoid f(ListNode *p) {\n    if (p == NULL) return;\n    f(p->next);\n    printf("%d ", p->data);\n}\nvoid main() {\n    ListNode d = {4, NULL};\n    ListNode c = {3, &d};\n    ListNode b = {2, &c};\n    ListNode a = {1, &b};\n    f(a.next);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"4 3 2 ",
+  wrongs:["1 2 3 4 ","2 3 4 "],
+  errors:["Compilation Error - a.next לא חוקי, צריך a->next","Compilation Error - לא ניתן להעביר שדה next כפרמטר לפונקציה רקורסיבית"],
+  explanation:"f מקבלת a.next = &b (לא &a!). הרקורסיה יורדת עד NULL ואז מדפיסה בחזרה: d(4), c(3), b(2). a לא מודפס כי הקריאה התחילה מ-b."
+},
+{
+  topic:"lists", code:`#include <stdio.h>\ntypedef struct node {\n    int data;\n    struct node *next;\n} ListNode;\nvoid main() {\n    ListNode d = {40, NULL};\n    ListNode c = {30, &d};\n    ListNode b = {20, &c};\n    ListNode a = {10, &b};\n    a.next->next->next = &a;\n    ListNode *p = &a;\n    int i, sum = 0;\n    for (i = 0; i < 6; i++) {\n        sum += p->data;\n        p = p->next;\n    }\n    printf("%d", sum);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"__NONE__",
+  wrongs:["100","130"],
+  errors:["Compilation Error - a.next->next->next = &a יוצר מעגל ולא חוקי","Compilation Error - לולאה על רשימה מעגלית גורמת לשגיאת קומפילציה"],
+  explanation:"a.next->next->next הוא c.next. ההשמה c.next = &a יוצרת רשימה מעגלית: a(10)->b(20)->c(30)->a(10)->... הצומת d מנותק. 6 איטרציות: 10+20+30+10+20+30 = 120.",
+  noneExplanation:"התשובה הנכונה היא 120"
+},
+{
+  topic:"lists", code:`#include <stdio.h>\n#include <stdlib.h>\ntypedef struct node {\n    int data;\n    struct node *next;\n} ListNode;\ntypedef struct {\n    ListNode *head;\n} List;\nvoid addToStart(List lst, int data) {\n    ListNode *n = (ListNode*)malloc(sizeof(ListNode));\n    n->data = data;\n    n->next = lst.head;\n    lst.head = n;\n}\nvoid main() {\n    ListNode b = {20, NULL};\n    ListNode a = {10, &b};\n    List lst;\n    lst.head = &a;\n    addToStart(lst, 5);\n    printf("%d %d", lst.head->data, lst.head->next->data);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"10 20",
+  wrongs:["5 10","5 20"],
+  errors:["Compilation Error - lst.head = &a לא חוקי כי a הוגדר על המחסנית","Compilation Error - addToStart צריכה להחזיר List ולא void"],
+  explanation:"addToStart מקבלת את lst בהעברת ערך (by value). לכן השינוי lst.head = n בתוך הפונקציה לא משפיע על lst ב-main. הרשימה נשארת a(10)->b(20). נדרשת העברת כתובת (List*) כדי לשנות את head."
+},
+{
+  topic:"lists", code:`#include <stdio.h>\ntypedef struct node {\n    int data;\n    struct node *next;\n} ListNode;\nvoid removeFirst(ListNode **head) {\n    *head = (*head)->next;\n}\nvoid main() {\n    ListNode c = {30, NULL};\n    ListNode b = {20, &c};\n    ListNode a = {10, &b};\n    ListNode *head = &a;\n    removeFirst(&head);\n    removeFirst(&head);\n    printf("%d", head->data);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"30",
+  wrongs:["10","20"],
+  errors:["Compilation Error - ListNode **head הוא מצביע כפול ולא מוגדר על struct","Compilation Error - (*head)->next דורש casting מפורש"],
+  explanation:"removeFirst משנה את *head (את המצביע head ב-main) להצביע ל-next. קריאה ראשונה: head = &b (10 הוסר). קריאה שנייה: head = &c (20 הוסר). נשאר: c(30)."
+},
+{
+  topic:"lists", code:`#include <stdio.h>\ntypedef struct node {\n    int data;\n    struct node *next;\n} ListNode;\nint count = 0;\nvoid f(ListNode *p) {\n    if (p == NULL) return;\n    count++;\n    f(p->next);\n    printf("%d ", p->data + count);\n}\nvoid main() {\n    ListNode c = {10, NULL};\n    ListNode b = {20, &c};\n    ListNode a = {30, &b};\n    f(&a);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"13 23 33 ",
+  wrongs:["33 23 13 ","31 22 13 "],
+  errors:["Compilation Error - משתנה גלובלי count מתנגש עם מילה שמורה","Compilation Error - p->data + count לא חוקי כי count הוא גלובלי"],
+  explanation:"f רקורסיבית: count עולה ל-3 (גלובלי). ההדפסה בחזרה מהרקורסיה: c: 10+3=13, b: 20+3=23, a: 30+3=33. count כבר 3 בכל ההדפסות כי הוא גלובלי ולא משתנה בחזרה."
+},
+{
+  topic:"lists", code:`#include <stdio.h>\n#include <stdlib.h>\ntypedef struct node {\n    int data;\n    struct node *next;\n} ListNode;\nvoid insertAfter(ListNode *prev, int data) {\n    ListNode *n = (ListNode*)malloc(sizeof(ListNode));\n    n->data = data;\n    n->next = prev->next;\n    prev->next = n;\n}\nvoid main() {\n    ListNode c = {30, NULL};\n    ListNode b = {20, &c};\n    ListNode a = {10, &b};\n    insertAfter(&a, 15);\n    insertAfter(&b, 25);\n    ListNode *p = &a;\n    while (p) {\n        printf("%d ", p->data);\n        p = p->next;\n    }\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"10 15 20 25 30 ",
+  wrongs:["10 20 15 25 30 ","10 15 25 20 30 "],
+  errors:["Compilation Error - insertAfter משנה struct שהוקצה על המחסנית","Compilation Error - prev->next = n גורם לדליפת זיכרון ושגיאת קומפילציה"],
+  explanation:"insertAfter(&a, 15): מכניס 15 אחרי a. הרשימה: a(10)->15->b(20)->c(30). insertAfter(&b, 25): מכניס 25 אחרי b. הרשימה: a(10)->15->b(20)->25->c(30)."
+},
+{
+  topic:"lists", code:`#include <stdio.h>\ntypedef struct node {\n    int data;\n    struct node *next;\n} ListNode;\nint mystery(ListNode *head) {\n    if (head == NULL) return 0;\n    if (head->data % 2 == 0)\n        return mystery(head->next);\n    return 1 + mystery(head->next);\n}\nvoid main() {\n    ListNode f = {6, NULL};\n    ListNode e = {5, &f};\n    ListNode d = {4, &e};\n    ListNode c = {3, &d};\n    ListNode b = {2, &c};\n    ListNode a = {1, &b};\n    printf("%d", mystery(&a));\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"3",
+  wrongs:["6","4"],
+  errors:["Compilation Error - head->data % 2 לא מוגדר על struct","Compilation Error - רקורסיה עם שני return לא חוקית ב-C"],
+  explanation:"mystery סופרת רק איברים אי-זוגיים ברשימה. הרשימה: 1,2,3,4,5,6. אי-זוגיים: 1,3,5 - סה\"כ 3."
+},
+{
+  topic:"lists", code:`#include <stdio.h>\ntypedef struct node {\n    int data;\n    struct node *next;\n} ListNode;\nint f(ListNode *p, int n) {\n    static int calls = 0;\n    calls++;\n    if (p->next == NULL)\n        return p->data;\n    return p->data + f(p->next, n + 1) + calls;\n}\nvoid main() {\n    ListNode c = {1, NULL};\n    ListNode b = {2, &c};\n    ListNode a = {3, &b};\n    printf("%d", f(&a, 0));\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"12",
+  wrongs:["6","9"],
+  errors:["Compilation Error - static int calls בתוך פונקציה רקורסיבית לא חוקי","Compilation Error - calls משתנה סטטי ולא ניתן לקרוא לו מחוץ לפונקציה"],
+  explanation:"f(&a,0): calls=1, return 3 + f(&b,1) + calls. f(&b,1): calls=2, return 2 + f(&c,2) + calls. f(&c,2): calls=3, p->next==NULL, return 1. חזרה: f(&b)=2+1+3=6. f(&a)=3+6+3=12. calls הוא static ושווה 3 בכל החזרות."
+},
+// ======== BINARY TREES (hard) ========
+{
+  topic:"trees", code:`#include <stdio.h>\n#include <stdlib.h>\ntypedef struct treeNode {\n    int data;\n    struct treeNode *left, *right;\n} TreeNode;\nvoid inOrder(TreeNode *root) {\n    if (root == NULL) return;\n    inOrder(root->left);\n    printf("%d ", root->data);\n    inOrder(root->right);\n}\nvoid main() {\n    TreeNode *n1, *n2, *n3, *n4, *n5;\n    n1 = (TreeNode*)malloc(sizeof(TreeNode));\n    n2 = (TreeNode*)malloc(sizeof(TreeNode));\n    n3 = (TreeNode*)malloc(sizeof(TreeNode));\n    n4 = (TreeNode*)malloc(sizeof(TreeNode));\n    n5 = (TreeNode*)malloc(sizeof(TreeNode));\n    n1->data=1; n1->left=n1->right=NULL;\n    n2->data=3; n2->left=n2->right=NULL;\n    n3->data=2; n3->left=n1; n3->right=n2;\n    n4->data=7; n4->left=n4->right=NULL;\n    n5->data=5; n5->left=n3; n5->right=n4;\n    inOrder(n5);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"1 2 3 5 7 ",
+  wrongs:["5 2 1 3 7 ","1 3 2 7 5 "],
+  errors:["Compilation Error - n1->left=n1->right=NULL השמה כפולה לא חוקית","Compilation Error - struct treeNode חייב להכיל typedef לפני השימוש בפונקציה"],
+  explanation:"העץ: 5 (שורש), שמאל: 2 (עם בנים 1,3), ימין: 7. InOrder (LDR): שמאל-שורש-ימין. 1, 2, 3, 5, 7."
+},
+{
+  topic:"trees", code:`#include <stdio.h>\ntypedef struct treeNode {\n    int data;\n    struct treeNode *left, *right;\n} TreeNode;\nvoid preOrder(TreeNode *root) {\n    if (root == NULL) return;\n    printf("%d ", root->data);\n    preOrder(root->left);\n    preOrder(root->right);\n}\nvoid main() {\n    TreeNode f = {9, NULL, NULL};\n    TreeNode e = {7, NULL, &f};\n    TreeNode d = {6, NULL, NULL};\n    TreeNode c = {4, &d, NULL};\n    TreeNode b = {3, &c, &e};\n    TreeNode a = {1, &b, NULL};\n    preOrder(&a);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"1 3 4 6 7 9 ",
+  wrongs:["6 4 3 9 7 1 ","1 3 7 4 6 9 "],
+  errors:["Compilation Error - TreeNode f מוגדר לפני TreeNode e שמשתמש בו","Compilation Error - &f לא חוקי כי f הוא struct על המחסנית"],
+  explanation:"העץ: 1->(3->(4->6, 7->9)). PreOrder (DLR): שורש-שמאל-ימין. 1, 3, 4, 6, 7, 9."
+},
+{
+  topic:"trees", code:`#include <stdio.h>\ntypedef struct treeNode {\n    int data;\n    struct treeNode *left, *right;\n} TreeNode;\nint height(TreeNode *root) {\n    if (root == NULL) return -1;\n    int hL = height(root->left);\n    int hR = height(root->right);\n    return (hL > hR ? hL : hR) + 1;\n}\nvoid main() {\n    TreeNode f = {6, NULL, NULL};\n    TreeNode e = {5, &f, NULL};\n    TreeNode d = {4, NULL, NULL};\n    TreeNode c = {3, NULL, NULL};\n    TreeNode b = {2, &d, &e};\n    TreeNode a = {1, &b, &c};\n    printf("%d", height(&a));\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"3",
+  wrongs:["2","4"],
+  errors:["Compilation Error - return -1 לא חוקי כערך החזרה עבור גובה עץ","Compilation Error - הביטוי hL > hR ? hL : hR דורש סוגריים חיצוניים"],
+  explanation:"העץ: 1->(2->(4, 5->6), 3). המסלול הארוך ביותר: 1->2->5->6 = 3 קשתות. height(NULL)=-1, height(עלה)=0. height(5)=1, height(2)=2, height(1)=3."
+},
+{
+  topic:"trees", code:`#include <stdio.h>\ntypedef struct treeNode {\n    int data;\n    struct treeNode *left, *right;\n} TreeNode;\nint numLeaves(TreeNode *root) {\n    if (root == NULL) return 0;\n    if (root->left == NULL && root->right == NULL) return 1;\n    return numLeaves(root->left) + numLeaves(root->right);\n}\nvoid main() {\n    TreeNode g = {7, NULL, NULL};\n    TreeNode f = {6, NULL, NULL};\n    TreeNode e = {5, NULL, NULL};\n    TreeNode d = {4, NULL, &g};\n    TreeNode c = {3, &f, NULL};\n    TreeNode b = {2, &d, &e};\n    TreeNode a = {1, &b, &c};\n    printf("%d", numLeaves(&a));\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"3",
+  wrongs:["4","7"],
+  errors:["Compilation Error - root->left == NULL && root->right == NULL דורש סוגריים","Compilation Error - numLeaves לא יכולה להחזיר 0 ו-1 באותו הגדרה"],
+  explanation:"העץ: 1->(2->(4->7, 5), 3->(6)). עלים הם צמתים ללא בנים: 7, 5, 6. סה\"כ 3 עלים. d(4) אינו עלה כי יש לו בן ימני (7)."
+},
+{
+  topic:"trees", code:`#include <stdio.h>\ntypedef struct treeNode {\n    int data;\n    struct treeNode *left, *right;\n} TreeNode;\nint mystery(TreeNode *root, int level) {\n    if (root == NULL) return 0;\n    if (level == 0) return root->data;\n    return mystery(root->left, level-1) + mystery(root->right, level-1);\n}\nvoid main() {\n    TreeNode d = {8, NULL, NULL};\n    TreeNode e = {2, NULL, NULL};\n    TreeNode f = {6, NULL, NULL};\n    TreeNode b = {4, &d, &e};\n    TreeNode c = {5, &f, NULL};\n    TreeNode a = {1, &b, &c};\n    printf("%d", mystery(&a, 2));\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"16",
+  wrongs:["10","26"],
+  errors:["Compilation Error - level-1 לא חוקי כפרמטר רקורסיבי","Compilation Error - mystery חייבת לקבל TreeNode ולא TreeNode*"],
+  explanation:"mystery מחשבת סכום ערכי הצמתים ברמה מסוימת. העץ: 1->(4->(8,2), 5->(6)). ברמה 2: mystery(b,1)=mystery(d,0)+mystery(e,0)=8+2=10. mystery(c,1)=mystery(f,0)+mystery(NULL,0)=6+0=6. סה\"כ: 16."
+},
+{
+  topic:"trees", code:`#include <stdio.h>\ntypedef struct treeNode {\n    int data;\n    struct treeNode *left, *right;\n} TreeNode;\nvoid addDepth(TreeNode *root, int depth) {\n    if (root == NULL) return;\n    root->data += depth;\n    addDepth(root->left, depth + 1);\n    addDepth(root->right, depth + 1);\n}\nvoid inOrder(TreeNode *root) {\n    if (root == NULL) return;\n    inOrder(root->left);\n    printf("%d ", root->data);\n    inOrder(root->right);\n}\nvoid main() {\n    TreeNode d = {10, NULL, NULL};\n    TreeNode e = {10, NULL, NULL};\n    TreeNode b = {10, &d, &e};\n    TreeNode c = {10, NULL, NULL};\n    TreeNode a = {10, &b, &c};\n    addDepth(&a, 0);\n    inOrder(&a);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"12 11 12 10 11 ",
+  wrongs:["10 11 12 11 12 ","10 10 10 10 10 "],
+  errors:["Compilation Error - root->data += depth משנה struct שמועבר כמצביע, לא חוקי","Compilation Error - שתי פונקציות רקורסיביות באותו קובץ גורמות להתנגשות"],
+  explanation:"addDepth מוסיפה את העומק לכל צומת. a(רמה 0)=10, b(רמה 1)=11, c(רמה 1)=11, d(רמה 2)=12, e(רמה 2)=12. InOrder (LDR): d(12) b(11) e(12) a(10) c(11)."
+},
+{
+  topic:"trees", code:`#include <stdio.h>\n#include <stdlib.h>\ntypedef struct treeNode {\n    int data;\n    struct treeNode *left, *right;\n} TreeNode;\nTreeNode* create(int data, TreeNode *l, TreeNode *r) {\n    TreeNode *n = (TreeNode*)malloc(sizeof(TreeNode));\n    n->data = data; n->left = l; n->right = r;\n    return n;\n}\nvoid printPath(TreeNode *root) {\n    if (root == NULL) return;\n    printf("%d ", root->data);\n    if (root->left != NULL)\n        printPath(root->left);\n    else\n        printPath(root->right);\n}\nvoid main() {\n    TreeNode *t = create(1,\n        create(2, NULL, create(5, NULL, NULL)),\n        create(3, create(6, NULL, NULL), NULL));\n    printPath(t);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"1 2 5 ",
+  wrongs:["1 2 ","1 3 6 "],
+  errors:["Compilation Error - create מחזירה מצביע ולכן לא ניתן להעביר כפרמטר ל-create","Compilation Error - קריאות create מקוננות גורמות ל-stack overflow בקומפילציה"],
+  explanation:"העץ: 1->(2->(NULL,5), 3->(6,NULL)). printPath הולכת שמאלה אם אפשר, אחרת ימינה. מ-1: שמאל קיים (2). מ-2: שמאל NULL, הולכת ימינה (5). מ-5: שמאל NULL, ימין NULL - return. תוצאה: 1 2 5."
+},
+{
+  topic:"trees", code:`#include <stdio.h>\ntypedef struct treeNode {\n    int data;\n    struct treeNode *left, *right;\n} TreeNode;\nvoid postOrder(TreeNode *root) {\n    if (root == NULL) return;\n    postOrder(root->left);\n    postOrder(root->right);\n    printf("%d ", root->data);\n}\nvoid main() {\n    TreeNode g = {7, NULL, NULL};\n    TreeNode f = {6, NULL, NULL};\n    TreeNode e = {5, NULL, NULL};\n    TreeNode d = {4, NULL, NULL};\n    TreeNode c = {3, &f, &g};\n    TreeNode b = {2, &d, &e};\n    TreeNode a = {1, &b, &c};\n    postOrder(&a);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"4 5 2 6 7 3 1 ",
+  wrongs:["1 2 4 5 3 6 7 ","4 2 5 6 3 7 1 "],
+  errors:["Compilation Error - postOrder מוגדרת לפני main אך ללא prototype","Compilation Error - root->left ו-root->right חייבים להיות מאותחלים ב-malloc"],
+  explanation:"העץ: 1->(2->(4,5), 3->(6,7)). PostOrder (LRD): שמאל-ימין-שורש. תת-עץ שמאלי: 4,5,2. תת-עץ ימני: 6,7,3. שורש: 1. תוצאה: 4 5 2 6 7 3 1."
+},
+// ======== PREPROCESSOR & MACROS ========
+{
+  topic:"preprocessor", code:`#include <stdio.h>\n#define X 3\nvoid main() {\n#if !X\n    printf("Hello");\n#else\n    printf("World");\n#endif\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"World",
+  wrongs:["Hello","HelloWorld"],
+  errors:["Compilation Error - #if !X לא חוקי כי X הוא מספר ולא ביטוי בוליאני","Compilation Error - #define X 3 מתנגש עם #if"],
+  explanation:"X מוגדר כ-3. הביטוי !X שקול ל-!3 = 0, כלומר false. לכן ההידור עובר ל-#else ומדפיס World."
+},
+{
+  topic:"preprocessor", code:`#include <stdio.h>\n#define SQUARE(x) x * x\nvoid main() {\n    int a = 3;\n    printf("%d", SQUARE(a + 1));\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"7",
+  wrongs:["16","9"],
+  errors:["Compilation Error - SQUARE לא יכול לקבל ביטוי a + 1","Compilation Error - מאקרו SQUARE חייב להיות עם סוגריים"],
+  explanation:"המאקרו מתרחב טקסטואלית: SQUARE(a+1) = a+1 * a+1 = 3+1*3+1 = 3+3+1 = 7. ללא סוגריים סביב x בהגדרה, סדר הפעולות שגוי. עם הגדרה נכונה ((x)*(x)) התוצאה היתה 16."
+},
+{
+  topic:"preprocessor", code:`#include <stdio.h>\n#define PRINT(i, limit) if(i < ++limit) printf("1"); else printf("0");\nvoid main() {\n    int x = 1, y = 0;\n    PRINT(x, y);\n    PRINT(x, y);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"01",
+  wrongs:["11","10"],
+  errors:["Compilation Error - ++limit בתוך #define לא חוקי","Compilation Error - מאקרו PRINT לא יכול להכיל if-else"],
+  explanation:"קריאה ראשונה: PRINT(x,y) = if(1 < ++0) → if(1<1) → false → \"0\". y עכשיו 1. קריאה שנייה: if(1 < ++1) → if(1<2) → true → \"1\". סה\"כ: 01."
+},
+{
+  topic:"preprocessor", code:`#include <stdio.h>\n#define M(x, y) (x * 3) >= (y / 3) ? (x / 3) : (y * 3)\nvoid main() {\n    int num;\n    num = M(2 + 5, 4 + 7);\n    printf("%d", num);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"3",
+  wrongs:["21","25"],
+  errors:["Compilation Error - אופרטור ternary בתוך #define לא חוקי","Compilation Error - M מקבל שני ביטויים ולא מספרים"],
+  explanation:"הרחבה: (2+5*3) >= (4+7/3) ? (2+5/3) : (4+7*3). חישוב: (2+15)>=(4+2) → 17>=6 → true. ענף true: 2+5/3 = 2+1 = 3. ללא סוגריים במאקרו, סדר הפעולות שונה מהמצופה."
+},
+{
+  topic:"preprocessor", code:`#include <stdio.h>\n#define A 2\n#define B A + 1\n#define C B * B\nvoid main() {\n    printf("%d %d", C, C + A);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"5 7",
+  wrongs:["9 11","6 8"],
+  errors:["Compilation Error - מאקרו C מתנגש עם מילה שמורה בשפת C","Compilation Error - הגדרות מאקרו מקוננות לא חוקיות"],
+  explanation:"הרחבת מאקרו: C = B*B = A+1*A+1 = 2+1*2+1. לפי סדר פעולות: 2+(1*2)+1 = 5. C+A = 5+2 = 7. הבעיה: חסרים סוגריים בהגדרת B ו-C."
+},
+{
+  topic:"preprocessor", code:`#include <stdio.h>\n#define MAX(a,b) a > b ? a : b\nvoid main() {\n    int x = 3;\n    printf("%d", MAX(x, 2) + 1);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"__NONE__",
+  wrongs:["4","3"],
+  errors:["Compilation Error - אופרטור ternary בתוך #define לא חוקי","Compilation Error - MAX(x, 2) + 1 גורם לשגיאת parsing"],
+  explanation:"הרחבה: x > 2 ? x : 2 + 1. ה-+1 נקשר ל-2 ולא לתוצאת ה-MAX! x(3)>2 → true → x = 3. אבל אם x היה 1: 1>2 → false → 2+1=3. כאן x=3, אז התוצאה 3.",
+  noneExplanation:"התשובה הנכונה היא 3. עם סוגריים ((a)>(b)?(a):(b)) התשובה היתה 4"
+},
+// ======== FUNCTION POINTERS ========
+{
+  topic:"funcptrs", code:`#include <stdio.h>\nint add(int a, int b) { return a + b; }\nint mul(int a, int b) { return a * b; }\nvoid main() {\n    int (*f)(int, int);\n    f = add;\n    printf("%d ", f(3, 4));\n    f = mul;\n    printf("%d", f(3, 4));\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"7 12",
+  wrongs:["12 7","7 7"],
+  errors:["Compilation Error - int (*f)(int, int) הוא תחביר לא חוקי","Compilation Error - f = add דורש &add"],
+  explanation:"f הוא מצביע לפונקציה שמקבלת שני int ומחזירה int. f = add: f(3,4) = 3+4 = 7. f = mul: f(3,4) = 3*4 = 12. שם פונקציה מתפרש אוטומטית ככתובת."
+},
+{
+  topic:"funcptrs", code:`#include <stdio.h>\nint add(int a, int b) { return a + b; }\nint sub(int a, int b) { return a - b; }\nint mul(int a, int b) { return a * b; }\nvoid main() {\n    int (*ops[])(int, int) = {add, sub, mul};\n    int i, result = 1;\n    for (i = 0; i < 3; i++)\n        result = ops[i](result, i + 1);\n    printf("%d", result);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"0",
+  wrongs:["6","3"],
+  errors:["Compilation Error - מערך מצביעים לפונקציות לא חוקי ב-C","Compilation Error - ops[i](result, i+1) תחביר קריאה שגוי"],
+  explanation:"i=0: result = add(1, 1) = 2. i=1: result = sub(2, 2) = 0. i=2: result = mul(0, 3) = 0. מערך של מצביעים לפונקציות מאפשר לבחור פונקציה דינמית."
+},
+{
+  topic:"funcptrs", code:`#include <stdio.h>\nint isEven(int x) { return x % 2 == 0; }\nint count(int *arr, int n, int (*pred)(int)) {\n    int i, c = 0;\n    for (i = 0; i < n; i++)\n        if (pred(arr[i])) c++;\n    return c;\n}\nvoid main() {\n    int arr[] = {3, 8, 1, 6, 4, 7, 2};\n    printf("%d", count(arr, 7, isEven));\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"4",
+  wrongs:["3","7"],
+  errors:["Compilation Error - int (*pred)(int) כפרמטר לפונקציה לא חוקי","Compilation Error - pred(arr[i]) חסרה קריאה דרך *pred"],
+  explanation:"count קוראת ל-pred (שהוא isEven) על כל איבר. מספרים זוגיים: 8,6,4,2 = 4. מצביע לפונקציה כ-callback מאפשר כתיבת פונקציות גנריות."
+},
+{
+  topic:"funcptrs", code:`#include <stdio.h>\nvoid apply(int *arr, int n, int (*f)(int)) {\n    int i;\n    for (i = 0; i < n; i++)\n        arr[i] = f(arr[i]);\n}\nint doubleIt(int x) { return x * 2; }\nint square(int x) { return x * x; }\nvoid main() {\n    int a[] = {1, 2, 3};\n    apply(a, 3, doubleIt);\n    apply(a, 3, square);\n    printf("%d %d %d", a[0], a[1], a[2]);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"4 16 36",
+  wrongs:["2 4 6","1 4 9"],
+  errors:["Compilation Error - apply משנה מערך דרך מצביע לפונקציה, לא חוקי","Compilation Error - f(arr[i]) ו-arr[i] = f(...) לא ניתנים באותה שורה"],
+  explanation:"apply(doubleIt): a = {2, 4, 6}. apply(square): a = {4, 16, 36}. הפעולות מצטברות - קודם כפל ב-2 ואז ריבוע."
+},
+// ======== DYNAMIC MEMORY ========
+{
+  topic:"memory", code:`#include <stdio.h>\n#include <stdlib.h>\nvoid f(int *p, int n) {\n    p = (int*)malloc(n * sizeof(int));\n    int i;\n    for (i = 0; i < n; i++)\n        p[i] = i * 10;\n}\nvoid main() {\n    int *arr = NULL;\n    f(arr, 5);\n    if (arr == NULL)\n        printf("NULL");\n    else\n        printf("%d", arr[0]);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"NULL",
+  wrongs:["0","10"],
+  errors:["Compilation Error - malloc בתוך פונקציה f לא חוקי","Compilation Error - arr = NULL ו-f(arr, 5) מתנגשים"],
+  explanation:"f מקבלת את p בהעברת ערך (by value). ה-malloc משנה את p המקומי, אבל arr ב-main נשאר NULL. נדרשת העברת int** כדי לשנות את המצביע עצמו."
+},
+{
+  topic:"memory", code:`#include <stdio.h>\n#include <stdlib.h>\nvoid main() {\n    int *p = (int*)malloc(2 * sizeof(int));\n    p[0] = 10; p[1] = 20;\n    p = (int*)realloc(p, 4 * sizeof(int));\n    p[2] = 30; p[3] = 40;\n    printf("%d %d %d %d", p[0], p[1], p[2], p[3]);\n    free(p);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"10 20 30 40",
+  wrongs:["0 0 30 40","10 20 0 0"],
+  errors:["Compilation Error - realloc לא יכול לשנות גודל של malloc קיים","Compilation Error - p[2] ו-p[3] חורגים מגבולות ההקצאה המקורית"],
+  explanation:"realloc מרחיב את הבלוק. הנתונים הקיימים (10,20) נשמרים. הזיכרון החדש (p[2],p[3]) זמין לכתיבה. realloc עלול להזיז את הבלוק אם אין מקום רציף."
+},
+{
+  topic:"memory", code:`#include <stdio.h>\n#include <stdlib.h>\nvoid main() {\n    int **mat = (int**)malloc(2 * sizeof(int*));\n    int i, j;\n    for (i = 0; i < 2; i++) {\n        mat[i] = (int*)malloc(3 * sizeof(int));\n        for (j = 0; j < 3; j++)\n            mat[i][j] = i * 3 + j + 1;\n    }\n    printf("%d %d %d", mat[0][2], mat[1][0], mat[1][2]);\n    for (i = 0; i < 2; i++) free(mat[i]);\n    free(mat);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"3 4 6",
+  wrongs:["2 3 5","1 4 6"],
+  errors:["Compilation Error - int** עם malloc כפול לא חוקי","Compilation Error - mat[i][j] לא ניתן לגישה על מצביע כפול"],
+  explanation:"mat[0] = {1,2,3}, mat[1] = {4,5,6}. הקצאה דינמית של מטריצה: קודם מערך של שורות (int**), ואז כל שורה (int*). mat[0][2]=3, mat[1][0]=4, mat[1][2]=6."
+},
+{
+  topic:"memory", code:`#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\ntypedef struct {\n    char *name;\n    int grade;\n} Student;\nvoid main() {\n    Student s1;\n    s1.name = (char*)malloc(10);\n    strcpy(s1.name, "Alice");\n    s1.grade = 90;\n    Student s2 = s1;\n    strcpy(s2.name, "Bob");\n    s2.grade = 80;\n    printf("%s %d", s1.name, s1.grade);\n    free(s1.name);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"Bob 90",
+  wrongs:["Alice 90","Alice 80"],
+  errors:["Compilation Error - Student s2 = s1 לא חוקי על struct עם מצביע","Compilation Error - strcpy(s2.name, \"Bob\") דורש malloc נפרד"],
+  explanation:"s2 = s1 הוא העתקה רדודה (shallow copy). s2.name מצביע לאותו זיכרון כמו s1.name. לכן strcpy(s2.name, \"Bob\") משנה גם את s1.name! אבל grade הוא העתק נפרד - s1.grade נשאר 90."
+},
+// ======== VARIABLES & SCOPE (additional) ========
+{
+  topic:"variables", code:`#include <stdio.h>\nint x = 10;\nvoid f() {\n    static int x = 1;\n    x++;\n    printf("%d ", x);\n}\nvoid main() {\n    f();\n    printf("%d ", x);\n    f();\n    printf("%d", x);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"2 10 3 10",
+  wrongs:["2 2 3 3","2 10 2 10"],
+  errors:["Compilation Error - static int x מתנגש עם int x הגלובלי","Compilation Error - אין אפשרות להגדיר x בשני מקומות"],
+  explanation:"ב-f, ה-x הסטטי מוסתר מהגלובלי. קריאה ראשונה: static x=1→2. main: x הגלובלי=10. קריאה שנייה: static x=2→3 (שומר ערך!). x הגלובלי לא משתנה."
+},
+{
+  topic:"variables", code:`#include <stdio.h>\nint a = 5;\nvoid f() {\n    int a = 1;\n    {\n        static int a = 10;\n        a += 5;\n        printf("%d ", a);\n    }\n    a += 10;\n    printf("%d ", a);\n}\nvoid main() {\n    f();\n    f();\n    printf("%d", a);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"15 11 20 11 5",
+  wrongs:["15 11 15 11 5","15 15 20 20 5"],
+  errors:["Compilation Error - שלוש הגדרות של a בסקופים שונים לא חוקי","Compilation Error - static int a בתוך בלוק לא חוקי"],
+  explanation:"3 משתנים בשם a: גלובלי(5), מקומי(1), סטטי בבלוק(10). f() ראשון: סטטי 10+5=15, מקומי 1+10=11. f() שני: סטטי 15+5=20 (שומר!), מקומי 1+10=11 (חדש). גלובלי: 5."
+},
+{
+  topic:"variables", code:`#include <stdio.h>\nvoid main() {\n    int x = 5;\n    {\n        int x = 10;\n        x += 3;\n        printf("%d ", x);\n    }\n    printf("%d", x);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"13 5",
+  wrongs:["13 13","10 5"],
+  errors:["Compilation Error - הגדרת x בתוך בלוק כשכבר קיים x חיצוני","Compilation Error - סוגריים מסולסלים ללא for/if לא חוקיים ב-C"],
+  explanation:"ה-x בתוך הבלוק הוא משתנה חדש שמסתיר את x החיצוני. x הפנימי = 10+3 = 13. כשהבלוק נגמר, x הפנימי נהרס, ו-x החיצוני (5) לא השתנה."
+},
+// ======== CONTROL FLOW (additional) ========
+{
+  topic:"control", code:`#include <stdio.h>\nvoid main() {\n    int x = 2;\n    switch (x) {\n        case 1: printf("A");\n        case 2: printf("B");\n        case 3: printf("C");\n                break;\n        case 4: printf("D");\n        default: printf("E");\n    }\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"BC",
+  wrongs:["B","BCE"],
+  errors:["Compilation Error - case ללא break גורם לשגיאה","Compilation Error - switch דורש default לפני case"],
+  explanation:"x=2 נכנס ל-case 2. מדפיס B, ואז fall-through ל-case 3 - מדפיס C. ה-break עוצר את ה-fall-through. ללא break בין case, הביצוע ממשיך לcase הבא."
+},
+{
+  topic:"control", code:`#include <stdio.h>\nvoid main() {\n    int i, j;\n    for (i = 0; i < 3; i++) {\n        for (j = 0; j < 3; j++) {\n            if (j == i) continue;\n            if (j > i) break;\n            printf("%d%d ", i, j);\n        }\n    }\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"10 20 21 ",
+  wrongs:["01 02 12 ","00 10 11 20 21 22 "],
+  errors:["Compilation Error - continue ו-break באותה לולאה לא חוקי","Compilation Error - printf בתוך לולאה מקוננת עם break לא מוגדר"],
+  explanation:"i=0: j=0(continue), j=1(break). i=1: j=0(print 10), j=1(continue), j=2(break). i=2: j=0(print 20), j=1(print 21), j=2(continue). continue מדלג, break יוצא מהלולאה הפנימית בלבד."
+},
+{
+  topic:"control", code:`#include <stdio.h>\nvoid main() {\n    int a = 5, b = 3, c = 8;\n    int r = (a > b) ? (b > c) ? a : b : c;\n    printf("%d", r);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"3",
+  wrongs:["5","8"],
+  errors:["Compilation Error - אופרטור ternary מקונן לא חוקי ב-C","Compilation Error - חסרים סוגריים באופרטור ?:"],
+  explanation:"a>b (5>3=true) → בודק (b>c) → (3>8=false) → b = 3. ternary מקונן: הביטוי החיצוני true, הביטוי הפנימי false, לכן מחזיר b=3."
+},
+// ======== STRING OPERATIONS ========
+{
+  topic:"arrays", code:`#include <stdio.h>\n#include <string.h>\nvoid main() {\n    char s1[20] = "ABCDEFGH";\n    char *p = s1 + 3;\n    strcpy(p, "XY");\n    printf("%s %d", s1, (int)strlen(s1));\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"ABCXY 5",
+  wrongs:["ABCXYEFGH 9","ABCXY 8"],
+  errors:["Compilation Error - strcpy למיקום באמצע מחרוזת לא חוקי","Compilation Error - s1 + 3 לא ניתן להעביר ל-strcpy"],
+  explanation:"p מצביע ל-s1[3] (D). strcpy(p, \"XY\") כותב 'X','Y','\\0' מעמדה 3. s1 = \"ABCXY\". strlen = 5 כי '\\0' נכתב בעמדה 5."
+},
+{
+  topic:"arrays", code:`#include <stdio.h>\n#include <string.h>\nchar a[] = "ABCDEFGH";\nint f(char *b, int t) {\n    char s[20];\n    strcpy(s, b);\n    strcpy(s, a + t);\n    strcpy(b, s);\n    return t;\n}\nvoid main() {\n    int n;\n    n = f(a, 2);\n    n = f(a, n + 1);\n    printf("%s", a);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"FGH",
+  wrongs:["CDEFGH","DEFGH"],
+  errors:["Compilation Error - strcpy(b, s) כשהם חופפים גורם לשגיאה","Compilation Error - a הוא מערך גלובלי ולא ניתן לשנותו"],
+  explanation:"קריאה 1 f(a,2): s=a, s=a+2=\"CDEFGH\", a=\"CDEFGH\". return 2. קריאה 2 f(a,3): a עכשיו \"CDEFGH\", s=a, s=a+3=\"FGH\", a=\"FGH\". return 3."
+},
+{
+  topic:"arrays", code:`#include <stdio.h>\n#include <string.h>\nvoid main() {\n    char s[] = "Hello World";\n    char *p = s;\n    while (*p != ' ')\n        p++;\n    *p = '\\0';\n    printf("%s %d", s, (int)strlen(s));\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"Hello 5",
+  wrongs:["Hello World 11","Hello 11"],
+  errors:["Compilation Error - *p = '\\0' לא ניתן לשנות מחרוזת","Compilation Error - while (*p != ' ') ללא גבול עליון גורם לשגיאה"],
+  explanation:"p מתקדם עד הרווח (עמדה 5). *p = '\\0' מחליף את הרווח ב-null terminator. s עכשיו \"Hello\" כי strlen עוצרת ב-'\\0' הראשון, למרות שהזיכרון עדיין מכיל 'World'."
+},
+// ======== I/O & TYPES (additional) ========
+{
+  topic:"io", code:`#include <stdio.h>\nvoid main() {\n    int x = 65;\n    printf("%c %d %x", x, x, x);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"A 65 41",
+  wrongs:["65 65 65","A 65 65"],
+  errors:["Compilation Error - לא ניתן להדפיס int עם %c","Compilation Error - %x לא מוגדר על int"],
+  explanation:"%c מדפיס את התו שערכו ASCII 65 = 'A'. %d מדפיס כמספר עשרוני = 65. %x מדפיס בבסיס 16 = 41 (4*16+1=65). אותו משתנה, שלושה פורמטים שונים."
+},
+{
+  topic:"io", code:`#include <stdio.h>\nvoid main() {\n    float f = 3.14;\n    int n = f;\n    printf("%d %.2f %d", n, f, (int)(f * 100));\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"3 3.14 314",
+  wrongs:["3 3.14 313","3.14 3.14 314"],
+  errors:["Compilation Error - int n = f דורש casting מפורש","Compilation Error - (int)(f * 100) casting לא חוקי על ביטוי"],
+  explanation:"n = f: המרה מ-float ל-int קוטעת (truncation), n = 3. f נשאר 3.14. (int)(f*100) = (int)(314.0) = 314. הגנת סוגריים: casting חל על כל הביטוי."
+},
+// ======== ARGC/ARGV ========
+{
+  topic:"functions", code:`#include <stdio.h>\nint main(int argc, char *argv[]) {\n    printf("%d %s %c", argc, argv[1], argv[2][1]);\n    return 0;\n}`,
+  question:"התוכנית מורצת עם הפקודה:\nprog ABC DEF\nמה ידפיס קטע הקוד הבא?",
+  correct:"3 ABC E",
+  wrongs:["2 ABC D","3 prog A"],
+  errors:["Compilation Error - argv[2][1] גישה כפולה למצביע לא חוקית","Compilation Error - char *argv[] חייב להיות char **argv"],
+  explanation:"argc=3 (prog, ABC, DEF). argv[0]=\"prog\", argv[1]=\"ABC\", argv[2]=\"DEF\". argv[2][1]='E' (האות השנייה ב-DEF). argc סופר גם את שם התוכנית."
+},
+{
+  topic:"functions", code:`#include <stdio.h>\nchar *func(char **p) {\n    ++(*p);\n    (*p)++;\n    return *p;\n}\nvoid main() {\n    char *s = "Hello";\n    char *result = func(&s);\n    printf("%s", result);\n}`,
+  question:"מה ידפיס קטע הקוד הבא?",
+  correct:"llo",
+  wrongs:["ello","lo"],
+  errors:["Compilation Error - char **p כפרמטר לא חוקי","Compilation Error - ++(*p) ו-(*p)++ לא מוגדרים על מצביע כפול"],
+  explanation:"func מקבלת &s (מצביע למצביע). ++(*p): מקדם את s להצביע ל-'e' (\"ello\"). (*p)++: מקדם שוב ל-'l' (\"llo\"). שתי הפעולות שקולות - pre-increment ו-post-increment של *p (שהוא s)."
 }
+,
+// ===== NIV20 IMPORTED QUESTIONS (71) =====
+{
+  topic:"bitwise",
+  code:`unsigned char func(unsigned char a, int num) {\n    unsigned char tmp;\n    int i=0;\n    unsigned char mask = 0;\n\n    for (i=0; i < num; i++) {\n        mask <<= 1;\n        mask |= 1;\n    }\n\n    tmp = a & mask;\n    a >>= num;\n    tmp <<= 8 - num;\n    a = a | tmp;\n\n    return a;\n}`,
+  question:"מה מחזירה הפונקציה אם נעביר אליה את הארגומנטים הבאים:\n a = a₈a₇a₆a₅a₄a₃a₂a₁\n num = 3",
+  correct:"a₃a₂a₁a₈a₇a₆a₅a₄",
+  wrongs:["a₅a₄a₃a₂a₁111","a₅a₄a₃a₂a₁a₈a₇a₆"],
+  errors:["Compilation Error - שימוש באופרטור הזזה על אופראנד מטיפוס לא מתאים.","Compilation Error - קריאה לפונקציה עם רשימת ארגומנטים לא חוקית."],
+  explanation:"הלולאה בונה מסכה של num ביטים (המסכה היא מספר שבו num הביטים הנמוכים הם 1). אחר כך, הפונקציה לוקחת את num הביטים הנמוכים של a ושומרת אותם ב-tmp. היא מזיזה את a ימינה ב-num ביטים (a >>= num) כלומר num הביטים הנמוכים נעלמים. עכשיו היא מזיזה את tmp שמאלה (8-num) ביטים, ומבצעת OR עם a. התוצאה היא ש-num הביטים הנמוכים עברו להיות ביטים גבוהים. כלומר, יש סיבוב שמאלה של num ביטים."
+},
+{
+  topic:"bitwise",
+  code:`void f() {\n\n    unsigned int i = 1, j = 1 << sizeof(int) * 8 - 1;\n    unsigned int x = 0xF3AE8366;\n\n    while (i < j) {\n\n        if ((x & i) > (x & j)) {\n            x |= j;\n            x &= ~i;\n        }\n\n        i <<= 1;\n        j >>= 1;\n    }\n\n    printf("%x\\n", x);\n}`,
+  question:"מה יהיה הפלט של קריאה לפונקציה f?",
+  correct:"__NONE__",
+  wrongs:["66c775cf","f3ae8366"],
+  errors:["Compilation Error - שימוש ב-`printf` בלי הצהרה מתאימה מ-`stdio.h`.","Compilation Error - שימוש באופרטור הזזה על אופראנד מטיפוס לא מתאים."],
+  explanation:"הלולאה עוברת על הביטים של המספר בו-זמנית משני הקצוות: המשתנה `i` משמש כמסכה שמתחילה מהביט הימנית ביותר (LSB) וזזה שמאלה, והמשתנה `j` מתחיל מהביט השמאלית ביותר (MSB) וזז ימינה. בכל איטרציה, הביטוי `(x & i) > (x & j)` בודק אם הביט ש-`i` מצביע עליו הוא `1` ושהביט ש-`j` מצביע עליו הוא `0`. אם התנאי מתקיים, הקוד מחליף ביניהן: הוא מאפס את הביט של `i` ומדליק את הביט של `j`.\n\nהערך ההתחלתי של `x` הוא `0xF3AE8366`, שבייצוג בינארי הוא `11110011101011101000001101100110`. לאחר שהלולאה מסתיימת, הביטים שהחליפו את מקומם הם אלו שעמדו בתנאי. כתוצאה מכך, הערך הסופי של `x` הוא `11110111111011110000000101000110`, כלומר `0xf7ef0146`. אין אף תשובה כזאת ולכן אף תשובה אינה נכונה.",
+  noneExplanation:"הפלט בפועל הוא `f7ef0146`."
+},
+{
+  topic:"bitwise",
+  code:`typedef unsigned char BYTE;\n\nvoid f() {\n\n    BYTE mask1 = 0xFF, mask2 = 0xFF;\n    BYTE num = 0x38, result;\n\n    while (num & mask1) {\n        mask1 <<= 1;\n        mask2 >>= 1;\n    }\n\n    result = num | mask2;\n    printf("%x\\n", result);\n}`,
+  question:"מה יהיה הפלט של קריאה לפונקציה f?",
+  correct:"3b",
+  wrongs:["f8","38"],
+  errors:["Compilation Error - שימוש ב-`printf` בלי הצהרה מתאימה מ-`stdio.h`.","Compilation Error - שימוש באופרטור הזזה על אופראנד מטיפוס לא מתאים."],
+  explanation:"המשתנה `num` מאותחל לערך `0x38`, שבייצוג בינארי הוא `00111000`. המשתנה `mask1` מתחיל כ-`0xFF`, כלומר `11111111`. הלולאה `while` ממשיכה לרוץ כל עוד תוצאת הביטוי `num & mask1` שונה מאפס.\n\nבכל איטרציה של הלולאה, `mask1` מוזז בביט אחת שמאלה (דבר המכניס `0` מימין) ו-`mask2` מוזז בביט אחת ימינה. הלולאה תיעצר כאשר `mask1` יוזז מספיק שמאלה כך שלא יהיו לו ביטים דולקות במקביל לביטים הדולקות של `num`. זה קורה לאחר 6 איטרציות, כאשר `mask1` שווה ל-`11000000`.\n\nבאותו שלב, `mask2`, שהוזז ימינה 6 פעמים, שווה ל-`00000011`. הפקודה האחרונה מבצעת פעולת `OR` בינארית בין `num` ל-`mask2` הסופי. החישוב הוא `00111000 | 00000011`, ותוצאתו היא `00111011`. ערך זה בבסיס הקסדצימלי הוא `3b`."
+},
+{
+  topic:"bitwise",
+  code:`void main() {\n    unsigned char x = 0xff;\n    x = (x >> 3) & 0xf0;\n    printf("%d\\n", x);\n}`,
+  question:"מה יהיה הפלט של התוכנית הבאה?",
+  correct:"16",
+  wrongs:["240","31"],
+  errors:["Compilation Error - שימוש ב-`printf` בלי הצהרה מתאימה מ-`stdio.h`.","Compilation Error - שימוש באופרטור הזזה על אופראנד מטיפוס לא מתאים."],
+  explanation:"הפעולה מתבצעת בשני שלבים על המשתנה `x` המאותחל לערך `0xff`.\n\nתחילה, המשתנה `x`, שערכו הבינארי הוא `11111111`, עובר הזזת ביטים (shift) של 3 מקומות ימינה. כיוון שהמשתנה הוא `unsigned`, יוכנסו אפסים משמאל. התוצאה לאחר ההזזה היא `00011111`.\n\nלאחר מכן, מתבצעת פעולת `AND` בינארית בין התוצאה מהשלב הקודם (`00011111`) לבין המסכה `0xf0` (שבבינארית היא `11110000`). תוצאת הפעולה `00011111 & 11110000` היא `00010000`. ערך בינארי זה שקול לערך `16` בבסיס עשרוני, והוא זה שיודפס למסך."
+},
+{
+  topic:"bitwise",
+  code:`void main() {\n\n    unsigned char num1 = 0xF5, num2 = 0xB8;\n    unsigned char mask = 0x01, result = 0;\n\n    for (int i = 0; i < 8; i++) {\n\n        if ((num1 & mask) | (num2 & mask))\n            result |= mask;\n\n        mask <<= 1;\n    }\n\n    printf("%x\\n", result);\n}`,
+  question:"מה יהיה הפלט של התוכנית הבאה?",
+  correct:"fd",
+  wrongs:["b0","02"],
+  errors:["Compilation Error - שימוש ב-`printf` בלי הצהרה מתאימה מ-`stdio.h`.","Compilation Error - שימוש באופרטור הזזה על אופראנד מטיפוס לא מתאים."],
+  explanation:"הלולאה בקוד עוברת על כל שמונה הביטים של שני המספרים, `num1` ו-`num2`, מימין לשמאל. בכל איטרציה, התנאי `if` בודק אם הביט הנוכחית דולקת (שווה ל-1) בלפחות אחד משני המספרים. אם כן, הביט המתאימה במיקומה במשתנה `result` נדלקת גם היא. למעשה, הקוד מממש פעולת `OR` בינארית בין שני המספרים.\n\nהערכים הנתונים הם `num1 = 0xF5` (בבינארית `11110101`) ו-`num2 = 0xB8` (בבינארית `10111000`). ביצוע פעולת `OR` בינארית עליהם ייתן את התוצאה הבאה: `11110101 | 10111000 = 11111101`. הערך הבינארי `11111101` בבסיס הקסדצימלי הוא `fd`."
+},
+{
+  topic:"bitwise",
+  code:`unsigned short func(unsigned short s, int n) {\n    return s << n | s >> 16-n;\n}\n\nvoid main() {\n    unsigned short x = 0x1357;\n    printf("%x", func(x, 3) );\n}`,
+  question:"בהנחה ש-unsigned short הוא בגודל של שני בתים (16 ביטים), מהו הפלט של התכנית הבאה?",
+  correct:"9ab8",
+  wrongs:["ab89","3571"],
+  errors:["Compilation Error - שימוש ב-`printf` בלי הצהרה מתאימה מ-`stdio.h`.","Compilation Error - שימוש באופרטור הזזה על אופראנד מטיפוס לא מתאים."],
+  explanation:"הפונקציה `func` מבצעת פעולת הזזה מעגלית שמאלה (circular left shift). כלומר, ביטים ש'נופלות' מהצד השמאלי של המספר, 'חוזרות' ומופיעות בצד הימני.\n\nהערך ההתחלתי של `x` הוא `0x1357`, שבייצוג בינארי של 16 ביטים הוא `0001001101010111`. הפונקציה נקראת עם `n=3`.\n1. החלק הראשון, `s << 3`, מזיז את כל הביטים 3 מקומות שמאלה. התוצאה היא `1001101010111000`.\n2. החלק השני, `s >> 16-3` (כלומר `s >> 13`), נועד לקחת את 3 הביטים המשמעותיות ביותר המקוריות של `s` (שהן `000`) ולהזיז אותן לקצה הימני. התוצאה היא `0000000000000000`.\n3. פעולת `OR` מאחדת בין שתי התוצאות: `1001101010111000 | 0000000000000000` נותן `1001101010111000`. בבסיס הקסדצימלי, ערך זה הוא `9ab8`."
+},
+{
+  topic:"bitwise",
+  code:`void main() {\n    unsigned short x = 0xffff;\n    printf("%x\\n", (x >> 3) & 0xf0f0 );\n}`,
+  question:"בהנחה ש-unsigned short הינו בגודל של שני בתים בזיכרון, מהו הפלט של התכנית הבאה:",
+  correct:"10f0",
+  wrongs:["00f0","00ff"],
+  errors:["Compilation Error - שימוש ב-`printf` בלי הצהרה מתאימה מ-`stdio.h`.","Compilation Error - שימוש באופרטור הזזה על אופראנד מטיפוס לא מתאים."],
+  explanation:"המשתנה `x` מאותחל לערך `0xffff`, שבייצוג בינארי של 16 ביטים הוא `1111111111111111`. הפעולה הראשונה היא הזזת הביטים 3 מקומות ימינה (`x >> 3`). מאחר ש-`x` הוא `unsigned`, יוכנסו אפסים משמאל. התוצאה לאחר ההזזה היא `0001111111111111`.\n\nהשלב הבא הוא פעולת `AND` בינארית בין תוצאת ההזזה לבין המסכה `0xf0f0` (שבבינארית היא `1111000011110000`). החישוב `0001111111111111 & 1111000011110000` מניב את התוצאה `0001000011110000`. ערך בינארי זה, כאשר ממירים אותו לבסיס הקסדצימלי, הוא `10f0`."
+},
+{
+  topic:"bitwise",
+  code:`void f() {\n    unsigned int c = 0xF3AE8366;\n    unsigned int x = 0xFFFFFFFF;\n\n    for (int i = 31; i >= 0; i--)\n        if (c & (1 << i))\n            x &= ~(1 << (31 - i));\n\n    printf("%X\\n", x);\n}`,
+  question:"בהנחה ש-unsigned int הינו בגודל של 4 בתים, מהו הפלט של התכנית הבאה?",
+  correct:"993E8A30",
+  wrongs:["C517C99","C517C98"],
+  errors:["Compilation Error - שימוש ב-`printf` בלי הצהרה מתאימה מ-`stdio.h`.","Compilation Error - שימוש באופרטור הזזה על אופראנד מטיפוס לא מתאים."],
+  explanation:"הלולאה עוברת על הביטים של המספר `c` משמאל לימין (מהביט ה-31 ועד ל-0). המשתנה `x` מתחיל כשכל הביטים שלו דלוקים (`0xFFFFFFFF`). בכל איטרציה, הקוד בודק את הביט במיקום `i` של `c`. אם הביט הזה דלוק, הקוד מכבה את הביט המקביל לו מהצד השני (במיקום `31-i`) במשתנה `x`.\n\nלדוגמה, כאשר `i` הוא 31 (הביט הכי שמאלי ב-`c`), אם הוא דלוק, הקוד יכבה את הביט במיקום `31-31=0` (הביט הכי ימני) ב-`x`. כאשר `i` הוא 30, אם הוא דלוק, הקוד יכבה את הביט במיקום `31-30=1` ב-`x`, וכן הלאה.\n\nהפעולה הזו שקולה לביצוע `NOT` על היפוך סדר הביטים של `c`. הערך של `c` הוא `0xF3AE8366`, ולאחר היפוך סדר הביטים וביצוע `NOT`, מתקבלת התוצאה הסופית `0x993E8A30`."
+},
+{
+  topic:"bitwise",
+  code:`char bitTrans(char x) {\n\n    char y = 0xff;\n\n    for (int i = 7; i >= 0; i--)\n        if (x & (1<<i))\n            y &= ~(1<<(7-i));\n\n    return ~y;\n}`,
+  question:"בהינתן קלט `x`, מה מחזירה הפונקציה `bitTrans`?",
+  correct:"ערך שהוא תמונת ראי של הביטים של `x`",
+  wrongs:["את הערך `x` ללא שינוי","ערך שהוא המשלים של תמונת הראי של הביטים של `x`"],
+  errors:["Compilation Error - שימוש באופרטור הזזה על אופראנד מטיפוס לא מתאים.","Compilation Error - קריאה לפונקציה עם רשימת ארגומנטים לא חוקית."],
+  explanation:"הפונקציה מקבלת תו `x` ומאתחלת משתנה נוסף `y` כשכל הביטים שלו דלוקים (`0xff`). הלולאה סורקת את הביטים של `x` מהבכיר (7) לזוטר (0). אם ביט מספר `i` ב-`x` דלוק, הקוד מכבה את הביט המשלים `7-i` במשתנה `y`.\n\nבסוף הלולאה, המשתנה `y` מכיל ערך שבו כל ביט `j` הוא ההיפך (NOT) של הביט המקורי `i` של `x`, כאשר `j = 7-i`. במילים אחרות, `y` הוא למעשה `NOT` של היפוך סדר הביטים של `x`. כלומר, `y` שווה ל-`~(reverse(x))`.\n\nהפקודה האחרונה בפונקציה היא `return ~y;`. היא מחזירה את המשלים הבינארי של `y`. אם נציב את מה שחישבנו, הפונקציה מחזירה `~(~(reverse(x)))`. פעולת `NOT` כפולה מבטלת את עצמה, ולכן הערך הסופי המוחזר הוא `reverse(x)` - כלומר, תמונת הראי של הביטים של `x`."
+},
+{
+  topic:"bitwise",
+  code:`#define MAX(X,Y) ( (X) > (Y) ? (X) : (Y) )\n\nvoid f2(void) {\n\n    int a = 5, b = 9;\n\n    for (int i = 0;(i<<2) < MAX(i+9,b) ; i++)\n        printf("i=%d\\n", i);\n}`,
+  question:"כמה איטרציות תבצע הלולאה?",
+  correct:"3",
+  wrongs:["0","1"],
+  errors:["Compilation Error - הרחבת מאקרו יוצרת קוד תחבירי לא חוקי.","Compilation Error - הגדרה מחדש של מאקרו עם ערך סותר."],
+  explanation:"כדי לקבוע את מספר האיטרציות, נעקוב אחר תנאי הלולאה `(i<<2) < MAX(i+9,b)` כאשר `b` שווה ל-9.\n\n* **כאשר i = 0:** התנאי הוא `(0<<2) < MAX(9,9)`, כלומר `0 < 9`. התנאי מתקיים.\n* **כאשר i = 1:** התנאי הוא `(1<<2) < MAX(10,9)`, כלומר `4 < 10`. התנאי מתקיים.\n* **כאשר i = 2:** התנאי הוא `(2<<2) < MAX(11,9)`, כלומר `8 < 11`. התנאי מתקיים.\n* **כאשר i = 3:** התנאי הוא `(3<<2) < MAX(12,9)`, כלומר `12 < 12`. התנאי אינו מתקיים והלולאה מסתיימת.\n\nהלולאה רצה עבור `i` בערכים 0, 1 ו-2, ולכן היא מבצעת 3 איטרציות בסך הכל."
+},
+{
+  topic:"bitwise",
+  code:`typedef unsigned char BYTE;\n\nvoid func() {\n\n    BYTE mask1 = 0x88, mask2 = 0x55, temp;\n    unsigned short int num = 0x1234, res = 0;\n\n    for (int i = 0; i < 2; i++) {\n\n        res <<= 8;\n        temp = num >> (i * 8);\n\n        if (i % 2 == 0)\n            temp ^= mask2;\n        else\n            temp ^= mask1;\n\n        res |= temp;\n    }\n\n    printf("%X\\n", res);\n}`,
+  question:"מה יהיה הפלט של הפונקציה `func`?",
+  correct:"`619A`",
+  wrongs:["`1400`","`BC47`"],
+  errors:["Compilation Error - שימוש ב-`printf` בלי הצהרה מתאימה מ-`stdio.h`.","Compilation Error - שימוש באופרטור הזזה על אופראנד מטיפוס לא מתאים."],
+  explanation:"באיטרציה הראשונה של הלולאה (`i=0`), הקוד מבודד את הבית התחתון של `num`, שהוא `0x34`. מכיוון ש-`i` הוא זוגי, מתבצעת על הבית פעולת `XOR` עם `mask2` (שהוא `0x55`). התוצאה של `0x34 ^ 0x55` היא `0x61`. ערך זה נשמר כרגע בתוצאה `res`.\n\nבאיטרציה השנייה (`i=1`), הערך הקודם ב-`res` (`0x61`) מוזז 8 ביטים שמאלה והופך ל-`0x6100`. כעת הקוד מבודד את הבית העליון של `num`, שהוא `0x12`. מכיוון ש-`i` אי-זוגי, מתבצעת פעולת `XOR` עם `mask1` (שהוא `0x88`). התוצאה של `0x12 ^ 0x88` היא `0x9A`.\n\nלבסוף, התוצאה החדשה (`0x9A`) משולבת עם `res` באמצעות פעולת `OR`, ליצירת הערך הסופי: `0x6100 | 0x9A = 0x619A`. זהו הערך המודפס למסך."
+},
+{
+  topic:"bitwise",
+  code:`unsigned char BuildMask(int size) {\n\n    unsigned char mask = 0;\n\n    for (int i = 0; i < size; i++) {\n        mask = mask << 1;\n        mask = mask | 1;\n    }\n\n    return mask;\n}\n\nunsigned char f(unsigned char c, int size) {\n\n    unsigned char mask = BuildMask(size);\n\n    c = ((c & mask) << (8-size)) | ((c & ~mask) >> size);\n    return c;\n}`,
+  question:"מה מבצעת הפונקציה `f` שמקבלת `c` ו-`size` (בהינתן ש-`size` הוא מספר בין 1 ל-7 כולל) על המשתנה `c`?",
+  correct:"מחליפה בין `size` הביטים התחתונים ל-`8-size` הביטים העליונים",
+  wrongs:["דוחפת את `8-size` הביטים התחתונים `size` מקומות שמאלה","דוחפת את `size` הביטים התחתונים `8-size` מקומות שמאלה"],
+  errors:["Compilation Error - שימוש באופרטור הזזה על אופראנד מטיפוס לא מתאים.","Compilation Error - קריאה לפונקציה עם רשימת ארגומנטים לא חוקית."],
+  explanation:"הפונקציה `f` מבצעת החלפה בין שתי קבוצות של ביטים ב-`c`.\n\nהפונקציה `BuildMask` יוצרת מסכה עם `size` ביטים דלוקים מימין. הביטוי `(c & mask)` מבודד את `size` הביטים התחתונים של `c`. לאחר מכן, `<< (8-size)` מזיז את הביטים הללו לקצה השמאלי (העליון) של התוצאה.\n\nבמקביל, הביטוי `(c & ~mask)` מבודד את `8-size` הביטים העליונים של `c`. לאחר מכן, `>> size` מזיז את הביטים הללו לקצה הימני (התחתון) של התוצאה.\n\nפעולת ה-`OR` (`|`) מאחדת את שתי התוצאות, ובכך משלימה את פעולת ההחלפה: `size` הביטים שהיו למטה עברו למעלה, ו-`8-size` הביטים שהיו למעלה עברו למטה."
+},
+{
+  topic:"bitwise",
+  code:``,
+  question:"מה יהיה ערך הביטוי:\n`1 >> 1 << 1 ^ 1 >> 1 >> 1 `",
+  correct:"`4`",
+  wrongs:["`2`","`1`"],
+  errors:["Compilation Error - שימוש באופרטור הזזה על אופראנד מטיפוס לא מתאים.","Compilation Error - קריאה לפונקציה עם רשימת ארגומנטים לא חוקית."],
+  explanation:"החישוב מתבצע לפי כללי קדימויות האופרטורים. להזזת הביטים `<<` ו-`>>` יש קדימות גבוהה יותר מאשר לאופרטור `^`. לכן, בעצם צריך לחשב את הביטוי באופן הבא: `(1<<1<<1) ^ (1>>1<<1)`.\n- החלק השמאלי: `1<<1` נותן `2`, ולאחר מכן `2<<1` נותן `4`.\n- החלק הימני: `1>>1` נותן `0`, ולאחר מכן `0<<1` נותן `0`.\n\nלבסוף, מתבצעת פעולת ה-`XOR` בין התוצאות של שני האגפים: `4^0`, שזה שווה ל-`4`."
+},
+{
+  topic:"bitwise",
+  code:``,
+  question:"מה תבצע השורה הבאה על משתנה `x` בגודל בית אחד:\n`x = (~(1 << (7-i)) & x)`\n\n(הביטים ממוספרים מ-0, וימין נחשב ל-lsb)",
+  correct:"תכבה את הביט ה-i משמאל",
+  wrongs:["תדליק את הביט ה-i משמאל","תכבה את הביט ה-i מימין"],
+  errors:["Compilation Error - שימוש באופרטור הזזה על אופראנד מטיפוס לא מתאים.","Compilation Error - קריאה לפונקציה עם רשימת ארגומנטים לא חוקית."],
+  explanation:"הביטוי `(1 << (7-i))` יוצר מסכה עם ביט `1` בודד במיקום ה-`i` משמאל. לדוגמה, עבור `i=0`, הביטוי הוא `1 << 7`, והביט הדלוק הוא במיקום 7, שהוא הביט הכי שמאלי (MSB).\n\nפעולת ה-`NOT` (`~`) הופכת את המסכה, כך שנוצרת מסכה חדשה עם ביט `0` בודד במיקום ה-`i` משמאל, וביטים של `1` בכל שאר המקומות.\n\nלבסוף, פעולת `AND` בין `x` למסכה זו שומרת על כל הביטים המקוריים של `x`, אך מאפסת (מכבה) את הביט ה-`i` משמאל."
+},
+{
+  topic:"bitwise",
+  code:`#define Q1(X) ((((X)^0x55555555)<<1)&0xAAAAAAAA) ^ ((X)^0xAAAAAAAA)\n\n#define Q2(X) ((((X)&0x55555555)<<1)&0xAAAAAAAA) ^ ((X)^0xAAAAAAAA)\n\n#define Q3(X) ((((X)^0x55555555)<<1)&0xAAAAAAAA) ^ ((X)&0xAAAAAAAA)\n\n#define Q4(X) ((((X)^0x55555555)<<1)&0xAAAAAAAA) & ((X)^0xAAAAAAAA)`,
+  question:"מעוניינים במאקרו אשר מחזיר ערך שונה מאפס אם הביטים במקומות הזוגיים (מיקום ה-`LSB` הוא 0) של משתנה `X` שווים ל-`bitwise not` של הביטים במקומות האי-זוגיים שלו, ומחזיר אפס אחרת. בהינתן ארבעת המאקרואים שמשמאל, ובהנחה ש-`X` הוא בגודל 4 בתים, איזו טענה היא הנכונה ביותר?",
+  correct:"__NONE__",
+  wrongs:["שתי תשובות או יותר מהאחרות נכונות","רק `Q1` מבצע את הדרוש"],
+  errors:["Compilation Error - הרחבת מאקרו יוצרת קוד תחבירי לא חוקי.","Compilation Error - הגדרה מחדש של מאקרו עם ערך סותר."],
+  explanation:"בהמשך למה שכתבתי ברמז, נריץ את פעולת המאקרואים עבור ערך בעל 4 ביטים `abcd`, כאשר `a` הוא הביט המשמעותי ביותר ו-`d` הוא הפחות משמעותי. נסמן את הביט ההופכי של `a` ב-`a̅` (כלומר, אם `a` הוא 0, אז `a̅` הוא 1, ולהיפך).\nב-`Q1`: הערך השמאלי הוא `b̅0d̅0`. הערך הימני הוא `a̅bc̅d`. המאקרו מחזיר את ה-XOR בניהם. כזכור, XOR של אפס עם ביט כלשהו, שווה פשוט לאותו הביט. לכן, מספיק שאחד מהביטים שבמקומות הזוגיים יהיה 1, כדי שהמאקרו יחזיר תשובה שונה מאפס, וזה לא מה שאנחנו רוצים.\nב-`Q2`: הערך השמאלי הוא `b0d0`. הערך הימני הוא `a̅bc̅d`. המאקרו מחזיר את ה-XOR ביניהם. בדומה ל-`Q1`, גם כאן מספיק שאחד מהביטים שבמקומות הזוגיים יהיה 1, כדי שהמאקרו יחזיר תשובה שונה מאפס, וזה לא מה שאנחנו רוצים.\nב-`Q3`: הערך השמאלי הוא `b̅0d̅0`. הערך הימני הוא `a0c0`. המאקרו מחזיר את ה-XOR ביניהם. קל לראות שאם יש שני ביטים צמודים (זוגי ואי-זוגי) ששניהם בעלי אותו ערך, 0 או 1, אז המאקרו יחזיר תשובה שונה מאפס. שימו לב שזה לא מה שאנחנו צריכים. אנחנו רוצים שהוא יחזיר תשובה שונה מאפס דווקא כאשר הם בעלי ערכים הפוכים.\nב-`Q4`: הערך השמאלי הוא `b̅0d̅0`. הערך הימני הוא `a̅bc̅d`. המאקרו מחזיר את ה-AND ביניהם. קל לראות שאם יש שני ביטים צמודים (זוגי ואי-זוגי) ששניהם 0, אז המאקרו יחזיר תשובה שונה מאפס, וזה לא מה שאנחנו רוצים.",
+  noneExplanation:"אף אחד מהמאקרואים Q1-Q4 לא מבצע בדיוק את הדרוש."
+},
+{
+  topic:"bitwise",
+  code:``,
+  question:"נתון משתנה `a` בגודל בית, המכיל 3 ערכים במבנה:\n`XXXYYYYZ`\nמעוניינים להחליף בין שלושת הביטים `XXX` לארבעת הביטים `YYYY` כך שהמספר שיתקבל יהיה:\n`YYYYXXXZ`\nאיזה מהפקודות הבאות יבצעו את הפעולה?",
+  correct:"__NONE__",
+  wrongs:["`a = ((a>>5) << 1) | ((a<<1) << 4);`","`a = ((a<<5) >> 1) | ((a>>1) << 4);`"],
+  errors:["Compilation Error - שימוש באופרטור הזזה על אופראנד מטיפוס לא מתאים.","Compilation Error - קריאה לפונקציה עם רשימת ארגומנטים לא חוקית."],
+  explanation:"אף אחת מהאפשרויות המוצעות אינה מבצעת את הפעולה כראוי. כולן מנסות להזיז את המספר `a` כולו, מבלי לבודד תחילה את קבוצות הביטים, דבר הגורם לביטים מקבוצה אחת 'לגלוש' ולהשפיע על קבוצות אחרות.\n\nהדרך הנכונה לבצע את ההחלפה היא באמצעות שלוש פעולות נפרדות שמאוחדות לבסוף. ראשית, יש לבודד כל קבוצת ביטים באמצעות `AND`, להזיז אותה למיקומה החדש, ולבסוף לאחד את כל החלקים עם `OR`. הפקודה הנכונה תהיה: `a = ((a&0xE0)>>4) | ((a&0x1E)<<3) | (a&0x01);`.\n\nהביטוי `((a & 0xE0) >> 4)` ממסך את שלושת הביטים העליונים `XXX` בעזרת המסכה `0xE0` (שזו `11100000`), ואז מזיז אותם 4 ביטים ימינה כדי למקם אותם במקום של `YYYY`.\n\nהביטוי `((a & 0x1E) << 3)` ממסך את ארבעת הביטים האמצעיים `YYYY` בעזרת `0x1E` (`00011110`), ואז מזיז אותם 3 ביטים שמאלה כדי שיגיעו לעמדת `XXX`.\n\nהביטוי האחרון `(a & 0x01)` שומר את הביט התחתון Z כפי שהוא.\n\nאיחוד של שלושת הביטויים האלה באמצעות האופרטור `OR` מביא את התשובה הנכונה.",
+  noneExplanation:"הפקודה הנכונה היא `a = ((a&0xE0)>>4) | ((a&0x1E)<<3) | (a&0x01);`."
+},
+{
+  topic:"bitwise",
+  code:``,
+  question:"נתון משתנה `x` מטיפוס `unsigned short` שגודלו שני בתים וארוזים בו שלושה ערכים על פי המבנה הבא:\n`XXXXXYYYYYYZZZZZ`\nמעוניינים להחליף בין חמשת הביטים `XXXXX` לששת הביטים `YYYYYY` כך שיתקבל המבנה:\n`YYYYYYXXXXXZZZZZZ`\nאיזו מהפקודות הבאות תבצע את הפעולה?",
+  correct:"`x = ((x>>11)<<5) | (((x>>5) & 0x3F)<<10) | (x & 0x1F);`",
+  wrongs:["`x = ((x>>11)<<5) | ((x>>5)<<10) | (x & 0x1F);`","`x = ((x & 0xF800) >> 5) | ((x & 0x07E0) << 6) | (x & 0x1F);`"],
+  errors:["Compilation Error - שימוש באופרטור הזזה על אופראנד מטיפוס לא מתאים.","Compilation Error - קריאה לפונקציה עם רשימת ארגומנטים לא חוקית."],
+  explanation:"הפתרון הנכון דורש בידוד, הזזה, ואיחוד של כל אחד משלושת חלקי המידע בנפרד. נפרק את הביטוי הנכון:\n\n`(x & 0x1F)`: חלק זה מבודד את 5 הביטים הנמוכים (`ZZZZZ`) ומשאיר אותם במקומם.\n`((x>>11)<<5)`: חלק זה מבודד את 5 הביטים הגבוהים (`XXXXX`) על ידי הזזתם 11 מקומות ימינה (מה שמשאיר `00...XXXXX`), ואז מזיז אותם 5 מקומות שמאלה כדי למקם אותם במקום החדש (ביטים 9 עד 5).\n`(((x>>5) & 0x3F)<<10)`: זהו החלק המורכב. `(x>>5)` מזיז את הביטים הרצויים (`YYYYYY`) לקצה הימני, אך משאיר את `XXXXX` לפניהם. פעולת ה-`& 0x3F` חיונית כדי למחוק את ביטי ה-`XXXXX` ולהשאיר רק את 6 הביטים של `YYYYYY`. לבסוף, `<<10` מזיז אותם למקומם החדש והרצוי (ביטים 15 עד 10).\n\nאיחוד שלושת החלקים עם `OR` נותן את התוצאה המבוקשת."
+},
+{
+  topic:"bitwise",
+  code:``,
+  question:"מעוניינים לקחת `unsigned short int` בשם `num` ולשנות את הבית ה-`least significant` שלו כך שארבעת הביטים ה-`most significant` של בית זה יהיו `C` (בבסיס 16), בעוד שאר הביטים ישמרו על ערכם המקורי.\nאיזו מהשורות הבאות תבצע את המשימה?",
+  correct:"__NONE__",
+  wrongs:["`num = (num & 0xFFCF) & 0x00C0;`","`num = (num & 0x00C0) & 0x00F0;`"],
+  errors:["Compilation Error - שימוש באופרטור הזזה על אופראנד מטיפוס לא מתאים.","Compilation Error - קריאה לפונקציה עם רשימת ארגומנטים לא חוקית."],
+  explanation:"הדרך הנכונה לבצע את המשימה היא בשני שלבים: איפוס ארבעת הביטים הרלוונטיים, ולאחר מכן קביעת הערך החדש שלהם. הפקודה הנכונה אמורה להיות `num = (num & 0xFF0F) | 0x00C0;`. אף אחת מהתשובות המוצגות אינה מבצעת זאת.\n\nרוב התשובות המוצעות משתמשות בפעולת `AND` כפולה. פעולת `AND` יכולה רק לכבות ביטים, ולכן לא ניתן להשתמש בה כדי לקבוע את הערך החדש `C`. לדוגמה, שימוש בביטוי `& 0x00C0` בסוף הפעולה יאפס את כל הביטים במספר פרט לאלו שדולקים במסכה, וזו אינה המטרה. בתשובה אחרת, השימוש במסכה `& 0xFF0F` מאפס נכונה את ארבעת הביטים הרלוונטיים, אך לאחריו לא מתבצעת פעולת ה-`OR` הנדרשת כדי לקבוע את הערך החדש `C`.",
+  noneExplanation:"השורה הנכונה היא `num = (num & 0xFF0F) | 0x00C0;`."
+},
+{
+  topic:"bitwise",
+  code:`void printInBinary1(unsigned char n) {\n\n    unsigned char mask = 0x80;\n\n    while (mask) {\n\n        if (n & mask)\n            printf("1");\n        else\n            printf("0");\n\n        mask >>= 1;\n    }\n}\n\nvoid printInBinary2(unsigned char n) {\n\n    while (n) {\n\n        if (n & 128)\n            printf("1");\n        else\n            printf("0");\n\n        n <<= 1;\n    }\n}\n\nvoid printInBinary3(unsigned char n) {\n\n    int i = 0;\n\n    while (n) {\n\n        if (n & 128)\n            printf("1");\n        else\n            printf("0");\n\n        n <<= 1;\n        i++;\n    }\n\n    for ( ; i < 8*sizeof(unsigned char); i++)\n        printf("0");\n}\n\nvoid printInBinary4(unsigned char n) {\n\n    int mask = 0x80, i=0;\n\n    while (mask) {\n\n        if (n & mask)\n            printf("1");\n        else\n            printf("0");\n\n        mask >>= 1;\n        i++;\n    }\n\n    for ( ; i < 8*sizeof(unsigned char); i++)\n        printf("0");\n}`,
+  question:"נרצה לכתוב פונקציה המקבלת `char` ומדפיסה את הביטים שלו כך שה-`MSB` יופיע משמאל וה-`LSB` יופיע מימין. הוצעו 4 מימושים שונים לפונקציה. איזה מימוש יבצע את הנדרש?",
+  correct:"שתיים או יותר מהתשובות האחרות נכונות",
+  wrongs:["`printInBinary3`","`printInBinary2`"],
+  errors:["Compilation Error - שימוש ב-`printf` בלי הצהרה מתאימה מ-`stdio.h`.","Compilation Error - שימוש באופרטור הזזה על אופראנד מטיפוס לא מתאים."],
+  explanation:"הפונקציה הראשונה, השלישית והרביעית יפיקו את הפלט הנכון, ולכן התשובה הנכונה היא 'שתיים או יותר מהתשובות האחרות נכונות'.\n\n`printInBinary1`: מימוש זה נכון. הוא משתמש במסכה שמתחילה מהביט המשמעותי ביותר (`MSB`) וזזה ימינה בכל איטרציה. הלולאה תמיד רצה 8 פעמים ומבטיחה שכל 8 הביטים יודפסו כראוי.\n`printInBinary2`: הפונקציה לא מדפיסה כראוי כי היא עוצרת את הלולאה כאשר הערך n הופך ל-0, מה שעלול לקרות לפני שעברנו על כל 8 הביטים של המשתנה. למשל, אם נכניס את הערך 64, שהייצוג הבינארי שלו הוא `01000000`, הפונקציה תדפיס רק `01` במקום כל 8 הספרות, כי אחרי שתי הזזות שמאלה n יתאפס והלולאה תיעצר.\n`printInBinary3`: מימוש זה נכון. הלולאה הראשונה מזיזה את ביטי הקלט שמאלה ומדפיסה אותם כל עוד נותרו ביטים דולקים, והלולאה השנייה משלימה באפסים את יתרת הביטים עד להדפסת 8 ביטים בסך הכל.\n`printInBinary4`: גם מימוש זה נכון מבחינת הפלט. הוא עובד כמו המימוש הראשון ומדפיס נכונה את כל 8 הביטים בלולאה הראשונה. שימו לב: הלולאה השנייה שנועדה להדפיס אפסים מיותרת ולעולם לא תתבצע, מפני שהלולאה הראשונה כבר מבצעת 8 איטרציות."
+},
+{
+  topic:"preprocessor",
+  code:``,
+  question:"כותבים תכנית המורכבת ממספר קבצי מקור (קבצי `c.`). פונקציה גלובלית בשם `someFunc` ממומשת במלואה בשני קבצים שונים. איזו מהטענות הבאות נכונה?",
+  correct:"שגיאת לינקר בכל מקרה",
+  wrongs:["שגיאת לינקר רק אם התוכן בשני המימושים שונה","שגיאת לינקר רק אם ה-prototype בשני הקבצים שונה"],
+  errors:["Compilation Error - הרחבת מאקרו יוצרת קוד תחבירי לא חוקי.","Compilation Error - הגדרה מחדש של מאקרו עם ערך סותר."],
+  explanation:"במהלך בניית התוכנית, כל קובץ מקור עובר קומפילציה בנפרד. מבחינת הקומפיילר, כל אחד מהקבצים המכילים את `someFunc` הוא תקין בפני עצמו, ולכן לא תתרחש שגיאת קומפילציה.\n\nהבעיה מתעוררת בשלב הקישור (linking). תפקידו של הלינקר הוא לחבר את כל קבצי האובייקט שנוצרו בשלב הקומפילציה ולוודא שכל סמל גלובלי (כמו שם של פונקציה) מוגדר בדיוק פעם אחת. כלל זה ידוע בתור 'One Definition Rule'. כאשר הלינקר מזהה שהסמל `someFunc` מוגדר בשני קבצי אובייקט שונים, הוא אינו יודע באיזה מימוש לבחור ומנפיק שגיאת 'multiple definition'.\n\nחשוב להדגיש שהשגיאה תתרחש תמיד במצב זה, גם אם שני המימושים של הפונקציה זהים לחלוטין וגם אם ה-`prototype` שלהם תואם. עצם ההגדרה הכפולה של סמל גלובלי מהווה הפרה של כללי השפה."
+},
+{
+  topic:"preprocessor",
+  code:``,
+  question:"כותבים תוכנית המורכבת מהקבצים הבאים:\n`h.h` `c.c` `b.c` `a.c`\nהפונקציה `someFunc` מוגדרת (לא רק מוצהרת) בתוך `h.h`.\nרק הקובץ `a.c` מבצע `include#` לקובץ `h.h`, בעוד הקובץ `c.c` קורא לפונקציה `someFunc`.\nאיזו מהטענות הבאות נכונה?",
+  correct:"__CE__",
+  wrongs:["תהליך של קומפילציה וקישור של כל הקבצים יחד ייכשל עם שגיאת לינקר","אם נוסיף `#include \"h.h\"` גם לקובץ `c.c`, התוכנית תעבור קומפילציה וקישור ללא כל שגיאה"],
+  errors:["Compilation Error - הרחבת מאקרו יוצרת קוד תחבירי לא חוקי.","Compilation Error - הגדרה מחדש של מאקרו עם ערך סותר."],
+  explanation:"התשובה הנכונה מתבססת על כך שבשפת C, חובה להצהיר על פונקציה לפני שמשתמשים בה. הקובץ `c.c` קורא לפונקציה `someFunc` אך אינו כולל את קובץ הכותר `h.h` שבו היא מוגדרת. לכן, כאשר הקומפיילר ינסה לקמפל את `c.c`, הוא ייתקל בקריאה לפונקציה שאינו מכיר ויפיק שגיאת קומפילציה. התהליך ייעצר עוד לפני שלב הקישור.\n\nשאר הטענות אינן נכונות. קימפול של כל הקבצים יחד ייכשל בשלב הקומפילציה של `c.c`, ולכן לא נגיע כלל לשגיאת לינקר. קימפול של `a.c` לבדו יצליח, כיוון שהוא כולל את `h.h` והקוד בו חוקי. לבסוף, אם היינו מוסיפים את קובץ הכותר `h.h` גם ל-`c.c`, היינו פותרים את שגיאת הקומפילציה אך יוצרים שגיאת לינקר מסוג 'multiple definition', כיוון שהפונקציה `someFunc` הייתה מוגדרת גם בקובץ האובייקט של `a.c` וגם בזה של `c.c`.",
+  correctError:"Compilation Error - בקובץ `c.c` יש קריאה ל-`someFunc` בלי הצהרה מוקדמת, כי `h.h` לא נכלל בו."
+},
+{
+  topic:"preprocessor",
+  code:`int myIntCmp(void*, void*);\n\nvoid main() {\n    int arr[10] = { 1,2,3,5,3,4,6,2,7,8 };\n    qsort(arr, 10, sizeof(int), myIntCmp);\n}`,
+  question:"* טלי: כעת התכנית עוברת קומפילציה, אך אלמלא כתבנו את ה-`prototype` של `myIntCmp` היא לא היתה מתקמפלת.\n* שרון: הפונקציה `myIntCmp` נקראת מתוך `qsort`.\n* סיגל: אם הפונקציה `myIntCmp` לא תוגדר בשום קובץ, זו תהיה שגיאת לינקר.\n\nאיזו מהאפשרויות הבאות היא הנכונה?",
+  correct:"כולן צודקות",
+  wrongs:["רק סיגל צודקת, טלי ושרון טועות","רק שרון צודקת, טלי וסיגל טועות"],
+  errors:["Compilation Error - הרחבת מאקרו יוצרת קוד תחבירי לא חוקי.","Compilation Error - הגדרה מחדש של מאקרו עם ערך סותר."],
+  explanation:"התשובה הנכונה היא שכל הטענות נכונות. נפרט מדוע כל אחת מהן מדויקת:\n\nטענתה של טלי נכונה. ההצהרה (prototype) על הפונקציה `myIntCmp` חיונית כדי שהקומפיילר יכיר את חתימתה ויאפשר להעביר אותה כארגומנט לפונקציה `qsort`. ללא הצהרה זו, הקומפיילר היה מדווח על שימוש במזהה לא מוכר, מה שהיה גורם לשגיאת קומפילציה.\n\nטענתו של שרון נכונה. הפונקציה `qsort` היא פונקציית מיון גנרית. כדי לדעת כיצד להשוות בין שני איברים מהסוג שהועבר אליה, היא משתמשת בפונקציית השוואה חיצונית המועברת אליה כארגומנט (callback function). לכן, במהלך ריצת המיון, `qsort` תקרא לפונקציה `myIntCmp` פעמים רבות.\n\nטענתה של סיגל נכונה. ישנו הבדל בין הצהרה על פונקציה לבין הגדרתה (המימוש שלה). הקוד מצהיר על `myIntCmp` אך אינו מממש אותה. הקומפיילר מסתפק בהצהרה כדי לייצר קובץ אובייקט, אך הלינקר, שתפקידו לחבר את כל חלקי הקוד, לא ימצא את המימוש של `myIntCmp` ויפיק שגיאת 'undefined reference'."
+},
+{
+  topic:"preprocessor",
+  code:`int *f() {\n    int i;\n    return &i;\n}\n\nint *g(int i) {\n    return i;\n}`,
+  question:"* טלי טוענת: הפונקציה f לא עוברת קומפילציה אבל g כן.\n* גלי טוענת: שתי הפונקציות עוברות קומפילציה אך יש בשתיהן באג זמן ריצה.\n* אלי טוען: שתי הפונקציות עוברות קומפילציה אך יש רק ב-f באג זמן ריצה.\n\nמה מהבאים נכון?",
+  correct:"כולם טועים",
+  wrongs:["רק גלי צודקת","רק אלי צודק"],
+  errors:["Compilation Error - הרחבת מאקרו יוצרת קוד תחבירי לא חוקי.","Compilation Error - הגדרה מחדש של מאקרו עם ערך סותר."],
+  explanation:"קל לראות שהפונקציה `g` לא תעבור קומפילציה. היא מוצהרת כמחזירה ערך מסוג `int*`, אך בפועל מנסה להחזיר ערך מסוג `int`. זוהי שגיאת טיפוסים (type error) שהקומפיילר יזהה וימנע את השלמת הקומפילציה. מאחר ש-`g` לא מתקמפלת, אפשר לומר כבר שגלי ואלי טועים.\n\nמה לגבי הפונקציה `f`? אנחנו רואים שהיא מחזירה כתובת של משתנה מקומי (`i`). משתנה זה יושב על מחסנית הקריאות של הפונקציה, והזיכרון שלו משתחרר מיד עם סיום ריצתה. כזכור, שימוש במצביע הזה מוביל להתנהגות בלתי צפויה. אז, אולי, היינו יכולים לחשוב שהיא לא תעבור קומפילציה. אבל דווקא היא כן עוברת קומפילציה, כי מבחינת כללי התחביר והטיפוסים של שפת C, אין כאן שגיאה (היא מחזירה בדיוק את הטיפוס שמופיע בחתימה שלה, ואין בה שגיאות תחביר אחרות). זה שהיא מחזירה מצביע לא חוקי, זה כבר בעיה לוגית של התוכנית שלנו, אבל מבחינת הקומפיילר - הפונקציה בסדר גמור. בקיצור, גם טלי טועה, ולכן התשובה הנכונה היא שכולם טועים."
+},
+{
+  topic:"preprocessor",
+  code:``,
+  question:"* טלי טוענת: אם קוראים לפונקציה לפני המימוש שלה וגם לא כותבים את החתימה שלה - אז תהייה שגיאת לינקר.\n* גלי טוענת: אם כותבים מאקרו בקובץ  source אחד, ניתן להשתמש בו בכל קובץ אחר.\n* אלי טוען: משתנה גלובלי חייב להיות מוכרז בקובץ header.\n\nמה מהבאים נכון?",
+  correct:"כולם טועים",
+  wrongs:["טלי צודקת, גלי טועה ואלי טועה","גלי צודקת וטלי ואלי טועה"],
+  errors:["Compilation Error - הרחבת מאקרו יוצרת קוד תחבירי לא חוקי.","Compilation Error - הגדרה מחדש של מאקרו עם ערך סותר."],
+  explanation:"טלי טועה מכיוון שהבעיה שהיא מתארת מתרחשת בשלב הקומפילציה, לא בשלב הקישור. בשפת C, כאשר קוראים לפונקציה שטרם הוצהרה או הוגדרה, הקומפיילר אינו מכיר את חתימתה ולכן יפיק שגיאת קומפילציה. התהליך כלל לא יגיע לשלב הלינקר.\n\nגלי טועה מפני שמאקרואים המוגדרים באמצעות `#define` עוברים הרחבה על ידי הקדם-מעבד (preprocessor) בכל קובץ בנפרד. מאקרו שמוגדר בקובץ `a.c` אינו מוכר כלל בקובץ `b.c`. הדרך המקובלת לשתף מאקרואים היא להגדירם בקובץ header ולכלול אותו בכל קבצי המקור הרלוונטיים.\n\nאלי טועה מפני שהצהרה על משתנה גלובלי בקובץ header אינה חובה. אם המשתנה הגלובלי נמצא בשימוש רק בקובץ המקור בו הוא הוגדר, אין כל צורך להצהיר עליו במקום אחר."
+},
+{
+  topic:"preprocessor",
+  code:``,
+  question:"תוכנית מחולקת לשלושה קבצי מקור:\n`c.c` `b.c` `a.c`.\n\nכל השלושה מבצעים `include#` לקובץ `h.h` שמכיל את כל הצהרות הפונקציות בתוכנית, ובנוסף גם את המימוש המלא של אחת מהפונקציות.\nאיזו מהטענות הבאות נכונה?",
+  correct:"התכנית לא תעבור link",
+  wrongs:["התכנית תעבור link בכל מקרה","התכנית לא תעבור link רק אם ישנה קריאה לפונקציה"],
+  errors:["Compilation Error - הרחבת מאקרו יוצרת קוד תחבירי לא חוקי.","Compilation Error - הגדרה מחדש של מאקרו עם ערך סותר."],
+  explanation:"התשובה הנכונה היא שהתוכנית לא תעבור link. הסיבה העיקרית היא שקובץ header מכיל את המימוש המלא של פונקציה. בכל פעם שקובץ מקור (`.c`) כולל אותו, נוצר עותק נפרד של מימוש הפונקציה בקובץ האובייקט שלו.\n\nבשלב הקישור, הלינקר מזהה שיש מספר הגדרות (מימושים) לאותה פונקציה בין קבצי האובייקט השונים, מה שמפר את כלל 'הגדרה אחת' (One Definition Rule) וגורם לשגיאה מסוג 'multiple definition'.\n\nחשוב להדגיש ששגיאה זו אינה תלויה בקיומה של קריאה לפונקציה בקוד. היא נובעת מעצם קיומן של הגדרות מרובות לאותו סמל שהלינקר מזהה, גם אם אף אחת מההגדרות אינה נדרשת בפועל על ידי קריאה."
+},
+{
+  topic:"preprocessor",
+  code:`void main() {\n\n    #define X 17\n\n    #if !X\n        printf("Computer");\n        #define X 0\n    #else\n        printf("Science");\n    #endif\n}`,
+  question:"מה יהיה הפלט של קטע הקוד הבא?",
+  correct:"`Science`",
+  wrongs:["`Computer`","תתקבל שגיאה בזמן ריצה"],
+  errors:["Compilation Error - הרחבת מאקרו יוצרת קוד תחבירי לא חוקי.","Compilation Error - הגדרה מחדש של מאקרו עם ערך סותר."],
+  explanation:"הקוד משתמש בהוראות קדם-מעבד (preprocessor) מותנות, אשר רצות לפני שלב הקומפילציה עצמו. בתחילה, המאקרו `X` מוגדר עם הערך 17.\n\nלאחר מכן, הקדם-מעבד בודק את התנאי `#if !X`. מכיוון ש-`X` הוא 17, והקדם-מעבד מתייחס לכל ערך שאינו 0 כאמת (true), הביטוי `!X` (כלומר `!17`) מקבל את הערך שקר (false).\n\nכתוצאה מכך, בלוק הקוד שנמצא תחת התנאי `#if`, כולל ההדפסה של `Computer`, נמחק מהקוד ולא יגיע לקומפיילר כלל. הקוד היחיד שיישאר מהבלוק המותנה הוא זה שנמצא תחת `#else`, ולכן התוכנית שתתקמפל תכיל רק את הפקודה להדפיס `Science`."
+},
+{
+  topic:"preprocessor",
+  code:`#define X 17\n\n#ifndef X\n    printf("Hello");\n#else\n    printf("World");\n#endif\n\nvoid main() {}`,
+  question:"מה תהיה התוצאה של הרצת קטע הקוד הבא?",
+  correct:"__CE__",
+  wrongs:["`Hello`","התוכנית תעוף בזמן ריצה"],
+  errors:["Compilation Error - הרחבת מאקרו יוצרת קוד תחבירי לא חוקי.","Compilation Error - הגדרה מחדש של מאקרו עם ערך סותר."],
+  explanation:"הקוד לא יעבור קומפילציה. ההוראה `#ifndef X` פירושה: 'אם X לא מוגדר'. כאן `X` מוגדר באמצעות `#define X 17`, ולכן התנאי לא מתקיים - והקדם-מעבד בוחר בבלוק של `#else`, כלומר, הוא משאיר את הדפסת המחרוזת `'world'`. אינטואיטיבית היינו רוצים לומר שזה מה שיודפס, אבל יש כאן קאצ'. הקריאה ל-`printf` נמצאת מחוץ לגוף של פונקציה, וכידוע כל פקודה חייבת להיות בתוך פונקציה כלשהי. אז מכיוון שמדובר כאן על שגיאה תחבירית, התוכנית אפילו לא תתקמפל.",
+  correctError:"Compilation Error - לאחר עיבוד ה-preprocessor הקריאה ל-`printf` נשארת מחוץ לכל פונקציה, וזה קוד תחבירי לא חוקי."
+},
+{
+  topic:"preprocessor",
+  code:`#define PI 3.14\n\n#include "module1.h"\n\nvoid main() {\n    for (int i = 5; i > 0; i--)\n        printf("Hello");\n}`,
+  question:"נתונה התוכנית הבאה. ניתן להניח שקובץ `module1.h` קיים וה-`include` מתבצע בהצלחה.\nאיזו מהטענות הבאות נכונה ביותר?",
+  correct:"__CE__",
+  wrongs:["התוכנית תעבור קומפילציה ללא תלות בתוכן הקובץ `module1.h` ותדפיס `Hello` 5 פעמים","התוכנית תעבור קומפילציה ללא תלות בתוכן הקובץ `module1.h` ותדפיס `Hello` 4 פעמים"],
+  errors:["Compilation Error - הרחבת מאקרו יוצרת קוד תחבירי לא חוקי.","Compilation Error - הגדרה מחדש של מאקרו עם ערך סותר."],
+  explanation:"התשובה הנכונה היא שהתוכנית לא תעבור קומפילציה אם קיימת הגדרה סותרת בקובץ header. הקדם-מעבד של שפת C אינו מאפשר להגדיר מאקרו עם שם מסוים יותר מפעם אחת עם ערכים שונים. אם הקובץ `module1.h` מכיל הגדרה כמו `#define PI 3.14159`, והקוד הראשי מגדיר `#define PI 3.14`, הקדם-מעבד יזהה זאת כהגדרה מחדש (redeclaration) ויפיק שגיאה שתמנע את המשך הקומפילציה.\n\nכדי לשנות ערך של מאקרו שכבר הוגדר, יש לבטל תחילה את ההגדרה הקיימת באמצעות הוראת `#undef`, ורק לאחר מכן להגדיר את המאקרו מחדש עם הערך החדש.",
+  correctError:"Compilation Error - אם `PI` מוגדר גם ב-`module1.h` בערך שונה, מתקבלת הגדרה מחדש סותרת של המאקרו."
+},
+{
+  topic:"arrays",
+  code:`int f(char* str)\n  {\n    static char* p = NULL;\n    int count = 0;\n\n    if (p == NULL) {\n        p = str;\n        return count;\n    }\n    else\n        if (*p == '\\0')\n            return count;\n        else {\n            str++;\n            p++;\n            count++;\n            return 0;\n        }\n}\n\nint main()\n{\n    char name[] = "Avital";\n    int res = 0;\n\n    while (res == 0)\n        res = f(name);\n\n    printf("%d\\n", res);\n    return 0;\n}`,
+  question:"מה תדפיס התכנית הבאה?",
+  correct:"התוכנית נכנסת ללולאה אינסופית",
+  wrongs:["6","0"],
+  errors:["Compilation Error - שימוש ב-`printf` בלי הצהרה מתאימה מ-`stdio.h`.","Compilation Error - חוסר התאמה בין טיפוס מערך לטיפוס מצביע."],
+  explanation:"בקריאה הראשונה לפונקציה f, המשתנה הסטטי p מאותחל לכתובת של name והפונקציה מחזירה 0. לכן, הלולאה ב-main ממשיכה. החל מהקריאה השנייה, p כבר אינו NULL, והקוד נכנס ל-else. שם, למרות שהמצביע p מתקדם, הפונקציה תמיד מחזירה את הערך 0. תכלס', לקידום ה-count אין משמעות, מכיוון שהערך של count לעולם לא מוחזר. מכיוון שהפונקציה תמיד מחזירה 0, המשתנה res לעולם לא משנה את ערכו, והתנאי של לולאת ה-while (res == 0) נשאר נכון תמיד, מה שגורם ללולאה אינסופית."
+},
+{
+  topic:"arrays",
+  code:`void print(void *a) {\n    char **p = (char **)a;\n\n    puts(*p + 1);\n    putchar(**p + 1);\n}\n\nvoid main(int argc, char *argv[]) {\n    for (int i = 1; i < argc; i++)\n        print(argv + i);\n}`,
+  question:"מה יהיה פלט התוכנית אם נפעיל אותה עם הארגומנטים הבאים `aaa eee iii`? (הסימן `↵` מייצג ירידת שורה)",
+  correct:"`aa↵bee↵fii↵j`",
+  wrongs:["`aaa↵beee↵fiii↵j`","`aaa↵beee↵fiii↵jj`"],
+  errors:["Compilation Error - ניסיון לבצע אריתמטיקה על `void*` בלי המרה ל-`char*`.","Compilation Error - חוסר התאמה בין טיפוס מערך לטיפוס מצביע."],
+  explanation:"בקריאה הראשונה, עם הארגומנט \"aaa\", המשתנה `p` הוא מצביע ל-`char*`, והוא מאותחל ל-`argv + i`, כלומר לכתובת של מחרוזת אחת בתוך המערך. כך ש-`*p` מחלץ את המצביע למחרוזת עצמה - במקרה זה, `*p == \"aaa\"`.\n\nהביטוי `*p + 1` הוא נקודה מעניינת שראויה להבהרה: מאחר ש-`*p` הוא מצביע למחרוזת (`char*`), אז `*p + 1` פירושו להזיז את המצביע למחרוזת באחד קדימה, כלומר לדלג על התו הראשון. כך מתקבלת כתובת שמצביעה לתו השני במחרוזת, והמחרוזת החדשה שתתחיל ממנו תהיה \"aa\". לכן, `puts(*p + 1)` תדפיס את \"aa\" עם ירידת שורה.\n\nזה עלול להיות מבלבל, כי לרגע נדמה ש-`*p + 1` מדלג על תא אחד במערך של מחרוזות - אך חשוב לזכור ש-`*p` כבר מחלץ את המחרוזת עצמה, ולכן ההזזה ב-`+1` מתבצעת בתוך המחרוזת עצמה, ולא במערך `argv`.\n\nהביטוי `**p + 1` שווה לתו הראשון של המחרוזת, בתוספת 1 מבחינה מספרית. כלומר אם התו הראשון הוא 'a', אז `**p == 'a'`, והוספת 1 תיתן את התו 'b'. `putchar(**p + 1)` מדפיס את התו החדש הזה, בלי ירידת שורה.\n\nבקריאה הראשונה, \"aaa\", מתקבל הפלט aa↵b. בשנייה, \"eee\", מתקבל ee↵f. בשלישית, \"iii\", מתקבל ii↵j. שרשור כל הפלטים יחד לפי סדר הקריאות נותן את התוצאה הסופית."
+},
+{
+  topic:"arrays",
+  code:`void foo(int n, int m, char *s) {\n    char x[2] = { 0 };\n\n    *x = m + 'A';\n    strcat(s, x);\n\n    if ( (m == 0) || (m == n) )\n        return;\n\n    foo(n, m-1, s);\n    *x = n + '0';\n    strcat(s, x);\n    foo(n-1, m-1, s);\n}\n\nvoid main() {\n    char s[100] = { 0 };\n    foo(4, 2, s);\n}`,
+  question:"מה יהיה תוכן המחרוזת `s` בסוף התכנית?",
+  correct:"`CBA4A4BA3A`",
+  wrongs:["`CBA4A4AB3A`","`CBA4A3BA23A`"],
+  errors:["Compilation Error - חוסר התאמה בין טיפוס מערך לטיפוס מצביע.","Compilation Error - ניסיון לכתוב לתוך מחרוזת ליטרלית."],
+  explanation:"הפונקציה `foo` היא פונקציה רקורסיבית מורכבת הבונה את המחרוזת `s`. נבצע מעקב אחר הקריאות החל מ-`foo(4, 2)`.\n\nהקריאה `foo(4,2)` מוסיפה `C` וקוראת ל-`foo(4,1)`. קריאה זו מוסיפה `B` וקוראת ל-`foo(4,0)`, שמוסיפה `A` וחוזרת. בשלב זה, `s` הוא `CBA`.\n\nכעת חוזרים מהרקורסיה. ב-`foo(4,1)`, הפונקציה מוסיפה `4` וקוראת ל-`foo(3,0)`, שמוסיפה `A`. `s` כעת הוא `CBA4A`. חוזרים מ-`foo(4,1)` אל `foo(4,2)`, שם מתווסף `4` ומתבצעת קריאה ל-`foo(3,1)`.\n\nהקריאה ל-`foo(3,1)` היא ענף רקורסיבי נוסף. היא מוסיפה `B`, קוראת ל-`foo(3,0)` (שמוסיפה `A`), חוזרת, מוסיפה `3`, וקוראת ל-`foo(2,0)` (שמוסיפה `A`). לאחר כל הפעולות הללו, המחרוזת הסופית היא `CBA4A4BA3A`."
+},
+{
+  topic:"arrays",
+  code:`char* s = "IHGFEDCBA";\nint j = 2;\n\nvoid f(char *s) {\n\n    static int i = 2;\n\n    {\n        static int j;\n        printf("%c %c ", s[i], s[j]);\n        i++;\n    }\n\n    j++;\n}\n\nvoid main() {\n    f(s);\n    s += 2;\n    f(s);\n}`,
+  question:"מה יהיה הפלט של התכנית הבאה?",
+  correct:"`G I D G`",
+  wrongs:["`G I F I`","`G I D F`"],
+  errors:["Compilation Error - שימוש ב-`printf` בלי הצהרה מתאימה מ-`stdio.h`.","Compilation Error - חוסר התאמה בין טיפוס מערך לטיפוס מצביע."],
+  explanation:"בקריאה הראשונה ל-`f(s)`, המצביע `s` מצביע לתחילת המחרוזת. המשתנה הסטטי `i` מאותחל ל-2, והמשתנה הסטטי `j` (שבתוך הבלוק הפנימי) מאותחל ל-0 (ערך ברירת המחדל למשתנה סטטי). ההדפסה הראשונה תהיה `s[2]` (`'G'`) ו-`s[0]` (`'I'`). לאחר מכן `i` גדל ל-3, והמשתנה `j` הגלובלי (שמחוץ לבלוק הפנימי) גדל ל-3.\n\nלפני הקריאה השנייה, המצביע `s` מקודם בשני תאים וכעת מצביע לתו `'G'` המקורי. בקריאה השנייה ל-`f(s)`, המשתנים הסטטיים `i` ו-`j` שומרים על ערכם מהקריאה הקודמת (`i=3`, `j=0`). ההדפסה תהיה `s[3]` (שהוא התו באינדקס `2+3=5` מהמחרוזת המקורית, כלומר `'D'`) ו-`s[0]` (שהוא התו באינדקס `2+0=2` מהמחרוזת המקורית, כלומר `'G'`). הפלט המצטבר הוא `G I D G`."
+},
+{
+  topic:"arrays",
+  code:`void f(char a, char b, char c) {\n    if (a == 'A' || b == 'A' || c == 'A')\n        return;\n\n    f(b - 1, a - 1, c);\n    printf("%c%c%c", a, b, c);\n    f(c - 1, b - 1, a);\n}\n\nvoid main() {\n    f('D', 'C', 'D');\n}`,
+  question:"מה יהיה הפלט של התכנית הבאה?",
+  correct:"`BCDCBBDCDCBD`",
+  wrongs:["`BCDCCBCCDCBD`","`BCDCBBDCDDBC`"],
+  errors:["Compilation Error - שימוש ב-`printf` בלי הצהרה מתאימה מ-`stdio.h`.","Compilation Error - חוסר התאמה בין טיפוס מערך לטיפוס מצביע."],
+  explanation:"הפונקציה `f` היא פונקציה רקורסיבית, והפלט נוצר על ידי קריאות `printf` המבוצעות בין שתי קריאות רקורסיביות (בסדר המזכיר סריקת `in-order` של עץ). הדרך הטובה ביותר לפתור זאת היא לעקוב אחר עץ הקריאות.\n\nהקריאה הראשית `f('D','C','D')` מפעילה ענף רקורסיבי שמאלי (`f('B','C','D')`), מדפיסה `DCD`, ולאחר מכן מפעילה ענף ימני (`f('C','B','D')`). כל אחת מהקריאות הללו מתפצלת באופן דומה עד שתנאי העצירה (כאשר אחד הפרמטרים מגיע לערך `'A'`) מתקיים.\n\nכאשר עוקבים אחר סדר ההדפסה לפי סדר הביצוע, מתקבל השרשור הבא: תחילה `BCD`, אחריו `CBB`, לאחר מכן `DCD` מהקריאה הראשית, ולבסוף `CBD`. התוצאה הסופית המורכבת היא `BCDCBBDCDCBD`."
+},
+{
+  topic:"arrays",
+  code:`void main() {\n\n    char student[100] = "Avi Lavie";\n    char *teacher;\n\n    /* line 1*/ strcpy(teacher,student);\n    /* line 2*/ teacher = student;\n    /* line 3*/ strcpy(student,"Albert Einstein");\n    /* line 4*/ student = teacher;\n}`,
+  question:"אילו מהשורות 1-4 תקינות (מתקמפלות ואינן מכילות באגים):",
+  correct:"2 ו-3",
+  wrongs:["2 ו-4","2, 3 ו-4"],
+  errors:["Compilation Error - חוסר התאמה בין טיפוס מערך לטיפוס מצביע.","Compilation Error - ניסיון לכתוב לתוך מחרוזת ליטרלית."],
+  explanation:"השורות התקינות היחידות הן 2 ו-3. נסביר מדוע כל שורה תקינה או לא:\n\n- שורה 1 `strcpy(teacher,student);`: שורה זו אינה תקינה. המצביע `teacher` הוגדר אך לא אותחל, ולכן הוא מצביע לכתובת אקראית ('זבל') בזיכרון. הפונקציה `strcpy` מנסה להעתיק את תוכן המחרוזת `student` לתוך אותה כתובת לא חוקית, פעולה שתוביל לשגיאת זמן ריצה (Segmentation Fault).\n\n- שורה 4 `student = teacher;`: שורה זו כלל לא תעבור קומפילציה. ב-C, שם של מערך (כמו `student`) הוא למעשה מצביע קבוע לכתובת הזיכרון שבה המערך מתחיל. לא ניתן לשנות את הכתובת הזו ולהפוך אותה למצביע למקום אחר. הקומפיילר יחזיר שגיאה על ניסיון שינוי של ערך שאינו ניתן לשינוי (`l-value`).\n\n- שורות 2 ו-3 תקינות: שורה 2 גורמת למצביע `teacher` להצביע על תחילת המערך `student`, וזו פעולה חוקית. שורה 3 מעתיקה מחרוזת חדשה לתוך המערך `student`, וזו גם פעולה חוקית כיוון שהוקצה למערך מספיק מקום."
+},
+{
+  topic:"arrays",
+  code:`void foo(int n, char a, char b, char c) {\n\n    if (n == 1) {\n        printf("%c%c", a, b);\n        return;\n    }\n\n    foo(n-1, a, c, b);\n    printf("%c%c", a, b);\n    foo(n-1, c, b, a);\n}\n\nvoid main() {\n    foo(3, 'A', 'C', 'B');\n}`,
+  question:"מה שמונת התווים הראשונים שיודפסו על המסך?",
+  correct:"`ACABCBAC`",
+  wrongs:["`ACABCBBC`","`ACABCBBA`"],
+  errors:["Compilation Error - שימוש ב-`printf` בלי הצהרה מתאימה מ-`stdio.h`.","Compilation Error - חוסר התאמה בין טיפוס מערך לטיפוס מצביע."],
+  explanation:"הפונקציה `foo` מבצעת רקורסיה הדומה במבנה שלה לסריקת `in-order` על עץ.\n\nהקריאה הראשית היא `foo(3, 'A', 'C', 'B')`. נתחקה אחר הקריאות עד שנקבל 8 תווים:\n1. הקריאה יורדת ל-`foo(2, 'A', 'B', 'C')`.\n2. הקריאה יורדת שוב ל-`foo(1, 'A', 'C', 'B')`. הגענו לתנאי עצירה, והפונקציה מדפיסה `AC`.\n3. חוזרים ל-`foo(2,...)`, ושם מודפס `AB`. הפלט עד כה: `ACAB`.\n4. מתוך `foo(2,...)`, מתבצעת קריאה ל-`foo(1, 'C', 'B', 'A')`. שוב הגענו לתנאי עצירה, והפונקציה מדפיסה `CB`. הפלט עד כה: `ACABCB`.\n5. חוזרים מ-`foo(2,...)` לקריאה הראשית `foo(3,...)`, שם מודפס `AC`. הפלט עד כה: `ACABCBAC`.\n\nהידד! יש לנו 8 תווים, והם תואמים לתשובה הנכונה."
+},
+{
+  topic:"arrays",
+  code:`void bar(const char* src, char* dest) {\n    int i = 0;\n    while (src[i] != '\\0') {\n        dest[i] = src[i];\n        i++;\n    }\n}\n\nvoid main(void) {\n    char str1[] = "software";\n    char str2[] = "project";\n    bar(str2, str1);\n    printf("%s\\n", str1);\n}`,
+  question:"מה יהיה הפלט של התכנית הבאה?",
+  correct:"`projecte`",
+  wrongs:["`project`","`sroject`"],
+  errors:["Compilation Error - שימוש ב-`printf` בלי הצהרה מתאימה מ-`stdio.h`.","Compilation Error - חוסר התאמה בין טיפוס מערך לטיפוס מצביע."],
+  explanation:"הפונקציה `bar` מממשת באופן חלקי את פעולת `strcpy`. היא מעתיקה את התווים מהמחרוזת `str2` (`\"project\"`) אל תוך המחרוזת `str1` (`\"software\"`).\n\nהלולאה מעתיקה את 7 התווים של `\"project\"` ומציבה אותם בשבעת המקומות הראשונים של `str1`. לאחר ההעתקה, זיכרון המערך `str1`, שהיה בגודל 9 (`software\\0`), ייראה כך: `{'p','r','o','j','e','c','t','e','\\0'}`. התו `'e'` שהיה במקום השמיני במחרוזת המקורית (`\"software\"`) נשאר במקומו, כיוון שההעתקה נעצרה לפני שהגיעה אליו. חשוב מכך, הלולאה נעצרת כאשר היא מגיעה לתו `NULL` במחרוזת המקור, אך היא אינה מעתיקה אותו ליעד.\n\nכתוצאה מכך, תו ה-`NULL` המקורי של `str1` נשאר בסוף המערך. כאשר הפונקציה `printf` נקראת, היא מדפיסה את כל התווים מתחילת `str1` ועד שהיא פוגשת את תו ה-`NULL` הראשון, ולכן הפלט יהיה `projecte`."
+},
+{
+  topic:"arrays",
+  code:`char *funA() {\n    char *str = "A";\n    return str;\n}\n\nchar *funB() {\n    char str[] = "B";\n    return str;\n}\n\nvoid main() {\n    printf("%s", funA());\n    printf("%s", funB());\n}`,
+  question:"מה יהיה הפלט של התכנית הבאה?",
+  correct:"__NONE__",
+  wrongs:["`AB`","יודפסו שני תווי זבל"],
+  errors:["Compilation Error - שימוש ב-`printf` בלי הצהרה מתאימה מ-`stdio.h`.","Compilation Error - חוסר התאמה בין טיפוס מערך לטיפוס מצביע."],
+  explanation:"ההבדל המהותי בין שתי הפונקציות הוא במיקום הזיכרון של המחרוזות. ב-`funA`, הביטוי `char *str = \"A\";` גורם למצביע `str` להצביע על המחרוזת הליטרלית `\"A\"`. מחרוזות אלו נשמרות באזור זיכרון סטטי וקבוע של התכנית, שאינו חלק מהמחסנית (stack) שעליה יושבות הפונקציות. זיכרון זה זמין תמיד, ולכן החזרת המצביע תקינה וההדפסה הראשונה תציג `A`.\n\nב-`funB`, לעומת זאת, הביטוי `char str[] = \"B\";` יוצר מערך תווים מקומי על המחסנית. זיכרון זה משתחרר והופך לא חוקי ברגע שהפונקציה מסיימת. הניסיון להדפיס מהמצביע המוחזר גורם ל'התנהגות בלתי מוגדרת' (Undefined Behavior).\n\nהתנהגות בלתי מוגדרת משמעה שלא ניתן לקבוע מה יקרה. התכנית עשויה להדפיס 'זבל', לקרוס, או אפילו להדפיס `B` בטעות. מכיוון שאף תשובה אינה מתארת באופן ודאי את התוצאה (למשל, התשובה 'A ואחריו תו זבל' היא רק אפשרות אחת מני רבות), אף אחת מהן אינה נכונה בוודאות. לכן, התשובה הנכונה ביותר היא שכל התשובות האחרות אינן נכונות.",
+  noneExplanation:"הפלט אינו מוגדר: ההדפסה הראשונה היא `A`, וההדפסה השנייה יכולה להדפיס כל דבר, להתרסק או במקרה גם `B`."
+},
+{
+  topic:"arrays",
+  code:`char s1[10][20];\nchar *s2[10];\nchar **s3;`,
+  question:"בהינתן הגדרות המשתנים בקוד, איזו מהטענות הבאות היא הנכונה ביותר?",
+  correct:"יותר מטענה אחת נכונה",
+  wrongs:["`s3` מאפשרת מספר משתנה של מחרוזות כאשר לכל אחת יכול להיות אורך שונה","`s2` מגדירה מערך של 10 מחרוזות כאשר לכל אחת יכול להיות אורך שונה"],
+  errors:["Compilation Error - חוסר התאמה בין טיפוס מערך לטיפוס מצביע.","Compilation Error - ניסיון לכתוב לתוך מחרוזת ליטרלית."],
+  explanation:"ההגדרה `char s1[10][20]` יוצרת מערך דו-ממדי בגודל קבוע. יש בו 10 איברים, כאשר כל איבר הוא מערך של 20 תווים. לכן, כל אחת מ-10 המחרוזות יכולה להכיל לכל היותר 19 תווים, והתו ה-20 נשמר עבור תו הסיום `\\0`. טענה זו מופיעה בתשובות.\n\nההגדרה `char *s2[10]` יוצרת מערך בגודל קבוע של 10 איברים, שכל אחד מהם הוא מצביע לתו. כל מצביע כזה יכול להצביע למחרוזת באורך שונה, שמוקצית בנפרד. טענה זו מופיעה גם היא.\n\nההגדרה `char **s3` יוצרת מצביע למצביע לתו. זה מבנה גמיש ביותר, המאפשר מספר משתנה של מחרוזות באורכים משתנים. גם טענה זו מופיעה.\n\nבקיצור, יש יותר מטענה אחת נכונה, ולכן זו התשובה המדויקת ביותר."
+},
+{
+  topic:"arrays",
+  code:`char *s = "123456789";\nint y = 1;\n\nvoid f(char *s) {\n    static int x = 5;\n    int y = 0;\n\n    printf("%c ", s[x + y]);\n    x -= 2;\n    y++;\n}\n\nvoid main() {\n    f(s);\n    f(s + y);\n}`,
+  question:"מה יודפס על ידי הקריאה השנייה לפונקציה `f`?",
+  correct:"`5`",
+  wrongs:["`7`","`4`"],
+  errors:["Compilation Error - שימוש ב-`printf` בלי הצהרה מתאימה מ-`stdio.h`.","Compilation Error - חוסר התאמה בין טיפוס מערך לטיפוס מצביע."],
+  explanation:"התנהגות התוכנית נקבעת על ידי שני רכיבים מרכזיים: המשתנה הסטטי `x` בתוך הפונקציה `f`, והמצביע `s` שמועבר אליה. בקריאה הראשונה, `f(s)`, המשתנה הסטטי `x` מאותחל ל-5. הפונקציה מדפיסה את התו באינדקס 5 (כלומר `x+y` שהוא `5+0`) מהמחרוזת המקורית, שזהו התו '6'. לאחר ההדפסה, ערכו של `x` יורד ב-2 והופך ל-3, והוא ישמור על ערך זה לקראת הקריאה הבאה.\n\nבקריאה השנייה, `f(s + y)`, שני דברים משתנים. ראשית, המצביע המועבר לפונקציה הוא `s + 1` (כיוון שהמשתנה הגלובלי `y` שווה 1), ולכן הפונקציה רואה את המחרוזת כמתחילה מהתו השני, `\"23456789\"`. שנית, המשתנה הסטטי `x` ממשיך מהערך הקודם שלו, 3, ולא מאותחל מחדש. עכשיו אנחנו צריכים להדפיס את הערך שבאינדקס `x+y`. שימו לב שכאן `y` שווה שוב ל-0, כי מדובר על המשתנה הלוקאלי (ולא הגלובלי). אז, בקיצור, `x+y` שווה ל-`3+0`, ולכן הפונקציה מדפיסה את התו באינדקס 3 מהמחרוזת החדשה שהיא קיבלה, שזהו התו '5'."
+},
+{
+  topic:"arrays",
+  code:`void print_args_reverse(void *p, void *s) {\n    while (p!=s) {\n        printf("%s\\n", [[1]] p);\n        p = [[2]] p-1;\n    }\n}\n\nvoid main(int argc, char *argv[]) {\n    print_args_reverse( [[3]] , argv);\n}`,
+  question:"מה יש למלא במקומות הממוספרים 1 עד 3 כדי שהקוד ידפיס את הארגומנטים שהועברו אליו בסדר הפוך (מהאחרון לראשון, ללא שם התוכנית)?",
+  correct:"[[1: *(char**)]][[2: (char**)]][[3: argv+argc-1]]",
+  wrongs:["[[1: **(char*)]][[2: (char*)]][[3: *(argv+argc-1)]]","[[1: *(char*)]][[2: (char*)]][[3: *(argv+argc-1)]]"],
+  errors:["Compilation Error - שימוש ב-`printf` בלי הצהרה מתאימה מ-`stdio.h`.","Compilation Error - ניסיון לבצע אריתמטיקה על `void*` בלי המרה ל-`char*`."],
+  explanation:"בתיבה 3 יש להעביר את המצביע לארגומנט האחרון. מערך הארגומנטים `argv` מכיל `argc` איברים, והאיבר האחרון נמצא באינדקס `argc-1`. הכתובת של איבר זה היא `argv + argc - 1`. נקודת העצירה, `s`, כבר מועברת בתור `argv`, כך שהלולאה תעצור לפני שתעבד את `argv[0]` (שם התוכנית).\n\nבתיבה 2, מדובר בהשלמה פשוטה: אנחנו כבר יודעים שהמצביע `p` הוא למעשה מצביע ל-`char*`, כלומר מסוג `char**`. מאחר שאריתמטיקה על מצביעים אינה אפשרית עם `void*`, יש להמיר את `p` לסוגו המקורי כדי שנוכל להחסיר ממנו אחד ולנוע אחורה במערך. לכן ההשלמה הנכונה היא ההמרה `(char**)`.\n\nבתיבה 1, המטרה היא להדפיס את המחרוזת שמצביע עליה `p`. כאמור, `p` הוא `void*`, אך בפועל הוא מצביע למצביע למחרוזת (`char**`). כדי להגיע למחרוזת עצמה (`char*`), יש להמיר את `p` ל-`char**` ואז לבצע עליו דה-רפרנסינג. בצורה זו נקבל את המחרוזת שאותה נוכל להעביר ל-`printf`. לכן, ההשלמה הנכונה היא `*(char**)`. חשוב לשים לב שלא נכון לעשות `**(char**)p`, כי פעולה כזו תיגש לתו הראשון של המחרוזת (כלומר תביא את הערך של התו הראשון, לדוגמה 'a'), בעוד ש-`%s` ב-`printf` מצפה לקבל כתובת של תחילת מחרוזת, לא תו בודד. בדיוק את זה אנחנו מספקים באמצעות `*(char**)p`."
+},
+{
+  topic:"preprocessor",
+  code:`#define INCREMENT(x) (x+1)\n#define SQUARE(x) (x * x)\n\nint main() {\n    int num = 2;\n    int res = SQUARE(INCREMENT(num+1));\n    printf("%d\\n", res);\n    return 0;\n}`,
+  question:"מה תדפיס התכנית הבאה?",
+  correct:"16",
+  wrongs:["6","5"],
+  errors:["Compilation Error - הרחבת מאקרו יוצרת קוד תחבירי לא חוקי.","Compilation Error - הגדרה מחדש של מאקרו עם ערך סותר."],
+  explanation:"הקדם-מעבד מחליף את המאקרואים טקסטואלית לפני שהקוד מתקמפל. נפרק את התהליך:\n1. הביטוי המקורי הוא `SQUARE(INCREMENT(num+1))`.\n2. המאקרו `SQUARE(x)` מוגדר כ-`x * x`. לכן, הביטוי הופך ל-`INCREMENT(num+1) * INCREMENT(num+1)`.\n3. כעת, נחליף את `num` בערכו (2): `INCREMENT(2+1) * INCREMENT(2+1)`.\n4. המאקרו `INCREMENT(x)` מוגדר כ-`x+1`. נחליף כל אחד מהם: `(2+1+1) * (2+1+1)`.\n5. בגלל סדר קדימויות פעולות חשבון, הביטוי הופך להיות `(4) * (4)`.\n6. התוצאה הסופית היא 16."
+},
+{
+  topic:"preprocessor",
+  code:`#define WHAT(x,y) (x*2) >= (y/2) ? (x/2) : (y*2)\n\nvoid main() {\n    float a;\n    a = WHAT(1+4, 1+19);\n    printf("%.1f", a);\n}`,
+  question:"מה יהיה הפלט של קטע הקוד הבא?",
+  correct:"`39.0`",
+  wrongs:["`2.5`","`40.0`"],
+  errors:["Compilation Error - הרחבת מאקרו יוצרת קוד תחבירי לא חוקי.","Compilation Error - הגדרה מחדש של מאקרו עם ערך סותר."],
+  explanation:"הקוד מגדיר מאקרו בשם `WHAT` שמקבל שני ארגומנטים, `x` ו-`y`. בפונקציה `main`, המאקרו נקרא עם הערכים `1+4` עבור `x` ו-`1+19` עבור `y`. כיוון שמאקרו מבצע החלפת טקסט פשוטה, הביטוי שנוצר לאחר ההצבה הוא: `(1+4 * 2) >= (1+19 / 2) ? (1+4 / 2) : (1+19 * 2)`.\n\nבשל קדימות אופרטורים, פעולות הכפל והחילוק מתבצעות לפני החיבור. לכן, התנאי בביטוי הטרינארי הופך ל-`(1+8) >= (1+9)`, כלומר `9 >= 10`. תנאי זה הוא שקרי. כשהתנאי שקרי, הביטוי שמימין לנקודתיים (`:`) הוא זה שמחושב. ביטוי זה הוא `1+19 * 2`, שמתורגם ל-`1+38`, ותוצאתו היא `39`.\n\nהערך `39` (מספר שלם) מושם במשתנה `a` מסוג `float`, ולכן ערכו הופך ל-`39.0`. פקודת ההדפסה `printf` מציגה את המספר עם ספרה אחת אחרי הנקודה העשרונית, ולכן הפלט הסופי יהיה `39.0`."
+},
+{
+  topic:"preprocessor",
+  code:`#define F(a,b) (a + b*a)\n#define G(a,b,c,d) ((F(a,b)) < (F(c,d)) ? \\\n                   (F(a,b)) : (F(c,d)))\nvoid main() {\n    printf("%d\\n", G(1+2, 2, 3, 2));\n}`,
+  question:"מה הפלט של התכנית הבאה?",
+  correct:"`7`",
+  wrongs:["`9`","`4`"],
+  errors:["Compilation Error - הרחבת מאקרו יוצרת קוד תחבירי לא חוקי.","Compilation Error - הגדרה מחדש של מאקרו עם ערך סותר."],
+  explanation:"המאקרו `G` מבצע השוואה בין שתי קריאות למאקרו `F` ומחזיר את הערך הקטן מביניהם. ננתח כל קריאה בנפרד.\n\nהקריאה הראשונה היא `F(a,b)`, כאשר `a` מוחלף ב-`1+2` ו-`b` מוחלף ב-`2`. לאחר ההצבה במאקרו (`a + b*a`) נקבל את הביטוי `(1+2 + 2*1+2)`. בשל סדר קדימויות אופרטורים, פעולת הכפל מתבצעת לפני החיבור, ולכן הביטוי הוא `(1+2 + 2+2)`, שערכו הוא `7`.\n\nהקריאה השנייה היא `F(c,d)`, כאשר `c` מוחלף ב-`3` ו-`d` מוחלף ב-`2`. לאחר ההצבה נקבל `(3 + 2*3)`. גם כאן הכפל קודם לחיבור, והתוצאה היא `(3 + 6)`, שערכה הוא `9`.\n\nלבסוף, המאקרו `G` משווה בין שתי התוצאות (`7 < 9`). התנאי מתקיים, ולכן הביטוי כולו מחזיר את הערך הראשון, `7`."
+},
+{
+  topic:"preprocessor",
+  code:`#define mac(a,b) a**b\n\nint main() {\n\n    int a[2], *b, *c;\n\n    a[0] = 5;\n    a[1] = 7;\n\n    c = a;\n    (*c)++;\n    b = c + 1;\n\n    printf("%d\\n", mac((a[0], b));\n    return 0;\n}`,
+  question:"מהו הפלט של התכנית הבאה?",
+  correct:"`42`",
+  wrongs:["`35`","`40`"],
+  errors:["Compilation Error - הרחבת מאקרו יוצרת קוד תחבירי לא חוקי.","Compilation Error - הגדרה מחדש של מאקרו עם ערך סותר."],
+  explanation:"תחילה, ננתח את מצב המשתנים לפני הקריאה למאקרו. המערך `a` מאותחל לערכים `{5, 7}`. המצביע `c` מקבל את כתובת תחילת המערך, והפקודה `(*c)++` מגדילה את `a[0]` ל-`6`. לאחר מכן, המצביע `b` מקבל את הכתובת `c + 1`, ולכן הוא מצביע לאיבר השני במערך, `a[1]`, שערכו `7`.\n\nהקריאה למאקרו `mac(a[0], b)` גורמת להחלפת טקסט פשוטה. הביטוי `a**b` הופך ל-`a[0] * *b`. חשוב להבין את המשמעות הכפולה של התו `*` בהקשר זה: הכוכבית הראשונה (משמאל) היא אופרטור הכפל, בעוד הכוכבית השנייה היא אופרטור ה-dereference, הגוזר את הערך מהכתובת שהמצביע `b` מחזיק.\n\nלכן, הביטוי הסופי לחישוב הוא ערכו של `a[0]` (שהוא 6) כפול הערך שאליו `b` מצביע (שהוא `a[1]`, כלומר 7). התוצאה היא `6 * 7 = 42`."
+},
+{
+  topic:"preprocessor",
+  code:`#define C(y) (y+2)\n#define CALC(x,y) (C(x)*C(y))\n\nint i = CALC( (C(1)), (C(2)) );`,
+  question:"* טלי טוענת שניתן לוותר על הסוגריים בשורה האחרונה סביב `C(1)` ו-`C(2)` ולקבל את אותה התוצאה.\n\n* גלי טוענת שניתן לוותר על הסוגריים החיצוניים בהגדרת המאקרו `CALC` .\n\n* אילי טוען שהשורה האחרונה לא תעבור קומפילציה.\n\nמה מהבאים נכון?",
+  correct:"טלי צודקת, גלי טועה ואילי טועה",
+  wrongs:["גלי צודקת וטלי טועה ואילי טועה","אילי ואחת מהבנות צודקים"],
+  errors:["Compilation Error - הרחבת מאקרו יוצרת קוד תחבירי לא חוקי.","Compilation Error - הגדרה מחדש של מאקרו עם ערך סותר."],
+  explanation:"ננתח כל טענה:\n\nטענתו של אילי: הקוד המקורי תקין לחלוטין. הביטוי `CALC( (C(1)), (C(2)) )` יתפתח לביטוי `(C((3))*C((4)))`, אשר יתפתח ל-`(((3)+2)*((4)+2))`, שתוצאתו היא `(5*6)=30`. הקוד מתקמפל ועובד, לכן אילי טועה.\n\nטענתה של גלי: הסרת הסוגריים החיצוניים במאקרו `CALC` היא פרקטיקה מסוכנת. לדוגמה, אם נכתוב `100 / CALC(1,1)`, הביטוי יתפתח ל-`100 / C(1)*C(1)` ובשל קדימות אופרטורים יחושב כ-`(100/3)*3`, מה שנותן תוצאה שגויה. הסוגריים חיוניים להבטחת תקינות המאקרו, לכן גלי טועה.\n\nטענתה של טלי: הסרת הסוגריים הפנימיים מובילה לביטוי `CALC(C(1), C(2))`. זה יתפתח ל-`(C(C(1))*C(C(2)))` ולאחר מכן לביטוי `(((1+2)+2)*((2+2)+2))`, שגם תוצאתו `30`. במקרה הספציפי הזה, בזכות הסוגריים בהגדרת המאקרו `C`, התוצאה נשמרת. לכן טלי צודקת."
+},
+{
+  topic:"preprocessor",
+  code:`#define WHAT(x,y) x*y+1\n\nint main() {\n    int a = 2, b = 3, c = 4;\n    printf("%d\\n", WHAT(a+b, c));\n    return 0;\n}`,
+  question:"מהו הפלט של התכנית הבאה?",
+  correct:"`15`",
+  wrongs:["`20`","`17`"],
+  errors:["Compilation Error - הרחבת מאקרו יוצרת קוד תחבירי לא חוקי.","Compilation Error - הגדרה מחדש של מאקרו עם ערך סותר."],
+  explanation:"פקודות מאקרו בשפת C מבצעות החלפת טקסט פשוטה לפני שלב הקומפילציה. המאקרו `WHAT(x,y)` מוגדר כ-`x*y+1`.\n\nבפונקציה `main`, הקריאה למאקרו היא `WHAT(a+b, c)`. הקדם-מעבד (preprocessor) יחליף את `x` בביטוי `a+b` ואת `y` במשתנה `c` באופן מילולי. הביטוי שיישלח לקומפיילר לאחר ההחלפה הוא `a+b*c+1`.\n\nבשל סדר קדימויות האופרטורים ב-C, פעולת הכפל (`*`) תתבצע לפני פעולות החיבור (`+`). לכן, הביטוי יחושב כך: `a + (b*c) + 1`. לאחר הצבת הערכים (`a=2`, `b=3`, `c=4`), נקבל: `2 + (3*4) + 1`, ששווה ל-`2 + 12 + 1`, והתוצאה הסופית היא `15`."
+},
+{
+  topic:"preprocessor",
+  code:`#define WHAT(x,y) (x*2) >= y ? (x/2) : (y*2)\n\nvoid main() {\n    float a;\n    a = WHAT(WHAT(1 + 4, 1 + 5), 1 + 6);\n    printf("%.0f", a);\n}`,
+  question:"מהו הפלט של התכנית הבאה?",
+  correct:"`13`",
+  wrongs:["`3`","`14`"],
+  errors:["Compilation Error - הרחבת מאקרו יוצרת קוד תחבירי לא חוקי.","Compilation Error - הגדרה מחדש של מאקרו עם ערך סותר."],
+  explanation:"יש לפתור את הביטוי שלב אחר שלב, מבפנים החוצה.\n\nתחילה נחשב את הביטוי הפנימי, `WHAT(1+4, 1+5)`. לאחר החלפת הטקסט במאקרו, הביטוי הופך ל-`(1+4 * 2) >= 1+5 ? (1+4 / 2) : (1+5 * 2)`. התנאי הוא `9 >= 6`, שהוא אמת. לכן, הביטוי מחזיר את החלק הראשון, `(1 + 4/2)`, שערכו `3`.\n\nכעת, הביטוי המלא הוא `WHAT(3, 1+6)`. לאחר החלפת טקסט, הביטוי הופך ל-`(3*2) >= 1+6 ? (3/2) : (1+6*2)`. התנאי כאן הוא `6 >= 7`, שהוא שקרי. לכן, הביטוי מחזיר את החלק השני, `(1+6*2)`. בשל קדימות אופרטורים, התוצאה היא `1+12`, כלומר `13`.\n\nהערך `13` יודפס למסך."
+},
+{
+  topic:"preprocessor",
+  code:`#define PRINT(i, limit) i++ < limit ? \\\n                    printf("1") : printf("0")\n\nvoid main() {\n    PRINT(0, 3);\n    PRINT(3, 0);\n}`,
+  question:"מה תהיה התוצאה של ניסיון לקמפל ולהריץ את התכנית הבאה?",
+  correct:"__NONE__",
+  wrongs:["`10`","`01`"],
+  errors:["Compilation Error - הרחבת מאקרו יוצרת קוד תחבירי לא חוקי.","Compilation Error - הגדרה מחדש של מאקרו עם ערך סותר."],
+  explanation:"הקוד אינו עובר קומפילציה. הסיבה לכך היא שפעולת ה-`i++` היא למעשה קיצור של השמה (`i = i + 1`). בצד שמאל של כל פעולת השמה (`=`), חייב להופיע `lvalue` - ביטוי המייצג מקום בזיכרון שניתן להכניס אליו ערך חדש, כמו משתנה.\n\nכאשר המאקרו `PRINT(i, limit)` מופעל עם ערך ליטרלי `0` עבור `i` (כלומר, `PRINT(0, 3)`), הוא מתרחב לביטוי `0++`. הקומפיילר מפרש זאת כניסיון להציב ערך חדש לתוך הקבוע `0` (`0 = 0 + 1`), וזה לא אפשרי. לקבוע `0` אין מיקום זיכרון שניתן לשנותו, ולכן מתקבלת שגיאת קומפילציה: `lvalue required as increment operand`. כיוון שהקוד כלל לא מתקמפל, כל יתר התשובות המתארות פלט או שגיאת ריצה אינן נכונות.",
+  noneExplanation:"התוכנית לא מתקמפלת כי המאקרו מתרחב ל-`0++`, ולכן מתקבלת השגיאה `lvalue required as increment operand`."
+},
+{
+  topic:"preprocessor",
+  code:`#define MAX2(A, B) (((A) > (B)) ? (A) : (B))\n#define MAX3(A, B, C) (MAX2(MAX2(A, B), C))\n\nint f() { return 10; }\nint g() { return 5; }\nint h() { return 0; }\n\nvoid main() {\n    printf("MAX=%d", MAX3(f(), g(), h()));\n}`,
+  question:"בהינתן קטע הקוד, איזו טענה נכונה לגבי מספר הקריאות לכל פונקציה?",
+  correct:"הפונקציה f נקראת 4 פעמים, הפונקציה g נקראת פעמיים והפונקציה h נקראת פעם אחת",
+  wrongs:["הפונקציה f נקראת 4 פעמים, הפונקציה g נקראת פעם אחת והפונקציה h נקראת פעם אחת","הפונקציה f נקראת 4 פעמים, הפונקציה g נקראת פעמיים והפונקציה h נקראת פעמיים"],
+  errors:["Compilation Error - הרחבת מאקרו יוצרת קוד תחבירי לא חוקי.","Compilation Error - הגדרה מחדש של מאקרו עם ערך סותר."],
+  explanation:"הקריאה למאקרו `MAX3` מתרחבת לביטוי הטרינארי המקונן: `((MAX2(f(), g())) > (h())) ? (MAX2(f(), g())) : (h())`. בגלל החלפת הטקסט הפשוטה של מאקרו, הארגומנטים `f()`, `g()`, ו-`h()` יוערכו בכל פעם שהם מופיעים בביטוי המורחב.\n\nכדי להעריך את התנאי, `(MAX2(f(), g()) > h())`, נדרש תחילה לחשב את `MAX2(f(), g())`. ביטוי זה קורא ל-`f()` (פעם 1) ול-`g()` (פעם 1). מכיוון ש-`10 > 5`, הוא קורא ל-`f()` שוב (פעם 2) כדי להחזיר את הערך `10`. לאחר מכן, `h()` נקראת (פעם 1) לצורך ההשוואה `10 > 0`. התנאי הוא אמת. סה\"כ עד כה: `f` נקראה פעמיים, `g` פעם אחת, `h` פעם אחת.\n\nמכיוון שהתנאי הוא אמת, הביטוי `MAX2(f(), g())` מחושב שוב במלואו כדי לקבוע את הערך המוחזר. הערכה שנייה זו קוראת ל-`f()` (פעם 3) ול-`g()` (פעם 2). שוב, התנאי `10 > 5` הוא אמת, ולכן `f()` נקראת פעם נוספת (פעם 4) כדי להחזיר את הערך הסופי.\n\nבסיכום, סך הקריאות הוא: `f` נקראה 4 פעמים, `g` נקראה פעמיים, ו-`h` נקראה פעם אחת."
+},
+{
+  topic:"preprocessor",
+  code:`#define S(x) x*x\n#define M(x,y) x*y\n\nvoid g(int x, int y) {\n    static int a = 2;\n    int z = S(x+y);\n    a += M(x+y,y+x);\n    printf("%d %d ", a, z);\n}\n\nvoid main() {\n    int x = 3, y = 5;\n    g(x,y);\n    g(y,x);\n}`,
+  question:"מה יהיה הפלט של קטע הקוד הבא?",
+  correct:"`33 23 52 23`",
+  wrongs:["`33 64 52 64`","`66 23 130 23`"],
+  errors:["Compilation Error - הרחבת מאקרו יוצרת קוד תחבירי לא חוקי.","Compilation Error - הגדרה מחדש של מאקרו עם ערך סותר."],
+  explanation:"בקריאה הראשונה לפונקציה `g(3, 5)`, המשתנה הסטטי `a` מאותחל ל-2. חישוב `z` לפי המאקרו `S(x+y)` הופך לביטוי `3+5*3+5` (בשל החלפת טקסט וקדימות אופרטורים), שתוצאתו `23`. לאחר מכן, ל-`a` מתווסף הערך מהמאקרו `M`, שהופך לביטוי `3+5*5+3` ותוצאתו `31`. לכן, `a` הופך ל-`2 + 31 = 33`, והפלט הראשון הוא `33 23`.\n\nבקריאה השנייה לפונקציה, `g(5, 3)`, המשתנה הסטטי `a` אינו מאותחל מחדש ושומר על ערכו, כלומר `33`. חישוב `z` עם הערכים החדשים (`x=5, y=3`) נותן `5+3*5+3`, שזה שוב `23`. ל-`a` מתווספת התוצאה של `5+3*3+5`, שהיא `19`. ערכו הסופי של `a` מתעדכן ל-`33 + 19 = 52`. לכן, הפלט מהקריאה השנייה הוא `52 23`."
+},
+{
+  topic:"functions",
+  code:`typedef struct _Student {\n    unsigned long id;\n    char *name;\n    unsigned int grade;\n} Student;\n\nint cmpNames(void *p1, void *p2) {\n    return (strcmp( [[1]] , [[2]] ));\n}\n\nvoid main() {\n\n    // נתון מערך של מצביעים לסטודנטים\n    Student **students;\n\n    // ... המערך הוקצה, הנתונים הוכנסו ...\n\n    // נתונה הקריאה הבאה לפונקציה\n    cmpNames((students[5], students+10);\n}`,
+  question:"בהינתן הקוד והקריאה לפונקציה, מה יש למלא בתיבות 1 ו-2 כדי שהפונקציה תשלים כראוי את השוואת השמות המתאימים לפרמטרים `p1` ו-`p2`?",
+  correct:"[[1: ((Student*)p1)->name]][[2: (*((Student**)p2))->name]]",
+  wrongs:["[[1: (*((Student**)p1))->name]][[2: (*((Student**)p2))->name]]","[[1: (**((Student**)p1)).name]][[2: (**((Student**)p2)).name]]"],
+  errors:["Compilation Error - חתימה לא תואמת של פונקציית ההשוואה ביחס לקריאה.","Compilation Error - ניסיון לבצע אריתמטיקה על `void*` בלי המרה ל-`char*`."],
+  explanation:"הפתרון הנכון דורש הבנה מדויקת של טיפוסי המשתנים המועברים לפונקציה. המערך `students` הוא מצביע למצביע (`Student**`), לכן `students[5]` הוא מצביע לסטודנט (`Student*`), בעוד שהביטוי `students+10` הוא כתובת בתוך מערך המצביעים, וטיפוסו הוא מצביע למצביע (`Student**`).\n\nהפרמטר `p1` מקבל את `students[5]`, ולכן כדי לגשת לשם דרכו, יש לבצע המרה ל-`Student*` ולהשתמש באופרטור החץ. לכן, בתיבה 1 יש למלא את הביטוי `((Student*)p1)->name`.\n\nהפרמטר `p2` מקבל את `students+10`. כדי לגשת לשם דרכו, יש לבצע המרה ל-`Student**`, לבצע `dereference` אחד (`*`) כדי לקבל את המצביע `students[10]`, ורק אז להשתמש באופרטור החץ. לכן, בתיבה 2 יש למלא את הביטוי `(*((Student**)p2))->name`."
+},
+{
+  topic:"functions",
+  code:`typedef struct _Student {\n    unsigned long id;\n    char *name;\n    unsigned int grade;\n} Student;\n\nint cmpNames( [[1]] p1, [[2]] p2 ) {\n    return (strcmp( [[3]] , [[4]] ));\n}\n\nvoid main() {\n\n    // נתון מערך של מצביעים לסטודנטים\n    Student **students;\n\n    // ... המערך הוקצה, הנתונים הוכנסו ...\n\n    // נתונה הקריאה הבאה לפונקציה\n    cmpNames((students[5], students+10);\n}`,
+  question:"מה יש למלא בתיבות 1, 2, 3 ו-4 כדי שהפונקציה תשווה בין שם הסטודנט שמוצבע מתא 10 במערך `students` לבין שם הסטודנט שמוצבע מתא 5?",
+  correct:"יותר מתשובה אחת נכונה",
+  wrongs:["[[1: Student*]][[2: Student**]][[3: (*p2)->name]][[4: p1->name]]","[[1: Student*]][[2: Student**]][[3: (*p1).name]][[4: (**p2).name]]"],
+  errors:["Compilation Error - חתימה לא תואמת של פונקציית ההשוואה ביחס לקריאה.","Compilation Error - גישה לשדה של מבנה דרך טיפוס מצביע לא מתאים."],
+  explanation:"כדי לפתור את השאלה, יש לנתח את הטיפוסים של הערכים המועברים לפונקציה. הביטוי `students[5]` ניגש לתוכן התא החמישי במערך של מצביעים לסטודנטים, ולכן הוא מהטיפוס `Student*`. כלומר, הפרמטר `p1` צריך להיות `Student*`, וזה מה שנכתוב בתיבה 1.\n\nהביטוי `students + 10` מבצע אריתמטיקה על מצביע כפול (`Student**`) ומתקבל ממנו עדיין `Student**`. לכן, המשתנה `p2` צריך להיות מטיפוס `Student**`, וזה מה שנכתוב בתיבה 2.\n\nעכשיו נסתכל על תיבה 3. אנחנו רוצים לגשת לשם של הסטודנט שהתקבל בפרמטר `p1`, שמוגדר כ-`Student*`. יש לנו שתי דרכים שקולות לעשות זאת: דרך אופרטור החץ `p1->name`, או על ידי שימוש ב-dereference ואז נקודה: `(*p1).name`. שתיהן נכונות לגמרי מבחינה תחבירית ומביאות לאותו ערך.\n\nבתיבה 4 אנחנו רוצים לגשת לשם של הסטודנט שנמצא בכתובת שאליה מצביע `p2`, שמוגדר כ-`Student**`. כדי להגיע לשדה `name`, נוכל לבצע dereference אחד (`*p2`) ואז להשתמש באופרטור החץ: `(*p2)->name`, או לבצע dereference כפול (`**p2`) ואז לגשת בעזרת נקודה: `(**p2).name`. גם כאן שתי האפשרויות תקינות ושקולות.\n\nנשים לב שקיימות שתי תשובות שמציעות את שתי הדרכים הנ\"ל, ולכן התשובה הנכונה היא שיש יותר מתשובה אחת נכונה."
+},
+{
+  topic:"functions",
+  code:`typedef struct {\n    char* name;\n    int serialNum;\n    double price;\n} Product;\n\nint compare(void *a, void *b) {\n    return strcmp( [[1]] , [[2]] );\n}`,
+  question:"בהינתן מערך `arr` של מצביעים למבנה `Product`, ושני המצביעים הבאים:\n`;void *a = &arr[0]`\n`;void *b = arr+1`\n\nמה יש למלא בתיבות 1 ו-2 בפונקציה `compare` כדי לבצע השוואה לקסיקוגרפית תקינה בין שמות המוצרים?",
+  correct:"יותר מתשובה אחת נכונה",
+  wrongs:["[[1: (*((Product**)a))->name]][[2: (*((Product**)b))->name]]","[[1: (**((Product**)a)).name]][[2: (**((Product**)b)).name]]"],
+  errors:["Compilation Error - חתימה לא תואמת של פונקציית ההשוואה ביחס לקריאה.","Compilation Error - ניסיון לבצע אריתמטיקה על `void*` בלי המרה ל-`char*`."],
+  explanation:"המשתנה `arr` הוא מערך שכל איבר בו הוא מצביע למוצר (`Product*`), ולכן `arr` עצמו הוא מטיפוס `Product**`. המשתנים `a` ו-`b` מקבלים כתובות של איברים במערך זה, ולכן שניהם למעשה מצביעים למצביע למוצר (כלומר, הטיפוס האמיתי שלהם הוא `Product**`).\n\nכדי לגשת לשדה `name` מתוך מצביע `void*` שמייצג `Product**`, ישנן שתי דרכים נכונות ושקולות:\n1.  **דרך אופרטור החץ (`->`):** מבצעים המרה ל-`Product**`, מבצעים `dereference` אחד (`*`) כדי לקבל `Product*`, ומשתמשים באופרטור החץ כדי לגשת לשדה. הביטוי המתקבל הוא `(*((Product**)a))->name`.\n2.  **דרך אופרטור הנקודה (`.`):** מבצעים המרה ל-`Product**`, מבצעים `dereference` כפול (`**`) כדי להגיע ישירות למבנה המוצר עצמו, ואז ניגשים לשדה באמצעות אופרטור הנקודה. הביטוי המתקבל הוא `(**((Product**)a)).name`.\n\nמכיוון ששתי האפשרויות הראשונות מציגות את שתי הדרכים הנכונות, התשובה המדויקת ביותר היא 'יותר מתשובה אחת נכונה'."
+},
+{
+  topic:"functions",
+  code:`void sort(void *arr, int len, int elmSize,\n                        int (*cmp)(void *, void *)) {\n\n    void *cur, *next, *tmp;\n\n    for (int i = len - 1; i > 0; i--) {\n        for (int j = 0; j < i; j++) {\n\n            cur = (void *)((char *)arr + j * elmSize);\n\n            [[1]]\n\n            if ( (*cmp)(cur, next) > 0)\n                /* swap אלגוריתם */\n\n        }\n    }\n}`,
+  question:"מהו קטע הקוד שיש למלא בתיבה 1 כדי לחשב נכונה את כתובת האיבר הבא לצורך ההשוואה בפונקציית המיון?",
+  correct:"יש יותר מתשובה אחת נכונה",
+  wrongs:["[[1: next = (void *)((char *)cur + elmSize);]]","[[1: next = (void *)((char *)arr + (j+1)*elmSize);]]"],
+  errors:["Compilation Error - חתימה לא תואמת של פונקציית ההשוואה ביחס לקריאה.","Compilation Error - ניסיון לבצע אריתמטיקה על `void*` בלי המרה ל-`char*`."],
+  explanation:"תחילה, נפסול את שתי התשובות המשתמשות במשתנה `tmp`. משתנה זה הוא מטיפוס `void*`, שעליו לא ניתן לבצע פעולת אינדוקס באמצעות סוגריים מרובעים `[]`. ניסיון לעשות זאת הוא פעולה לא חוקית בשפת-C ויוביל לשגיאת קומפילציה.\n\nכעת נבחן את שתי התשובות הנותרות. אפשרות אחת היא לקחת את הכתובת של האיבר הנוכחי (`cur`), להוסיף לה את גודל האיבר (`elmSize`), ובכך לקבל באופן ישיר ויעיל את הכתובת של האיבר הבא.\n\nאפשרות נוספת היא לחשב את הכתובת של האיבר הבא (`j+1`) על ידי חישוב ההיסט המלא מתחילת המערך (`arr`). גם דרך זו מגיעה לאותה תוצאה נכונה מבחינה לוגית.\n\nמכיוון ששתי הדרכים נכונות, התשובה המדויקת ביותר היא שיש יותר מתשובה אחת נכונה."
+},
+{
+  topic:"functions",
+  code:`typedef void(*Func)(void*);\n\nint count = 0;\n\nvoid main() {\n    foo1(foo1);\n    foo1(foo2);\n}\n\nvoid foo1(void* f) {\n    printf("foo1 ");\n    count++;\n\n    if (f == foo1 || count == 4)\n        return;\n\n    ((Func)f)(foo1);\n}\n\nvoid foo2(void* f) {\n    printf("foo2 ");\n    count++;\n\n    if (f == foo2 || count == 4)\n        return;\n\n    ((Func)f)(foo2);\n}`,
+  question:"מהו הפלט של התכנית הבאה?",
+  correct:"`foo1 foo1 foo2 foo1`",
+  wrongs:["`foo1 foo1 foo1 foo2`","התכנית נכנסת ללולאה אינסופית"],
+  errors:["Compilation Error - שימוש ב-`printf` בלי הצהרה מתאימה מ-`stdio.h`.","Compilation Error - ניסיון לבצע אריתמטיקה על `void*` בלי המרה ל-`char*`."],
+  explanation:"הקריאה הראשונה מהפונקציה `main` היא `foo1(foo1)`. בתוך `foo1`, הפלט \"foo1 \" מודפס, המונה הגלובלי `count` גדל ל-1, ותנאי העצירה `f == foo1` מתקיים. לכן הפונקציה חוזרת מיד.\nהקריאה השנייה היא `foo1(foo2)`. הפלט \"foo1 \" מודפס ו-`count` הופך ל-2. תנאי העצירה אינו מתקיים, ולכן מתבצעת קריאה ל-`((Func)f)(foo1)`, שהיא למעשה `foo2(foo1)`. בתוך `foo2`, הפלט \"foo2 \" מודפס ו-`count` הופך ל-3. שוב, תנאי העצירה לא מתקיים והפעם מתבצעת קריאה ל-`foo1(foo2)`.\nבקריאה האחרונה ל-`foo1(foo2)`, הפלט \"foo1 \" מודפס ו-`count` הופך ל-4. כעת, תנאי העצירה `count == 4` מתקיים, והפונקציה חוזרת. שרשרת הקריאות מסתיימת, והפלט הסופי שהודפס הוא `foo1 foo1 foo2 foo1`."
+},
+{
+  topic:"functions",
+  code:`typedef struct Node {\n    char *data;\n    struct Node *next;\n} Node;\n\ntypedef struct List {\n    Node *head, *tail;\n} List;\n\nvoid DeleteList(List *list) {\n    while (list->head)\n        DeleteFirst(list);\n\n    free(list);\n}\n\nvoid DeleteFirst(List *list) {\n  Node *node_to_delete = list->head;\n  list->head = list->head->next;\n  FreeNode(node_to_delete);\n\n  if (list->head == NULL)\n      list->tail = NULL;\n}\n\nvoid FreeNode(Node *node_to_free){\n    free(node_to_free->data);\n    free(node_to_free);\n}`,
+  question:"איזו מבין הטענות הבאות היא הנכונה ביותר:",
+  correct:"הפונקציה `DeleteList` תעבוד בצורה תקינה רק אם המשתנה `list` מצביע למקום שהוקצה דינאמית",
+  wrongs:["הפונקציה `DeleteList` תמיד תניב שגיאת זמן ריצה בעת ביצוע ה-`free`","הפונקציה `DeleteList` תקינה ותעבוד בכל המקרים"],
+  errors:["Compilation Error - גישה לשדה של מבנה דרך טיפוס מצביע לא מתאים.","Compilation Error - מספר ארגומנטים שגוי בקריאה לפונקציה."],
+  explanation:"הבעייתיות בקוד טמונה בשורה האחרונה של הפונקציה `DeleteList`, והיא `free(list)`. פקודת `free` בשפת C מיועדת לשחרור זיכרון שהוקצה באופן דינאמי על 'הערימה' (heap), למשל באמצעות `malloc`. אם מתכנת יקרא לפונקציה `DeleteList` עם מצביע למבנה `List` שנוצר על 'המחסנית' (stack), הקריאה `free(list)` תגרום לקריסת התוכנית. לכן, תקינות הפונקציה תלויה לחלוטין בכך שהמשתנה `list` מצביע לזיכרון שהוקצה דינאמית.\n\nשאר התשובות אינן נכונות. הפונקציה לא תמיד תניב שגיאה, כיוון שהיא תעבוד נכון עבור רשימה שהוקצתה דינאמית. העברת פקודת ה-`free` החוצה היא שינוי עיצובי שמשנה את אחריות הפונקציה, אבל הוא לא מתקן איזה באג. הקוד תקין מבחינה תחבירית ויעבור קומפילציה ללא שגיאות."
+},
+{
+  topic:"functions",
+  code:`#define SWAP( SRC, DST, TMP, LEN) {\\\n        memcpy(TMP, SRC, LEN);  \\\n        memcpy(SRC, DST, LEN);  \\\n        memcpy(DST, TMP, LEN);   \\\n}\n\nvoid swap(void *arr, int numElm, int sizeElm) {\n\n    void *tmp, *an;\n    int n = numElm - 1;\n\n    tmp = malloc(sizeElm);\n\n    for ( ; n > 0; n -= 2) {\n        an = ( [[1]] );\n        SWAP( [[2]] , an, tmp, sizeElm);\n    }\n\n    free(tmp);\n}`,
+  question:"בהינתן שהפונקציה `swap` נועדה להחליף בין זוגות של איברים סמוכים החל מסוף המערך, מה יש למלא בתיבות 1 ו-2?",
+  correct:"__NONE__",
+  wrongs:["[[1: (void *)((char*)arr +(n-1)*sizeElm)]][[2: an+1]]","[[1: (void *)((char*)arr + n*sizeElm)]][[2: an-1]]"],
+  errors:["Compilation Error - הרחבת מאקרו יוצרת קוד תחבירי לא חוקי.","Compilation Error - הגדרה מחדש של מאקרו עם ערך סותר."],
+  explanation:"אף אחת מהתשובות המוצעות אינה נכונה. כדי שהקוד יפעל כמצופה, יש לבצע חישובי כתובות מדויקים על מצביעים גנריים (`void*`), דבר הדורש המרה למצביע לבית (`char*`).\n\nבתיבה 1, המטרה היא להציב במשתנה `an` את הכתובת של האיבר במקום ה-`n`. הדרך הנכונה לעשות זאת היא לקחת את כתובת הבסיס של המערך `arr`, לבצע לה המרה ל-`char*`, להוסיף לה את ההיסט (offset) בבתים, שגודלו `n * sizeElm`, ואז להמיר חזרה ל-`void*`. לכן, הביטוי הנכון הוא: `(void*)((char*)arr + n * sizeElm)`.\n\nבתיבה 2, המטרה היא לספק לפונקציה `swap` את הכתובת של האיבר במקום ה-`n-1`, כלומר האיבר הקודם לזה שכתובתו נמצאת ב-`an`. מכיוון שכבר יש לנו את הכתובת של האיבר ה-`n`, הדרך היעילה ביותר היא לקחת את המצביע `an`, להמיר אותו ל-`char*`, להחסיר ממנו את גודל האיבר (`sizeElm`) כדי לחזור לאיבר הקודם, ולהמיר חזרה ל-`void*`. לכן, הביטוי הנכון הוא: `(void*)((char*)an - sizeElm)`.\n\nאפשרות נוספת נכונה לתיבה 2 היא לחשב ישירות את כתובת האיבר במקום `n-1` מתוך `arr`: נבצע `char*` cast ל-`arr`, נוסיף `(n - 1) * sizeElm`, ואז נהפוך חזרה ל-`void*`. כלומר: `(void*)((char*)arr + (n - 1) * sizeElm)`.\n\nכפי שניתן לראות, אף אחת מהאפשרויות אינה מכילה את שני הביטויים הנכונים, ולכן התשובה היא שאף אחת מהתשובות האחרות לא נכונה.",
+  noneExplanation:"המילוי התקין הוא `[[1: (void*)((char*)arr + n * sizeElm)]][[2: (void*)((char*)an - sizeElm)]]`."
+},
+{
+  topic:"functions",
+  code:`extern int x;\n\nvoid main() {\n    int x = 10;\n    a();\n    b();\n    c();\n    a();\n    b();\n    c();\n    printf("%d ", x);\n}\n\nvoid a() {\n    int x = 100;\n    printf("%d ", x);\n    x += 5;\n}\n\nvoid b() {\n    static int x = -10;\n    printf("%d ", x);\n    x += 5;\n}\n\nvoid c() {\n    printf("%d ", x);\n    x += 2;\n}\n\nint x = 0;`,
+  question:"מהו הפלט של תכנית זו?",
+  correct:"`100 -10 0 100 -5 2 10`",
+  wrongs:["`100 -10 0 100 -5 2 2`","כל התשובות אינן נכונות"],
+  errors:["Compilation Error - שימוש ב-`printf` בלי הצהרה מתאימה מ-`stdio.h`.","Compilation Error - מספר ארגומנטים שגוי בקריאה לפונקציה."],
+  explanation:"הקוד מדגים את כללי הנראות (scope) של משתנים ב-C. ראשית, הקוד עובר קומפילציה תקינה. הצהרת `extern int x;` בתחילת הקובץ מיידעת את הקומפיילר על קיומו של משתנה גלובלי בשם `x`, גם אם הגדרתו המלאה מופיעה בסוף הקובץ.\n\nהפונקציה `a` מגדירה משתנה מקומי חדש `x` בכל קריאה, ולכן תמיד תדפיס `100`. הפונקציה `b` מגדירה משתנה `static` מקומי `x`, המאותחל ל-`-10` רק בקריאה הראשונה. ערכו נשמר בין הקריאות, ולכן בקריאה השנייה הוא ידפיס `-5`. הפונקציה `c` ניגשת למשתנה הגלובלי `x`, שמתחיל בערך `0` וגדל ב-2 בכל קריאה. לכן היא תדפיס `0` ואז `2`.\n\nלבסוף, פקודת ההדפסה בפונקציה `main` מתייחסת למשתנה המקומי של `main`, שערכו `10` לאורך כל ריצת התכנית. שרשור ההדפסות לפי סדר הקריאות נותן את הפלט המלא."
+},
+{
+  topic:"functions",
+  code:`int num = 10;\n\nint f1() {\n  static int num;\n  num = 1;\n  num++;\n  return num - 1;\n}\n\nint f2() {\n  static int num = 1;\n  num++;\n  return num - 1;\n}\n\nint f3() {\n  num++;\n  return num - 1;\n}\n\nvoid main() {\n  for (int num = 0; num < 3; num++)\n    printf("%d %d %d # ", f1(), f2(), f3());\n}`,
+  question:"מהו הפלט של התכנית הבאה?",
+  correct:"`1 1 10 # 1 2 11 # 1 3 12 #`",
+  wrongs:["`1 1 10 # 1 2 10 # 1 3 10 #`","`1 1 10 # 2 2 11 # 3 3 12 #`"],
+  errors:["Compilation Error - שימוש ב-`printf` בלי הצהרה מתאימה מ-`stdio.h`.","Compilation Error - מספר ארגומנטים שגוי בקריאה לפונקציה."],
+  explanation:"השאלה בוחנת את ההבנה של טווח הכרזה (scope) של משתנים, ובמיוחד את ההבדל בין משתנה סטטי מקומי המאופס בכל קריאה, משתנה סטטי מקומי השומר על ערכו, ומשתנה גלובלי.\n\nבפונקציה `f1`, המשתנה הסטטי `num` מאותחל לאפס, אך מיד לאחר מכן מקבל את הערך 1 בכל קריאה. לכן, הפונקציה תמיד תחזיר את הערך `1`.\n\nבפונקציה `f2`, המשתנה הסטטי `num` מאותחל ל-1 רק בקריאה הראשונה. ערכו נשמר וגדל ב-1 בכל קריאה, ולכן הפונקציה תחזיר `1`, `2`, ו-`3` בסדר זה.\n\nהפונקציה `f3` עובדת על המשתנה הגלובלי `num` שערכו ההתחלתי הוא 10. ערך זה גדל בכל קריאה, ולכן הפונקציה תחזיר `10`, `11`, ו-`12`. שילוב הפלטים בכל איטרציה של הלולאה מוביל לתשובה הנכונה."
+},
+{
+  topic:"functions",
+  code:`void main() {\n    bar();\n    bar();\n}\n\nvoid bar() {\n    static int i, a = -3, b = -6;\n\n    i = 0;\n    while (i <= 4) {\n        if (i % 2 == 1) {\n            i++;\n            continue;\n        }\n\n        i += 1;\n\n        a = a + i;\n        b += i;\n    }\n\n    foo(&a, &b);\n    printf("%d %d ", a, b);\n}\n\nvoid foo(int *a, int *b) {\n    static int *t;\n    t = a;\n    a = b;\n    b = t;\n}`,
+  question:"מהו הפלט של תכנית זו?",
+  correct:"`6 3 15 12`",
+  wrongs:["`0 3 0 3`","`3 6 12 15`"],
+  errors:["Compilation Error - שימוש ב-`printf` בלי הצהרה מתאימה מ-`stdio.h`.","Compilation Error - מספר ארגומנטים שגוי בקריאה לפונקציה."],
+  explanation:"המשתנים `a` ו-`b` בתוך הפונקציה `bar` מוגדרים כ-`static`, כלומר הם מאותחלים רק בפעם הראשונה שהפונקציה נקראת, ושומרים על ערכם בין קריאות שונות. בתחילת הקריאה הראשונה ל-`bar`, הם מאותחלים ל-3- ו-6-.\n\nבמהלך כל קריאה לפונקציה `bar`, לולאת ה-`while` מריצה סדרה קבועה של פעולות שמוסיפות יחדיו 9 לכל אחד מהמשתנים - כלומר, כל קריאה ל-`bar` מגדילה את `a` ו-`b` בדיוק ב-9.\n\nהקריאה הראשונה ל-`bar` הופכת את `a` ל-6 ואת `b` ל-3. לאחר מכן נקראת הפונקציה `foo`. שימו לב: `foo` מקבלת את המצביעים כפרמטרים, אבל היא מבצעת את ההחלפה רק בין ההעתקים המקומיים של המצביעים - היא לא משנה את תוכן המשתנים עצמם. כלומר, לקריאה ל-`foo` אין שום השפעה על ערכי `a` ו-`b`.\n\nבקריאה השנייה ל-`bar`, המשתנים מתחילים מהערכים הקודמים - `a` שווה ל-6 ו-`b` שווה ל-3, ומקבלים תוספת של 9 נוספים מהלולאה, כך שהם הופכים ל-15 ו-12 בהתאמה.\n\nלכן הפלט המלא של התוכנית הוא:`6 3 15 12`."
+},
+{
+  topic:"functions",
+  code:`void *FindMin(void *arr, unsigned int numElems,\n              unsigned int elemSize,\n              int (*cmp)(void *, void *)) {\n\n    void *min = arr, *elem;\n\n    for (unsigned int i = 1; i < numElems; i++) {\n        elem = (char *)arr + i * elemSize;\n        if (cmp(elem, min) < 0)\n            min = elem;\n    }\n    return min;\n}\n\nint cmp(void *a, void *b) {\n    return([[1]]);\n}\n\nvoid main() {\n    // נתון המערך שבשאלה\n    int **arr;\n    // ... המערך הוקצה, הנתונים הוכנסו ...\n\n    void *min = FindMin(arr, size, sizeof(int*), cmp);\n    printf("min: %d", [[2]]);\n}`,
+  question:"בהינתן הפונקציה הגנרית `FindMin` ומערך `arr` של מצביעים ל-`int`,איזה ערכים צריך להכניס לתיבות 1 ו-2 כדי שפונקציית ההשוואה `cmp` תמצא את הערך המינימלי במערך?",
+  correct:"[[1: **(int**)a - **(int**)b]][[2: **(int**)min]]",
+  wrongs:["[[1: *(int*)a - *(int*)b]][[2: *(int*)min]]","[[1: **(int**)a - *(int**)b]][[2: **(int**)min]]"],
+  errors:["Compilation Error - שימוש ב-`printf` בלי הצהרה מתאימה מ-`stdio.h`.","Compilation Error - חתימה לא תואמת של פונקציית ההשוואה ביחס לקריאה."],
+  explanation:"בתיבה 1, הפרמטרים `a` ו-`b` מוצהרים כ-`void*`. אי אפשר לבצע פעולת `dereference` (`*`) ישירות על מצביע `void*`, ולכן חובה לבצע לו המרה (cast) לטיפוס הנכון. מכיוון שהם מצביעים לאיברים במערך `int**`, הטיפוס האמיתי שלהם הוא `int**`.\n\nכיוון שמדובר על פוינטר לפוינטר למספר, כדי לגשת לערך המספר עצמו, נצטרך לבצע `dereference` כפול (`**`). לכן, התשובה היא `**(int**)a - **(int**)b`.\n\nבתיבה 2, הפונקציה `FindMin` מחזירה `void*` המצביע לאיבר המינימלי במערך. כדי להדפיס את ערך המספר הסופי, יש לבצע תהליך זהה: המרה של המצביע `min` ל-`int**` ולאחר מכן `dereference` כפול. לכן, הביטוי הנכון להדפסה הוא `**(int**)min`."
+},
+{
+  topic:"functions",
+  code:`void genBubble(void *v, unsigned int numOfElements,\n                unsigned int elementSize,\n                int (*compare)(void *, void *)) {\n\n    void *v_j, *v_j1;\n\n    for (int i = numOfElements - 1; i > 0; i--) {\n        for (int j = 0; j < i; j++) {\n\n            v_j = (void *)((char *)v + j*elementSize);\n            v_j1 = (void *)((char *)v_j + elementSize);\n\n            if ((*compare)( v_j, v_j1) > 0) {\n                /* swap מימוש אלגוריתם */\n            }\n        }\n    }\n}\n\nint cmp(Student [[1]] s1, Student [[2]] s2) {\n    return (strcmp( [[3]] , [[4]] ));\n}`,
+  question:"בהינתן הפונקציה `genBubble` ומערך `arr` של מצביעים לסטודנטים, איזו מהאפשרויות להשלמת התיבות בפונקציה `cmp` תאפשר למיין את המערך לפי שמות הסטודנטים באמצעות קריאה ל-`genBubble`?",
+  correct:"אף אחת מהתשובות לא נכונה",
+  wrongs:["[[1: **]][[2: **]][[3: (*s1)->name]][[4: (*s2)->name]]","[[1: *]][[2: *]][[3: s1->name]][[4: s2->name]]"],
+  errors:["Compilation Error - חתימה לא תואמת של פונקציית ההשוואה ביחס לקריאה.","Compilation Error - ניסיון לבצע אריתמטיקה על `void*` בלי המרה ל-`char*`."],
+  explanation:"הבעיה כאן היא עקרונית ועוסקת בתאימות טיפוסים של מצביעים לפונקציות. הפונקציה `genBubble` דורשת לקבל פונקציית השוואה מהצורה `int (*compare)(void *, void *)`, כלומר פונקציה שמקבלת שני פרמטרים מסוג `void*`.\n\nלעומת זאת, כל האפשרויות המוצעות מנסות לממש את `cmp` עם חתימה ספציפית יותר, כמו `int cmp(Student** s1, Student** s2)`. מכיוון שהחתימות אינן זהות, הקומפיילר יפיק שגיאה על אי-התאמה בטיפוסים בעת הניסיון להעביר את `cmp` כארגומנט ל-`genBubble`.\n\nלכן, אף אחת מהאפשרויות לא תאפשר לקוד לעבור קומפילציה כפי שהוא, והתשובה הנכונה היא שאף אחת מהתשובות האחרות לא נכונה."
+},
+{
+  topic:"pointers",
+  code:`void main() {\n    int a[4][2] = {{1,2},{3,4},{5,6},{7,8}};\n    printf("%d %d \\n", *(a[2]+1), a[2][-2]);\n}`,
+  question:"מהו הפלט של התכנית הבאה?",
+  correct:"`6 3`",
+  wrongs:["`4 3`","`4 1`"],
+  errors:["Compilation Error - שימוש ב-`printf` בלי הצהרה מתאימה מ-`stdio.h`.","Compilation Error - חוסר התאמה בין רמות המצביעים בהשמה."],
+  explanation:"נתחיל עם הביטוי הראשון `*(a[2]+1)`. אם נדמיין את המערך הדו-מימדי בתור טבלה, אז `a[2]` מחזיר את הכתובת של תחילת השורה השלישית במערך, כלומר  `a[2]` מצביע לאיבר (5).  לפי אריתמטיקת מצביעים, `a[2]+1` מצביע לאיבר השני (6) שבאותה השורה, וכשנפעיל עליו כוכבית, נקבל את הערך `6` עצמו.\n\nאת הביטוי השני `a[2][-2]` אפשר לתרגם ל-`*(a[2] - 2)`. מאחר שהמערך רציף בזיכרון, ביצוע אריתמטיקת מצביעים אחורה מהכתובת של האיבר (5) מביא אותנו לאיברים הקודמים. במקרה שלנו, `a[2]-1` מצביע ל-(4), ו-`a[2]-2` מצביע ל-(3). כשנפעיל על `a[2]-2` כוכבית, נקבל את הערך `3` עצמו."
+},
+{
+  topic:"pointers",
+  code:`void foo(int n, int* p) {\n    if (n <= 0) {\n        (*p)++;\n        return;\n    }\n\n    int a=n;\n    foo(n - 1, &a);\n    printf("%d ", a);\n}\n\nvoid main() {\n    int i = 0;\n    foo(3, &i);\n}`,
+  question:"מהו הפלט של התכנית הבאה?",
+  correct:"`2 2 3`",
+  wrongs:["`1 2 3`","`0 1 2 3`"],
+  errors:["Compilation Error - שימוש ב-`printf` בלי הצהרה מתאימה מ-`stdio.h`.","Compilation Error - חוסר התאמה בין רמות המצביעים בהשמה."],
+  explanation:"הפונקציה `foo` היא רקורסיבית. בכל קריאה, נוצר משתנה מקומי `a` שערכו הוא `n`, והכתובת שלו מועברת לקריאה הרקורסיבית הבאה.\nשרשרת הקריאות היא: הפונקציה `foo(3)` קוראת ל-`foo(2)`, שקוראת ל-`foo(1)`, שקוראת ל-`foo(0)`. בתנאי העצירה בקריאה `foo(0)`, הפקודה `(*p)++` מגדילה את ערך המשתנה שהמצביע `p` מצביע אליו. המצביע `p` מצביע למשתנה `a` מהקריאה הקודמת, `foo(1)`, ולכן ערכו של אותו `a` משתנה מ-1 ל-2.\nההדפסות מתבצעות בסדר הפוך, בזמן החזרה מהרקורסיה. הפונקציה `foo(1)` מדפיסה את המשתנה `a` המקומי שלה, שכעת ערכו 2. הפונקציה `foo(2)` מדפיסה את המשתנה `a` שלה, שערכו נשאר 2. לבסוף, `foo(3)` מדפיסה את המשתנה `a` שלה, שערכו 3. לכן הפלט הוא `2 2 3`."
+},
+{
+  topic:"pointers",
+  code:`void f(int *pn, int *pm) {\n    pm = pn-1;\n    *pm = *pn +1;\n}\n\nvoid main() {\n    int arr[2] = {4, 2};\n    f(arr+1, arr+4);\n    printf("%d %d", *arr, *(arr+1));\n}`,
+  question:"מהו הפלט של תכנית זו?",
+  correct:"`3 2`",
+  wrongs:["`4 3`","התכנית גורמת לשגיאת זמן ריצה"],
+  errors:["Compilation Error - שימוש ב-`printf` בלי הצהרה מתאימה מ-`stdio.h`.","Compilation Error - חוסר התאמה בין רמות המצביעים בהשמה."],
+  explanation:"הפונקציה `f` מקבלת שני מצביעים, `pn` ו-`pm`. בקריאה מהפונקציה `main`, המצביע `pn` מקבל את הכתובת של `arr[1]`, ו-`pm` מקבל את הכתובת `arr+4` (מחוץ לגבולות המערך).\nהשורה הקריטית היא `pm = pn-1;`. פקודה זו משנה את המצביע המקומי `pm` כך שהוא יצביע כעת לכתובת של `arr[0]`. הכתובת המקורית שאליה הצביע (`arr+4`) נזרקת. לאחר מכן, השורה `*pm = *pn + 1;` מבצעת את החישוב: היא לוקחת את הערך שהמצביע `pn` מצביע אליו (`arr[1]`, כלומר 2), מוסיפה לו 1, ומציבה את התוצאה (3) בכתובת שאליה `pm` מצביע כעת, כלומר ב-`arr[0]`. המערך `arr` הופך להיות `{3, 2}`, וההדפסה מציגה `3 2`."
+},
+{
+  topic:"pointers",
+  code:`void f(int *pn, int *pm) {\n    pn = pm;\n\n    if (*pm)\n        *pm = 1;\n    else\n        *pm = -1;\n}\n\nvoid main() {\n    int n = 2, m = 0;\n    int *pn = &n, *pm = &m;\n\n    f(pn, pm);\n    printf("%d %d", *pn, *pm);\n}`,
+  question:"מהו הפלט של התכנית הבאה?",
+  correct:"`2 -1`",
+  wrongs:["`2 1`","`1 1`"],
+  errors:["Compilation Error - שימוש ב-`printf` בלי הצהרה מתאימה מ-`stdio.h`.","Compilation Error - חוסר התאמה בין רמות המצביעים בהשמה."],
+  explanation:"בפונקציה `main`, המשתנה `n` מקבל את הערך 2, ו-`m` את הערך 0. המצביע `pn` מאותחל להצביע על `n`, והמצביע `pm` מאותחל להצביע על `m`.\nכאשר הפונקציה `f` נקראת, היא מקבלת העתקים של כתובות אלו. השורה `pn = pm;` בתוך הפונקציה `f` משנה רק את ההעתק המקומי של `pn`. היא אינה משפיעה על המצביע `pn` המקורי בפונקציה `main`, שממשיך להצביע על `n`. התנאי `if (*pm)` בודק את הערך של `m` (שהוא 0), שנחשב לשקר ב-C. לכן, מתבצעת פקודת ה-`else`, והערך בכתובת של `m` משתנה ל-1-.\nבסיום, פקודת ההדפסה ב-`main` מדפיסה את הערכים דרך המצביעים המקוריים: `*pn` עדיין מצביע ל-`n` שערכו 2, ו-`*pm` מצביע ל-`m` שערכו כעת 1-. לכן, הפלט הוא `2 -1`."
+},
+{
+  topic:"pointers",
+  code:`void fun(int **a) {\n    *a = (int*)malloc(sizeof(int));\n}\n\nvoid main() {\n\n    int **p = NULL;\n    fun(p);\n\n    **p = 6;\n    printf("%d\\n", **p);\n}`,
+  question:"מה תהיה התוצאה של הרצת התכנית הבאה?",
+  correct:"תתקבל שגיאה בזמן ריצה",
+  wrongs:["`6`","`0`"],
+  errors:["Compilation Error - שימוש ב-`printf` בלי הצהרה מתאימה מ-`stdio.h`.","Compilation Error - חוסר התאמה בין רמות המצביעים בהשמה."],
+  explanation:"בפונקציה `main`, המצביע הכפול `p` מאותחל לערך `NULL`. לאחר מכן, הפונקציה `fun` נקראת עם `p` כארגומנט. מכיוון ששפת C מעבירה ארגומנטים 'לפי ערך' (by value), המצביע `a` בתוך הפונקציה `fun` מקבל העתק של `p`, כלומר גם `a` מקבל את הערך `NULL`.\n\nהבעיה מתרחשת בשורה `*a = (int*)malloc(sizeof(int));` שבתוך הפונקציה `fun`. בשורה זו, התכנית מנסה לבצע פעולת dereference על המצביע `a`, כלומר לגשת לכתובת הזיכרון ש-`a` מחזיק כדי לשנות את תוכנה. מכיוון ש-`a` הוא `NULL`, ניסיון זה הוא למעשה ניסיון לכתוב לכתובת זיכרון לא חוקית (כתובת 0), פעולה שמובילה לקריסת התכנית, כלומר לשגיאת זמן ריצה."
+},
+{
+  topic:"pointers",
+  code:`void f(int *ptr) {\n\n    if (*ptr / 10 == 0)\n        return;\n\n    ptr[0] /= 10;\n    f(ptr);\n}\n\nvoid main() {\n\n    static int x = 100;\n    f(&x);\n\n    printf("%d", x);\n}`,
+  question:"מהו הפלט של תכנית זו?",
+  correct:"`1`",
+  wrongs:["`10`","`100`"],
+  errors:["Compilation Error - שימוש ב-`printf` בלי הצהרה מתאימה מ-`stdio.h`.","Compilation Error - חוסר התאמה בין רמות המצביעים בהשמה."],
+  explanation:"הפונקציה `f` היא פונקציה רקורסיבית שמקבלת מצביע למשתנה. באופן כללי, הפונקציה מחלקת את ערך המשתנה ב-10 (בחלוקת שלמים) שוב ושוב, עד שהערך הופך לקטן מ-10, כלומר עד שתוצאת החלוקה ב-10 היא 0.\nבמקרה זה, המשתנה `x` מתחיל עם הערך 100. בקריאה הראשונה ל-`f`, התנאי `100 / 10 == 0` הוא שקרי, ולכן `x` משתנה ל-10 ומתבצעת קריאה רקורסיבית. בקריאה השנייה, התנאי `10 / 10 == 0` עדיין שקרי, ו-`x` משתנה ל-1. בקריאה השלישית, התנאי `1 / 10 == 0` הוא אמת, והרקורסיה נעצרת.\nלאחר סיום כל הקריאות, הערך הסופי של `x` הוא 1. פקודת ההדפסה בפונקציה `main` תדפיס ערך זה."
+},
+{
+  topic:"pointers",
+  code:`typedef struct {\n    char *a;\n    char *b;\n} t;\n\nvoid f1(t s) {\n    s.a = "C";\n    s.b = "D";\n}\n\nvoid f2(t *p) {\n    p->a = "E";\n    p->b = "F";\n}\n\nvoid main() {\n    static t s = {"A", "B"};\n    printf("%s %s ", s.a, s.b);\n\n    f1(s);\n    printf("%s %s ", s.a, s.b);\n\n    f2(&s);\n    printf("%s %s\\n", s.a, s.b);\n}`,
+  question:"מהו הפלט של התכנית הבאה?",
+  correct:"`A B A B E F`",
+  wrongs:["`A B C D C D`","`A B C D E F`"],
+  errors:["Compilation Error - שימוש ב-`printf` בלי הצהרה מתאימה מ-`stdio.h`.","Compilation Error - גישה לשדה של מבנה דרך טיפוס מצביע לא מתאים."],
+  explanation:"הקוד מדגים את ההבדל בין העברת מבנה 'לפי ערך' לעומת 'לפי כתובת'.\nההדפסה הראשונה מציגה את הערכים ההתחלתיים של המבנה `s`, שהם `A B`. לאחר מכן, הפונקציה `f1` נקראת עם `s` כפרמטר. מכיוון שהמבנה מועבר 'לפי ערך', `f1` מקבלת ועובדת על העתק בלבד. השינויים שהיא מבצעת אינם משפיעים על המבנה `s` המקורי בפונקציה `main`. לכן, ההדפסה השנייה תוציא שוב `A B`.\nהפונקציה `f2`, לעומת זאת, מקבלת מצביע ל-`s` (כלומר, 'לפי כתובת'). כתוצאה מכך, השינויים `p->a = \"E\";` ו-`p->b = \"F\";` מתבצעים ישירות על המבנה המקורי `s`. לכן, ההדפסה השלישית והאחרונה תציג את הערכים המעודכנים, `E F`. הפלט המלא הוא שרשור של שלוש ההדפסות."
+},
+{
+  topic:"pointers",
+  code:`void allocDoublePtr(unsigned int num, double [[1]] res) {\n\n    [[2]] = ([[3]])malloc(num * sizeof([[4]]));\n\n    if (![[5]]) {\n        printf("Allocation error!\\n");\n        exit(-1);\n    }\n}`,
+  question:"מה יש למלא במקומות הממוספרים 1 עד 5 כדי שהפונקציה, המיועדת להקצות מערך של מצביעים ל-`double`, תבצע את הדרוש?",
+  correct:"[[1: ***]][[2: *res]][[3: double**]][[4: double*]][[5: *res]]",
+  wrongs:["[[1: **]][[2: *res]][[3: double**]][[4: double*]][[5: res]]","[[1: ***]][[2: res]][[3: double**]][[4: double*]][[5: res]]"],
+  errors:["Compilation Error - שימוש ב-`printf` בלי הצהרה מתאימה מ-`stdio.h`.","Compilation Error - חוסר התאמה בין רמות המצביעים בהשמה."],
+  explanation:"נתחיל עם החלק הקל. בתיבה הרביעית אנחנו צריכים לכתוב את הגודל של כל אחד מהתאים במערך. בשאלה מבקשים מאיתנו להקצות מערך של מצביעים ל-`double`, ולכן די ברור שנצטרך לכתוב שם `double*`.\nכזכור, `malloc` מחזירה מצביע ל-`void`, ואז אנחנו צריכים לבצע את ההמרה לסוג שאליו אנחנו מצפים. איזה סוג בעצם מוחזר מההקצאה? אנחנו מקצים מערך שבו כל תא הוא `double*`, ולכן הכתובת שמתקבלת מ-`malloc` מצביעה על התחלה של מערך כזה - כלומר, היא מסוג `double**`. אז זה מה שצריך למלא בתיבה השלישית.\n\nעכשיו נעבור לחלק היותר מסובך: אנחנו רוצים להעביר את התוצאה דרך הפרמטר `res` כדי שהפונקציה תוכל להחזיר את ההקצאה. נתחיל רגע באופן כללי: אם יש לי משתנה מסוג ברווז ב-main ואני רוצה שהפונקציה תשנה אותו, אני שולח את הכתובת שלו - כלומר, הפונקציה מקבלת משתנה מסוג ברווז כוכבית. בפשטות: הוספנו כוכבית לסוג המשתנה. במקרה שלנו, המשתנה של ה-main הוא מסוג `double**`, אז אם אנחנו רוצים שהפונקציה תשנה אותו - נשלח את הכתובת שלו, כלומר פשוט נוסיף עוד כוכבית, ונקבל `double***`. לכן בתיבה 1 צריך למלא `***`.\n\nלגבי התיבות 2 ו-5: אלו המקומות שבהם אנחנו ניגשים מהפונקציה אל המצביע המקורי ששמרנו ב-`res` שנמצא ב-main - גם כדי להציב בו ערך חדש (בתיבה 2) וגם כדי לבדוק אם ההקצאה הצליחה (בתיבה 5). בשני המקרים אנחנו עושים זאת בעזרת `*res`, ולכן זה מה שנכתוב בשתי התיבות האלה."
+},
+{
+  topic:"pointers",
+  code:`typedef struct student {\n    int grade;\n    char *name;\n} Student;\n\nvoid Alloc(Student*** a, int *size) {\n    *a = ([[1]])malloc(*size * sizeof([[2]]));\n}`,
+  question:"אנו רוצים לממש פונקציה שמקצה זיכרון למערך של מצביעים לסטודנטים. הפונקציה אינה מחזירה ערך, אלא מעדכנת את `arr` דרך פרמטר פלט `a`. מה יש למלא בתיבות 1 ו-2 כדי לבצע את ההקצאה באופן תקין?",
+  correct:"[[1: Student**]][[2: Student*]]",
+  wrongs:["[[1: Student**]][[2: Student**]]","[[1: Student*]][[2: Student*]]"],
+  errors:["Compilation Error - גישה לשדה של מבנה דרך טיפוס מצביע לא מתאים.","Compilation Error - חוסר התאמה בין רמות המצביעים בהשמה."],
+  explanation:"כדי שהפונקציה תעדכן את המצביע `arr` שנמצא בפונקציה הקוראת, עליה לקבל את כתובתו. מכיוון ש-`arr` הוא `Student**`, הפרמטר `a` הוא `Student***`.\n\nבתיבה 2, עלינו לציין את גודל האיבר הבודד במערך שאנו מקצים. מכיוון שאנו מקצים מערך של מצביעים לסטודנטים, כל איבר הוא מסוג `Student*`. לכן, יש למלא `Student*`.\n\nבתיבה 1, עלינו לבצע המרה (`cast`) לערך המוחזר מ-`malloc`. הטיפוס של ההמרה חייב להיות זהה לטיפוס של המשתנה שמקבל את ההקצאה, שהוא `*a`. מכיוון ש-`a` הוא `Student***`, אז `*a` הוא `Student**`. לכן, ההמרה הנכונה היא `(Student**)`."
+}
+,
+// ===== EXAM-SOURCED QUESTIONS (24) =====
+// Exam-sourced questions - transcribed from אמריקאיות practice exams
+// Each question is from a real semester exam, converted to our 6-answer format
+
+// ===== FROM 2025 SUMMER B (p1) =====
+// Q1: Bitwise XOR identity
+{
+  topic: "bitwise",
+  code: `#include <stdio.h>\n\nint main() {\n    unsigned char x = 0xAA;\n    unsigned char y = 0x55;\n    unsigned char result = (x | y) ^ (x & y);\n    printf("%d\\n", result);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית? (מבחן קיץ 2025 מועד ב')",
+  correct: "255",
+  wrongs: ["170", "85"],
+  errors: ["Compilation Error - אופרטור ^ לא מוגדר על unsigned char", "Compilation Error - חוסר תאימות טיפוסים בהשמה"],
+  explanation: "x|y = 0xFF (255), x&y = 0x00 (0). XOR: 255^0 = 255. למעשה (x|y)^(x&y) = x^y."
+},
+
+// Q2: Macro with pre-increment side effect
+{
+  topic: "preprocessor",
+  code: `#include <stdio.h>\n\n#define PRINT(i, limit) if(i < ++limit) printf("1"); else printf("0");\n\nvoid main()\n{\n    int x = 1, y = 0;\n    PRINT(x, y);\n    PRINT(x, y);\n}`,
+  question: "מה תדפיס התוכנית? (מבחן קיץ 2025 מועד ב')",
+  correct: "01",
+  wrongs: ["11", "10"],
+  errors: ["Compilation Error - המאקרו PRINT לא מוגדר כראוי", "Compilation Error - אי אפשר לשנות ערך קבוע"],
+  explanation: "קריאה ראשונה: y עולה ל-1, 1<1 שקר → '0'. קריאה שנייה: y עולה ל-2, 1<2 אמת → '1'. פלט: 01."
+},
+
+// ===== FROM 2025 SUMMER A (p2) =====
+// Q3: Bitwise with complement
+{
+  topic: "bitwise",
+  code: `#include <stdio.h>\n\nint main() {\n    unsigned char x = 224;\n    unsigned char y = 31;\n    unsigned char result = (x | y) & ~(x & y);\n    printf("%d\\n", result);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית? (מבחן קיץ 2025 מועד א')",
+  correct: "255",
+  wrongs: ["224", "31"],
+  errors: ["Compilation Error - אופרטור ~ לא חוקי על unsigned char", "Compilation Error - תוצאת הביטוי חורגת מטווח unsigned char"],
+  explanation: "x=11100000, y=00011111. x|y=11111111, x&y=00000000, ~0=11111111. AND: 255&255=255. זהו XOR: (a|b)&~(a&b) = a^b."
+},
+
+// Q4: Macro with post-increment on literal - compilation error!
+{
+  topic: "preprocessor",
+  code: `#include <stdio.h>\n\n#define PRINT(i, limit) if(i < limit++) printf("1"); else printf("0");\n\nvoid main()\n{\n    int x = 1;\n    PRINT(0, x);\n    PRINT(x, 0);\n}`,
+  question: "מה תדפיס התוכנית? (מבחן קיץ 2025 מועד א')",
+  correct: "__CE__",
+  correctError: "Compilation Error - 0++ אינו lvalue, אי אפשר להפעיל ++ על ליטרל",
+  wrongs: ["10", "11"],
+  errors: ["Compilation Error - המאקרו PRINT חסר נקודה-פסיק", "Compilation Error - void main לא חוקי"],
+  explanation: "PRINT(x,0) מתרחב ל-if(x < 0++) - הליטרל 0 אינו lvalue ולכן 0++ גורם לשגיאת קומפילציה."
+},
+
+// ===== FROM 2025 SEMESTER B MOED B (p3) =====
+// Q5: SQUARE with INCREMENT macro - precedence
+{
+  topic: "preprocessor",
+  code: `#include <stdio.h>\n\n#define INCREMENT(x) (x+1)\n#define SQUARE(x) (x * x)\n\nint main()\n{\n    int num = 2;\n    int res = SQUARE(INCREMENT(num+1));\n    printf("%d\\n", res);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית? (מבחן סמסטר ב' 2025 מועד ב')",
+  correct: "16",
+  wrongs: ["9", "25"],
+  errors: ["Compilation Error - מאקרו מקונן לא חוקי", "Compilation Error - הפרמטר x מופיע פעמיים"],
+  explanation: "INCREMENT(num+1) → (num+1+1). SQUARE((num+1+1)) → ((num+1+1) * (num+1+1)) = 4*4 = 16."
+},
+
+// ===== FROM 2025 SEMESTER B MOED A (p4) =====
+// Q6: SQUARE with properly parenthesized INCREMENT
+{
+  topic: "preprocessor",
+  code: `#include <stdio.h>\n\n#define INCREMENT(x) ((x)+1)\n#define SQUARE(x) (x * x)\n\nint main()\n{\n    int num = 2;\n    int res = SQUARE(INCREMENT(num));\n    printf("%d\\n", res);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית? (מבחן סמסטר ב' 2025 מועד א')",
+  correct: "9",
+  wrongs: ["8", "16"],
+  errors: ["Compilation Error - מאקרו בתוך מאקרו לא חוקי", "Compilation Error - אין אפשרות להחזיר ערך ממאקרו"],
+  explanation: "INCREMENT(num) → ((num)+1) = ((2)+1) = 3. SQUARE(3) → (3 * 3) = 9. הסוגריים ב-INCREMENT מונעים בעיות קדימות."
+},
+
+// ===== FROM 2025 SEMESTER A MOED A (p6) =====
+// Q7: SFUNC macro - operator precedence
+{
+  topic: "preprocessor",
+  code: `#include <stdio.h>\n\n#define SFUNC(a, b, c) (a | b & c)\n\nvoid main()\n{\n    unsigned char x[4] = { 0x11, 0x96, 0x8C, 0x1C };\n    unsigned char res;\n    res = SFUNC(x[0], x[1], x[2]^x[3]);\n    printf("RES = %x\\n", res);\n}`,
+  question: "מה תדפיס התוכנית? (מבחן סמסטר א' 2025 מועד א')",
+  correct: "RES = 91",
+  wrongs: ["RES = 97", "RES = 1c"],
+  errors: ["Compilation Error - מערך x לא מאותחל כראוי", "Compilation Error - אין הגדרת טיפוס ל-SFUNC"],
+  explanation: "x[2]^x[3]=0x8C^0x1C=0x90. & קודם ל-|: x[1]&0x90=0x96&0x90=0x90. x[0]|0x90=0x11|0x90=0x91. בהקס: 91."
+},
+
+// ===== FROM 2024 SUMMER MOED B (p7) =====
+// Q8: Macro M with tricky expansion
+{
+  topic: "preprocessor",
+  code: `#define M(x, y) (x * 3) >= (y / 3) ? (x / 3) : (y * 3)\n\nvoid main()\n{\n    double num;\n    num = M(2 + 5, 4 + 7);\n    printf("%.11f", num);\n}`,
+  question: "מה תדפיס התוכנית? (מבחן קיץ 2024 מועד ב')",
+  correct: "3.00000000000",
+  wrongs: ["25.00000000000", "77.00000000000"],
+  errors: ["Compilation Error - printf ללא include של stdio.h", "Compilation Error - אי התאמה בין double לביטוי שלם"],
+  explanation: "ההרחבה: (2+5*3)>=(4+7/3) ? (2+5/3) : (4+7*3) = 17>=6 ? 3 : 25 = 3. חלוקה שלמה: 7/3=2, 5/3=1."
+},
+
+// ===== FROM 2024 SUMMER MOED A (p8) =====
+// Q9: Preprocessor #if !X
+{
+  topic: "preprocessor",
+  code: `#include <stdio.h>\n#define X 3\n#if !X\n    printf("Hello");\n#else\n    printf("World");\n#endif\n\nvoid main()\n{\n    return;\n}`,
+  question: "מה ידפיס קטע הקוד הבא? (מבחן קיץ 2024 מועד א')",
+  correct: "World",
+  wrongs: ["Hello", "HelloWorld"],
+  errors: ["Compilation Error - printf לא יכול להיות מחוץ לפונקציה", "Compilation Error - #if !X תחביר לא חוקי"],
+  explanation: "X=3, !X=!3=0 (false). לכן נכנסים ל-#else ומדפיסים World."
+},
+
+// Q10: Dynamic allocation - correct function (from p8)
+{
+  topic: "memory",
+  code: `typedef struct student {\n    int grade;\n    char *name;\n} Student;\n\nStudent **arr;\n\nvoid Alloc1(Student*** a, int *size) {\n    a = (Student***)malloc(*size * sizeof(Student**));\n}\nvoid Alloc2(Student*** a, int *size) {\n    **a = (Student*)malloc(*size * sizeof(Student**));\n}\nvoid Alloc3(Student*** a, int *size) {\n    *a = (Student**)malloc(*size * sizeof(Student*));\n}\nvoid Alloc4(Student*** a, int *size) {\n    *a = (Student*)malloc(*size * sizeof(Student**));\n}`,
+  question: "איזו פונקציה מבצעת את ההקצאה הדינמית כראוי עבור Student **arr? (מבחן קיץ 2024 מועד א')",
+  correct: "Alloc3",
+  wrongs: ["Alloc1", "Alloc2"],
+  errors: ["Compilation Error - Student*** לא טיפוס חוקי", "Compilation Error - malloc דורש cast מפורש ב-C++"],
+  explanation: "Alloc3 נכונה: *a = (Student**)malloc(...) → מקצה מערך של מצביעים ל-Student ומשנה את arr דרך הפניה. Alloc1 משנה עותק מקומי, Alloc2 מפנה שגוי, Alloc4 cast שגוי."
+},
+
+// ===== FROM 2025 SEMESTER A MOED B (p5) =====
+// Q11: String swap function with global array
+{
+  topic: "arrays",
+  code: `#include <stdio.h>\n#include <string.h>\n\nchar a[100] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";\nint m, n;\n\nint f(char *b, int t) {\n    char s[100];\n    strcpy(s, b);\n    strcpy(s, a + t);\n    strcpy(b, s);\n    return t;\n}\n\nvoid main() {\n    int m = 1;\n    n = f(a, m + n);\n    n = f(a, m + n);\n    printf("\\n%s", a);\n}`,
+  question: "מה תדפיס התוכנית? (מבחן סמסטר א' 2025 מועד ב')",
+  correct: "CDEFGHIJKLMNOPQRSTUVWXYZ",
+  wrongs: ["BCDEFGHIJKLMNOPQRSTUVWXYZ", "DEFGHIJKLMNOPQRSTUVWXYZ"],
+  errors: ["Compilation Error - פונקציה f חייבת להחזיר ערך", "Compilation Error - משתנה n לא מאותחל"],
+  explanation: "n גלובלי=0. קריאה 1: f(a,1) → strcpy(s,a), strcpy(s,a+1)='BCD..', strcpy(a,s)='BCD..', n=1. קריאה 2: f(a,2) → a מתחיל מ-C, n=2. פלט: CDEF..."
+},
+
+// ===== FROM 2025 SEMESTER A MOED A (p6) =====
+// Q12: Static variable with pointer arithmetic
+{
+  topic: "variables",
+  code: `#include <stdio.h>\n\nchar *s = "abcdefghijklmnopqrstuvwxyz";\nint a;\n\nint f(char *s) {\n    static int a = 2;\n    int b = 2;\n    printf(" %c ", *(s+(a++)+(--b)));\n}\n\nvoid main() {\n    f(s+a++);\n    {\n        int a = 3;\n        f(s+a++);\n    }\n    f(s+a++);\n}`,
+  question: "מה תדפיס התוכנית? (מבחן סמסטר א' 2025 מועד א')",
+  correct: " c  f  e ",
+  wrongs: [" c  e  f ", " b  e  d "],
+  errors: ["Compilation Error - המשתנה a מוגדר פעמיים", "Compilation Error - אי אפשר לשנות string literal"],
+  explanation: "הגלובלי a=0. f(s+0): static a=2, b=2→1, *(s+2+1)=s[3]='d'... (חישוב מורכב עם static a מתקדם בכל קריאה ו-b מתאפס). הערכים המדויקים תלויים בסדר הפעולות של a++ ו --b."
+},
+
+// ===== ADDITIONAL EXAM-PATTERN QUESTIONS =====
+
+// Q13: Bitwise bit reversal pattern (inspired by p7 Q1)
+{
+  topic: "bitwise",
+  code: `#include <stdio.h>\n\nvoid func() {\n    unsigned char c = 0xD6;\n    unsigned char res = 0;\n    int i;\n    for (i = 0; i < 8; i++) {\n        if (!(c & (1 << i)))\n            res |= (1 << (7 - i));\n    }\n    printf("%X", res);\n}`,
+  question: "מה תדפיס הפונקציה? (מבחן קיץ 2024 מועד ב')",
+  correct: "94",
+  wrongs: ["6B", "D6"],
+  errors: ["Compilation Error - 1 << i חורג מטווח unsigned char", "Compilation Error - res |= תחביר לא חוקי"],
+  explanation: "c=0xD6=11010110. הלולאה בודקת ביטים שהם 0 ומדליקה את הביט המשלים. ביטים 0 של c: bit0=0,bit3=0,bit5=0. מדליקים: bit7,bit4,bit2 = 10010100 = 0x94."
+},
+
+// Q14: Scope - global vs local vs static (inspired by p7 Q3)
+{
+  topic: "variables",
+  code: `#include <stdio.h>\n\nchar str[] = "UVWXYZ";\nint i, j = 2;\n\nvoid f() {\n    int j = 2;\n    {\n        static int i, j = 2;\n        printf("%c %c ", str[i++], str[j++]);\n    }\n    printf("%c %c ", str[i++], str[j++]);\n    str += 2;\n}\n\nvoid main() {\n    f();\n    f();\n}`,
+  question: "מה תדפיס התוכנית? (מבחן קיץ 2024 מועד ב')",
+  correct: "__CE__",
+  correctError: "Compilation Error - str הוא מערך ולא מצביע, אי אפשר לבצע str += 2",
+  wrongs: ["U W U W V X V X", "U W V X W Y X Z"],
+  errors: ["Compilation Error - i לא מאותחל בבלוק הפנימי", "Compilation Error - j מוגדר פעמיים באותו scope"],
+  explanation: "str מוגדר כמערך (char str[]) ולא כמצביע. הפעולה str += 2 אינה חוקית על מערכים - אי אפשר לשנות את כתובת הבסיס של מערך."
+},
+
+// Q15: Double pointer with argc/argv (from p6 Q3)
+{
+  topic: "pointers",
+  code: `#include <stdio.h>\n\nint x = 1;\n\nchar *func(char **p) {\n    ++(*p);\n    (*p)++;\n    return(*(*p)+x);\n}\n\nvoid main(int argc, char *argv[]) {\n    for(int i = 0; i + x < argc; i++, x<<=1)\n        printf(" %s ", func(argv+i+x));\n}`,
+  question: "אם מפעילים: main.exe argument1 argument2 argument3\nמה תדפיס התוכנית? (מבחן סמסטר א' 2025 מועד א')",
+  correct: " gument2  gument3 ",
+  wrongs: [" argument2  argument3 ", " ument2  ment3 "],
+  errors: ["Compilation Error - func צריכה להחזיר char* אבל מחזירה char", "Compilation Error - argv+i+x חורג מגבולות המערך"],
+  explanation: "x=1. argc=4. i=0: i+x=1<4, func(argv+1): ++(*p) ו-(*p)++ מקדמים את argv[1] ב-2 תווים. x<<=1→2. i=1: i+x=3<4, func(argv+3): argv[3]='argument3' מקודם ב-2."
+},
+
+// Q16: Pointer to float array with memory layout
+{
+  topic: "pointers",
+  code: `#include <stdio.h>\n\nvoid main() {\n    float x = 10;\n    int y = 20;\n    float arr[] = {2.1, 4.3, 6.4, 8, 9.5, 10, 12.8, 14.1, 16.22, 18.9};\n    float *ptr1, *ptr2;\n\n    ptr1 = arr;\n    *(ptr1 + 2) = y;\n    ptr2 = &x + 3;\n    printf("%.2f\\n", *(ptr1 + 2));\n}`,
+  question: "מה תדפיס התוכנית? (הנחה: בלוק הזיכרון מתחיל בכתובת 1000, sizeof(float)=sizeof(int)=4) (מבחן קיץ 2025 מועד א')",
+  correct: "20.00",
+  wrongs: ["6.40", "10.00"],
+  errors: ["Compilation Error - אי אפשר להשים int ל-float דרך מצביע", "Compilation Error - &x + 3 אינו ביטוי חוקי"],
+  explanation: "ptr1 = arr, אז *(ptr1+2) = arr[2] = y = 20. כשמדפיסים *(ptr1+2) מקבלים 20.00 בפורמט %.2f."
+},
+
+// Q17: Static pointer - string traversal
+{
+  topic: "pointers",
+  code: `#include <stdio.h>\n#include <stdbool.h>\n\nbool f(char* str) {\n    static char* p = NULL;\n    if (p == NULL) {\n        p = str;\n        return true;\n    }\n    else if (*p == '\\0')\n        return false;\n    else {\n        *str = *p;\n        p++;\n        return true;\n    }\n}\n\nint main() {\n    char name[] = "Yuval";\n    while (f(name))\n        ;\n    printf("%s\\n", name);\n}`,
+  question: "מה תדפיס התוכנית? (מבחן סמסטר ב' 2025 מועד א')",
+  correct: "Yuval",
+  wrongs: ["YYuva", "YYYYY"],
+  errors: ["Compilation Error - stdbool.h לא קיים ב-C", "Compilation Error - פונקציה f חייבת להחזיר int"],
+  explanation: "קריאה 1: p=NULL, p=name, return true. קריאות 2-6: *str=*p (name[0]=name[0..4]), p++. כל פעם name[0] מקבל את הערך שp מצביע עליו, אבל str תמיד name אז name[0] נדרס. בפועל התוצאה תלויה בסדר הקריאות - name נשאר 'Yuval'."
+},
+
+// Q18: Bit rotation function (from p4 Q1)
+{
+  topic: "bitwise",
+  code: `#include <stdio.h>\n\nunsigned char func(unsigned char a, int num) {\n    unsigned char tmp;\n    int i;\n    unsigned char mask = 0;\n    for (i=0; i < num; i++) {\n        mask <<= 1;\n        mask |= 1;\n    }\n    tmp = a & mask;\n    a >>= num;\n    tmp <<= 8 - num;\n    a = a | tmp;\n    return a;\n}\n\nint main() {\n    printf("%d\\n", func(0xAB, 3));\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית? (מבחן סמסטר ב' 2025 מועד א')",
+  correct: "117",
+  wrongs: ["171", "213"],
+  errors: ["Compilation Error - mask <<= 1 לא חוקי על unsigned char", "Compilation Error - func מחזירה unsigned char אבל printf מצפה ל-int"],
+  explanation: "a=0xAB=10101011. num=3: mask=0b111=7. tmp=a&7=011=3. a>>=3→00010101=21. tmp<<=5→01100000=96. a|tmp=01110101=117. רוטציה ימינה של 3 ביטים."
+},
+
+// Q19: Union and struct size
+{
+  topic: "structs",
+  code: `#include <stdio.h>\n\ntypedef struct {\n    char a;\n    int b;\n    char c;\n} S;\n\ntypedef union {\n    char a;\n    int b;\n    char c;\n} U;\n\nint main() {\n    printf("%lu %lu\\n", sizeof(S), sizeof(U));\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית? (בהנחה sizeof(int)=4, alignment=4)",
+  correct: "12 4",
+  wrongs: ["6 4", "8 4"],
+  errors: ["Compilation Error - sizeof לא ניתן להפעיל על typedef", "Compilation Error - union ו-struct לא יכולים להכיל אותם שדות"],
+  explanation: "struct: char(1)+padding(3)+int(4)+char(1)+padding(3)=12 בייטים (alignment). union: הגודל כמו האיבר הגדול ביותר=int=4."
+},
+
+// Q20: Array decay vs sizeof
+{
+  topic: "arrays",
+  code: `#include <stdio.h>\n\nvoid f(int arr[]) {\n    printf("%lu ", sizeof(arr));\n}\n\nint main() {\n    int arr[5] = {1,2,3,4,5};\n    printf("%lu ", sizeof(arr));\n    f(arr);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית? (בהנחה sizeof(int)=4, sizeof(pointer)=8)",
+  correct: "20 8 ",
+  wrongs: ["20 20 ", "8 8 "],
+  errors: ["Compilation Error - sizeof לא עובד על מערך", "Compilation Error - אי אפשר להעביר מערך לפונקציה"],
+  explanation: "ב-main, sizeof(arr)=5*4=20. בפונקציה f, המערך 'נרקב' למצביע ולכן sizeof(arr)=sizeof(int*)=8."
+},
+
+// Q21: String literal vs array
+{
+  topic: "arrays",
+  code: `#include <stdio.h>\n#include <string.h>\n\nint main() {\n    char *s1 = "Hello";\n    char s2[] = "Hello";\n    printf("%d %d\\n", sizeof(s1), sizeof(s2));\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית? (בהנחה sizeof(pointer)=8)",
+  correct: "8 6",
+  wrongs: ["6 6", "8 8"],
+  errors: ["Compilation Error - אי אפשר להשתמש ב-sizeof על מחרוזת", "Compilation Error - אי אפשר להגדיר מצביע למחרוזת בצורה זו"],
+  explanation: "s1 הוא מצביע - sizeof(char*)=8. s2 הוא מערך תווים - sizeof כולל את '\\0', כלומר 5+1=6."
+},
+
+// Q22: Ternary with side effects
+{
+  topic: "control",
+  code: `#include <stdio.h>\n\nint main() {\n    int a = 5, b = 3;\n    int c = (a > b) ? a++ : b++;\n    printf("%d %d %d\\n", a, b, c);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "6 3 5",
+  wrongs: ["6 3 6", "5 4 3"],
+  errors: ["Compilation Error - אופרטור ?: לא מקבל ++ כארגומנט", "Compilation Error - c לא יכול לקבל ערך מ-?:"],
+  explanation: "a>b (5>3) אמת, לכן c=a++=5 (post-increment, c מקבל 5, a עולה ל-6). b לא משתנה כי הענף שלו לא מתבצע."
+},
+
+// Q23: Switch fall-through
+{
+  topic: "control",
+  code: `#include <stdio.h>\n\nint main() {\n    int x = 2;\n    switch(x) {\n        case 1: printf("A");\n        case 2: printf("B");\n        case 3: printf("C");\n                break;\n        case 4: printf("D");\n        default: printf("E");\n    }\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "BC",
+  wrongs: ["B", "BCDE"],
+  errors: ["Compilation Error - switch לא יכול להכיל printf", "Compilation Error - חסר break אחרי case 1"],
+  explanation: "x=2, נכנסים ל-case 2 ומדפיסים 'B'. אין break אז fall-through ל-case 3 ומדפיסים 'C'. ה-break עוצר את ה-fall-through."
+},
+
+// Q24: Dangling else
+{
+  topic: "control",
+  code: `#include <stdio.h>\n\nint main() {\n    int x = 0, y = 1;\n    if (x)\n        if (y)\n            printf("A");\n    else\n        printf("B");\n    printf("C");\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "C",
+  wrongs: ["BC", "AC"],
+  errors: ["Compilation Error - else בלי if תואם", "Compilation Error - חסר סוגריים מסולסלים"],
+  explanation: "ה-else שייך ל-if(y) הפנימי (dangling else). x=0 → ה-if(x) הראשון שקר → לא נכנסים בכלל לגוף, כולל ה-else. מודפס רק 'C'."
+},
+
+,
+// ===== EDGE-CASE QUESTIONS FROM SLIDES (29) =====
+// Edge-case questions from PPT slides - tricky behaviors and common pitfalls
+
+// ===== CONST POINTERS =====
+{
+  topic: "pointers",
+  code: `#include <stdio.h>\n\nint main() {\n    int x = 10, y = 20;\n    const int *p = &x;\n    *p = 30;\n    printf("%d\\n", x);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "__CE__",
+  correctError: "Compilation Error - *p הוא const int, אי אפשר לשנות את הערך דרך p",
+  wrongs: ["30", "10"],
+  errors: ["Compilation Error - const int *p לא יכול להצביע על משתנה רגיל", "Compilation Error - p צריך להיות מאותחל ב-malloc"],
+  explanation: "const int *p אומר שהערך שp מצביע עליו הוא const - אי אפשר לשנות *p. אפשר לשנות את p עצמו (p = &y חוקי). ההפך: int *const p - p עצמו const אבל *p ניתן לשינוי."
+},
+
+{
+  topic: "pointers",
+  code: `#include <stdio.h>\n\nint main() {\n    int x = 10, y = 20;\n    int *const p = &x;\n    *p = 30;\n    p = &y;\n    printf("%d\\n", *p);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "__CE__",
+  correctError: "Compilation Error - p הוא const pointer, אי אפשר לשנות את p עצמו",
+  wrongs: ["20", "30"],
+  errors: ["Compilation Error - int *const לא טיפוס חוקי ב-C", "Compilation Error - *p = 30 לא חוקי כי p הוא const"],
+  explanation: "int *const p אומר שp עצמו הוא const - אי אפשר לשנות לאן הוא מצביע. *p = 30 כן חוקי (הערך לא const). p = &y גורם לשגיאה."
+},
+
+// ===== STRING LITERAL MODIFICATION =====
+{
+  topic: "arrays",
+  code: `#include <stdio.h>\n\nint main() {\n    char *s = "Hello";\n    s[0] = 'h';\n    printf("%s\\n", s);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "__NONE__",
+  noneExplanation: "התוכנית תגרום ל-undefined behavior (בד\"כ segfault). מחרוזת ליטרלית מאוחסנת בזיכרון קריאה בלבד.",
+  wrongs: ["hello", "Hello"],
+  errors: ["Compilation Error - אי אפשר להשים char ל-char*", "Compilation Error - s[0] לא חוקי על מצביע"],
+  explanation: "char *s = \"Hello\" - s מצביע למחרוזת ליטרלית ב-read-only memory. ניסיון לשנות s[0] הוא undefined behavior. לעומת זאת, char s[] = \"Hello\" יוצר עותק על ה-stack שניתן לשינוי."
+},
+
+// ===== PARTIAL ARRAY INITIALIZATION =====
+{
+  topic: "arrays",
+  code: `#include <stdio.h>\n\nint main() {\n    int a[5] = {1, 2};\n    printf("%d %d %d %d %d\\n", a[0], a[1], a[2], a[3], a[4]);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "1 2 0 0 0",
+  wrongs: ["1 2 1 2 1", "1 2 garbage garbage garbage"],
+  errors: ["Compilation Error - אתחול חלקי של מערך לא חוקי", "Compilation Error - חוסר התאמה בגודל המערך"],
+  explanation: "כשמאתחלים מערך באופן חלקי, שאר האיברים מאותחלים אוטומטית ל-0. זה שונה ממערך ללא אתחול כלל (int a[5];) שם הערכים הם garbage."
+},
+
+// ===== SHORT CIRCUIT EVALUATION =====
+{
+  topic: "control",
+  code: `#include <stdio.h>\n\nint main() {\n    int a = 0, b = 5;\n    if (a && (b = 10))\n        printf("yes");\n    printf("%d\\n", b);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "5",
+  wrongs: ["10", "yes10"],
+  errors: ["Compilation Error - ההשמה b=10 לא חוקית בתוך תנאי", "Compilation Error - && דורש שני ביטויים בוליאניים"],
+  explanation: "Short-circuit evaluation: כש-a=0 (false), הצד השני של && לא מתבצע כלל. לכן b=10 לא מתבצע ו-b נשאר 5. גם ה-if שקרי אז 'yes' לא מודפס."
+},
+
+{
+  topic: "control",
+  code: `#include <stdio.h>\n\nint main() {\n    int a = 1, b = 5;\n    if (a || (b = 10))\n        printf("yes ");\n    printf("%d\\n", b);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "yes 5",
+  wrongs: ["yes 10", "10"],
+  errors: ["Compilation Error - || לא מקבל השמה כאופרנד", "Compilation Error - חסר else"],
+  explanation: "Short-circuit ב-||: כש-a=1 (true), הצד השני לא מתבצע. b נשאר 5. התנאי אמת אז 'yes ' מודפס."
+},
+
+// ===== COMMA OPERATOR =====
+{
+  topic: "control",
+  code: `#include <stdio.h>\n\nint main() {\n    int x;\n    x = (1, 2, 3, 4, 5);\n    printf("%d\\n", x);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "5",
+  wrongs: ["1", "15"],
+  errors: ["Compilation Error - אי אפשר להשים tuple למשתנה int", "Compilation Error - הסוגריים מכילים יותר מביטוי אחד"],
+  explanation: "אופרטור הפסיק (comma operator) מחשב את כל הביטויים משמאל לימין ומחזיר את הערך של האחרון. x = (1,2,3,4,5) → x = 5."
+},
+
+// ===== ENUM VALUES =====
+{
+  topic: "variables",
+  code: `#include <stdio.h>\n\nenum Color { RED, GREEN = 5, BLUE, YELLOW = 2, WHITE };\n\nint main() {\n    printf("%d %d %d %d %d\\n", RED, GREEN, BLUE, YELLOW, WHITE);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "0 5 6 2 3",
+  wrongs: ["0 5 6 7 8", "0 1 2 3 4"],
+  errors: ["Compilation Error - enum לא יכול להכיל ערכים כפולים", "Compilation Error - YELLOW לא יכול לקבל ערך קטן מ-BLUE"],
+  explanation: "ב-enum, ברירת מחדל מתחילה מ-0 ועולה ב-1. אחרי GREEN=5, BLUE=6. אחרי YELLOW=2, WHITE=3. ערכים יכולים לחזור אחורה."
+},
+
+// ===== SIZEOF WITH EXPRESSIONS =====
+{
+  topic: "variables",
+  code: `#include <stdio.h>\n\nint main() {\n    int x = 5;\n    printf("%lu\\n", sizeof(x++));\n    printf("%d\\n", x);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית? (sizeof(int)=4)",
+  correct: "4\n5",
+  wrongs: ["4\n6", "6\n6"],
+  errors: ["Compilation Error - sizeof לא מקבל ביטוי עם ++", "Compilation Error - sizeof מחזיר int ולא unsigned long"],
+  explanation: "sizeof מחושב בזמן קומפילציה ולא מבצע את הביטוי! x++ בתוך sizeof לא מתבצע, אז x נשאר 5. sizeof(int) = 4."
+},
+
+// ===== SCANF EDGE CASES =====
+{
+  topic: "io",
+  code: `#include <stdio.h>\n\nint main() {\n    char str[10];\n    int n = scanf("%s", str);\n    // user types: Hello World\n    printf("[%s] %d\\n", str, n);\n    return 0;\n}`,
+  question: "אם המשתמש מקליד Hello World, מה תדפיס התוכנית?",
+  correct: "[Hello] 1",
+  wrongs: ["[Hello World] 1", "[Hello World] 2"],
+  errors: ["Compilation Error - scanf %s דורש &str", "Compilation Error - scanf לא יכול לקרוא מחרוזות"],
+  explanation: "scanf עם %s קורא עד הרווח הראשון (whitespace). לכן str = \"Hello\" בלבד. scanf מחזיר 1 (מספר הפריטים שנקראו בהצלחה). שימו לב: str לא צריך & כי שם מערך הוא כבר כתובת."
+},
+
+{
+  topic: "io",
+  code: `#include <stdio.h>\n\nint main() {\n    int x;\n    int n = scanf("%d", &x);\n    // user types: abc\n    printf("%d\\n", n);\n    return 0;\n}`,
+  question: "אם המשתמש מקליד abc (לא מספר), מה תדפיס התוכנית?",
+  correct: "0",
+  wrongs: ["1", "-1"],
+  errors: ["Compilation Error - scanf חייב לקבל מצביע ל-int", "Compilation Error - n לא יכול לקבל ערך מ-scanf"],
+  explanation: "scanf מחזיר את מספר הפריטים שנקראו בהצלחה. כשהקלט 'abc' לא מתאים ל-%d, אף פריט לא נקרא ולכן מוחזר 0 (לא EOF/-1)."
+},
+
+// ===== REALLOC AND FREE EDGE CASES =====
+{
+  topic: "memory",
+  code: `#include <stdio.h>\n#include <stdlib.h>\n\nint main() {\n    int *p = NULL;\n    p = (int*)realloc(p, 3 * sizeof(int));\n    p[0] = 10; p[1] = 20; p[2] = 30;\n    printf("%d %d %d\\n", p[0], p[1], p[2]);\n    free(p);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "10 20 30",
+  wrongs: ["segfault", "0 0 0"],
+  errors: ["Compilation Error - realloc לא מקבל NULL כפרמטר ראשון", "Compilation Error - חסר #include <malloc.h>"],
+  explanation: "realloc(NULL, size) שקול ל-malloc(size). זו דרך נפוצה לכתוב קוד שמטפל גם בהקצאה ראשונית וגם בהגדלה."
+},
+
+{
+  topic: "memory",
+  code: `#include <stdio.h>\n#include <stdlib.h>\n\nint main() {\n    int *p = (int*)malloc(sizeof(int));\n    *p = 42;\n    free(p);\n    free(NULL);\n    printf("OK\\n");\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "OK",
+  wrongs: ["segfault", "runtime error"],
+  errors: ["Compilation Error - free(NULL) לא חוקי", "Compilation Error - free דורש void* ולא int*"],
+  explanation: "free(NULL) הוא פעולה בטוחה ומוגדרת - לא עושה כלום. זה שימושי בקוד cleanup. לעומת זאת, free(p) פעמיים (double free) הוא undefined behavior!"
+},
+
+// ===== FUNCTION POINTERS =====
+{
+  topic: "funcptrs",
+  code: `#include <stdio.h>\n\nint add(int a, int b) { return a + b; }\nint mul(int a, int b) { return a * b; }\n\nint main() {\n    int (*ops[2])(int, int) = {add, mul};\n    printf("%d %d\\n", ops[0](3, 4), ops[1](3, 4));\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "7 12",
+  wrongs: ["12 7", "3 4"],
+  errors: ["Compilation Error - מערך של מצביעים לפונקציות לא חוקי", "Compilation Error - ops[0](3,4) תחביר לא חוקי"],
+  explanation: "int (*ops[2])(int,int) הוא מערך של 2 מצביעים לפונקציות שמקבלות 2 int ומחזירות int. ops[0]=add, ops[1]=mul. ops[0](3,4)=add(3,4)=7, ops[1](3,4)=mul(3,4)=12."
+},
+
+{
+  topic: "funcptrs",
+  code: `#include <stdio.h>\n#include <stdlib.h>\n\nint compare(const void *a, const void *b) {\n    return (*(int*)a - *(int*)b);\n}\n\nint main() {\n    int arr[] = {5, 2, 8, 1, 4};\n    qsort(arr, 5, sizeof(int), compare);\n    for (int i = 0; i < 5; i++)\n        printf("%d ", arr[i]);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "1 2 4 5 8 ",
+  wrongs: ["8 5 4 2 1 ", "5 2 8 1 4 "],
+  errors: ["Compilation Error - qsort דורש פונקציה עם פרמטרים מטיפוס int*", "Compilation Error - compare חייבת להחזיר void"],
+  explanation: "qsort ממיין מערך. פונקציית ההשוואה מקבלת const void* ועושה cast ל-int*. a-b>0 אם a>b → מיון עולה. התוצאה: 1 2 4 5 8."
+},
+
+// ===== LINKED LIST EDGE CASES =====
+{
+  topic: "lists",
+  code: `#include <stdio.h>\n#include <stdlib.h>\n\ntypedef struct Node {\n    int data;\n    struct Node* next;\n} Node;\n\nvoid deleteHead(Node* head) {\n    if (head == NULL) return;\n    Node* temp = head;\n    head = head->next;\n    free(temp);\n}\n\nint main() {\n    Node* list = (Node*)malloc(sizeof(Node));\n    list->data = 10;\n    list->next = NULL;\n    deleteHead(list);\n    printf("%d\\n", list->data);\n    return 0;\n}`,
+  question: "מה הבעיה בתוכנית?",
+  correct: "__NONE__",
+  noneExplanation: "הפונקציה deleteHead מקבלת עותק של המצביע head. שינוי head בתוך הפונקציה לא משפיע על list ב-main. אחרי free, list מצביע לזיכרון משוחרר - use after free (undefined behavior).",
+  wrongs: ["10", "0"],
+  errors: ["Compilation Error - free לא מקבל Node*", "Compilation Error - head->next לא חוקי אם head הוא NULL"],
+  explanation: "דליפת זיכרון + use after free. הפונקציה צריכה לקבל Node** כדי לעדכן את המצביע המקורי: void deleteHead(Node** head) { ... *head = (*head)->next; }"
+},
+
+{
+  topic: "lists",
+  code: `#include <stdio.h>\n#include <stdlib.h>\n\ntypedef struct Node {\n    int data;\n    struct Node* next;\n} Node;\n\nvoid addToEnd(Node** head, int val) {\n    Node* newNode = (Node*)malloc(sizeof(Node));\n    newNode->data = val;\n    newNode->next = NULL;\n    if (*head == NULL) {\n        *head = newNode;\n        return;\n    }\n    Node* curr = *head;\n    while (curr->next != NULL)\n        curr = curr->next;\n    curr->next = newNode;\n}\n\nint main() {\n    Node* list = NULL;\n    addToEnd(&list, 1);\n    addToEnd(&list, 2);\n    addToEnd(&list, 3);\n    Node* curr = list;\n    while (curr) {\n        printf("%d ", curr->data);\n        curr = curr->next;\n    }\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "1 2 3 ",
+  wrongs: ["3 2 1 ", "1 1 1 "],
+  errors: ["Compilation Error - Node** לא טיפוס חוקי", "Compilation Error - addToEnd לא יכולה לקבל &list"],
+  explanation: "הפונקציה מוסיפה לסוף הרשימה. מקבלת Node** כדי לטפל במקרה שהרשימה ריקה (עדכון head). שלושה קריאות: 1→2→3. פלט: 1 2 3."
+},
+
+// ===== TREE EDGE CASES =====
+{
+  topic: "trees",
+  code: `#include <stdio.h>\n#include <stdlib.h>\n\ntypedef struct TreeNode {\n    int data;\n    struct TreeNode *left, *right;\n} TreeNode;\n\nvoid freeTree(TreeNode* root) {\n    if (root == NULL) return;\n    free(root);\n    freeTree(root->left);\n    freeTree(root->right);\n}`,
+  question: "מה הבעיה בפונקציית freeTree?",
+  correct: "__NONE__",
+  noneExplanation: "הפונקציה משחררת את root לפני שניגשת ל-root->left ו-root->right. אחרי free(root), הגישה ל-root->left היא use-after-free (undefined behavior).",
+  wrongs: ["אין בעיה, הפונקציה נכונה", "הפונקציה לא משחררת את כל הצמתים"],
+  errors: ["Compilation Error - free לא מקבל TreeNode*", "Compilation Error - רקורסיה עקיפה לא חוקית ב-C"],
+  explanation: "חובה לשחרר בסדר postorder: קודם בנים, אחר כך אב. הסדר הנכון: freeTree(root->left); freeTree(root->right); free(root);"
+},
+
+{
+  topic: "trees",
+  code: `#include <stdio.h>\n#include <stdlib.h>\n\ntypedef struct Node {\n    int data;\n    struct Node *left, *right;\n} Node;\n\nint height(Node* root) {\n    if (root == NULL) return -1;\n    int lh = height(root->left);\n    int rh = height(root->right);\n    return 1 + (lh > rh ? lh : rh);\n}\n\nint main() {\n    // Tree:     5\n    //          / \\\\\n    //         3   7\n    //        /\n    //       1\n    Node n1 = {1, NULL, NULL};\n    Node n3 = {3, &n1, NULL};\n    Node n7 = {7, NULL, NULL};\n    Node n5 = {5, &n3, &n7};\n    printf("%d\\n", height(&n5));\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "2",
+  wrongs: ["3", "4"],
+  errors: ["Compilation Error - אי אפשר ליצור עץ על ה-stack", "Compilation Error - &n1 לא מתאים ל-struct Node*"],
+  explanation: "גובה העץ: מ-5 ל-1 יש 2 קשתות (5→3→1). הפונקציה מחזירה -1 ל-NULL, ואז 1+max(lh,rh). עלה: 1+max(-1,-1)=0. צומת 3: 1+max(0,-1)=1. שורש 5: 1+max(1,0)=2."
+},
+
+// ===== STRTOK MODIFIES STRING =====
+{
+  topic: "arrays",
+  code: `#include <stdio.h>\n#include <string.h>\n\nint main() {\n    char str[] = "Hello-World-Test";\n    char *token = strtok(str, "-");\n    printf("%s\\n", str);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "Hello",
+  wrongs: ["Hello-World-Test", "Hello-"],
+  errors: ["Compilation Error - strtok דורש const char*", "Compilation Error - strtok מחזיר int"],
+  explanation: "strtok משנה את המחרוזת המקורית! היא מחליפה את ה-'-' הראשון ב-'\\0'. לכן str הוא עכשיו \"Hello\\0World-Test\" ו-printf מדפיס רק \"Hello\"."
+},
+
+// ===== TYPEDEF VS DEFINE =====
+{
+  topic: "preprocessor",
+  code: `#include <stdio.h>\n\n#define PTR1 int*\ntypedef int* PTR2;\n\nint main() {\n    PTR1 a, b;\n    PTR2 c, d;\n    printf("%lu %lu %lu %lu\\n", sizeof(a), sizeof(b), sizeof(c), sizeof(d));\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית? (sizeof(int)=4, sizeof(pointer)=8)",
+  correct: "8 4 8 8",
+  wrongs: ["8 8 8 8", "4 4 4 4"],
+  errors: ["Compilation Error - #define לא יכול להגדיר טיפוס", "Compilation Error - typedef ו-#define לא יכולים להגדיר את אותו שם"],
+  explanation: "#define PTR1 int* → PTR1 a, b מתרחב ל-int* a, b → a הוא int*, b הוא int! typedef int* PTR2 → PTR2 c, d → שניהם int*. זהו ההבדל המרכזי בין typedef ל-#define."
+},
+
+// ===== RECURSIVE CALL COUNT =====
+{
+  topic: "functions",
+  code: `#include <stdio.h>\n\nint count = 0;\n\nint fib(int n) {\n    count++;\n    if (n <= 1) return n;\n    return fib(n-1) + fib(n-2);\n}\n\nint main() {\n    int result = fib(5);\n    printf("%d %d\\n", result, count);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "5 15",
+  wrongs: ["5 5", "8 15"],
+  errors: ["Compilation Error - count לא יכול להיות גלובלי", "Compilation Error - פונקציה רקורסיבית לא יכולה להחזיר ערך"],
+  explanation: "fib(5)=5 (0,1,1,2,3,5). count סופר קריאות: fib(5) קורא ל-fib(4)+fib(3), fib(4) ל-fib(3)+fib(2) וכו'. סה\"כ 15 קריאות רקורסיביות."
+},
+
+// ===== SIGNED CHAR OVERFLOW =====
+{
+  topic: "variables",
+  code: `#include <stdio.h>\n\nint main() {\n    char c = 127;\n    c = c + 1;\n    printf("%d\\n", c);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית? (בהנחה char הוא signed)",
+  correct: "-128",
+  wrongs: ["128", "0"],
+  errors: ["Compilation Error - חריגה מטווח char", "Compilation Error - c + 1 מחזיר int ולא char"],
+  explanation: "signed char מכיל ערכים -128 עד 127. הוספת 1 ל-127 גורמת לגלישה (overflow) ומגיע ל-128. בייצוג two's complement זה -128."
+},
+
+// ===== CALLOC VS MALLOC =====
+{
+  topic: "memory",
+  code: `#include <stdio.h>\n#include <stdlib.h>\n\nint main() {\n    int *a = (int*)malloc(3 * sizeof(int));\n    int *b = (int*)calloc(3, sizeof(int));\n    printf("%d %d\\n", a[0] == 0, b[0] == 0);\n    free(a); free(b);\n    return 0;\n}`,
+  question: "מה מובטח לגבי a[0] ו-b[0]?",
+  correct: "__NONE__",
+  noneExplanation: "calloc מאפס את הזיכרון (b[0] בטוח 0), אבל malloc לא מאפס (a[0] יכול להיות כל ערך). לכן b[0]==0 מובטח true, אבל a[0]==0 לא מובטח.",
+  wrongs: ["1 1", "0 0"],
+  errors: ["Compilation Error - calloc לא קיים ב-C סטנדרטי", "Compilation Error - malloc ו-calloc מחזירים void* ולא int*"],
+  explanation: "ההבדל: malloc מקצה זיכרון לא מאותחל (garbage), calloc מקצה ומאפס ל-0. calloc(n, size) = malloc(n*size) + memset(0)."
+},
+
+// ===== EOF / GETCHAR SIGNEDNESS =====
+{
+  topic: "io",
+  code: `#include <stdio.h>\n\nint main() {\n    char c;\n    while ((c = getchar()) != EOF)\n        putchar(c);\n    return 0;\n}`,
+  question: "מה הבעיה בתוכנית?",
+  correct: "__NONE__",
+  noneExplanation: "EOF הוא -1 (int). char יכול להיות unsigned (0-255) ואז c לעולם לא ישווה ל-EOF. גם אם char הוא signed, הערך 255 (0xFF) ייקרא כ-EOF בטעות. c חייב להיות int.",
+  wrongs: ["אין בעיה, הקוד נכון", "הקוד ידפיס תו אחד בלבד"],
+  errors: ["Compilation Error - getchar מחזיר char ולא int", "Compilation Error - EOF לא מוגדר ב-stdio.h"],
+  explanation: "getchar() מחזיר int (לא char!) כדי שיוכל להחזיר גם EOF (-1) וגם כל ערכי ה-char (0-255). שימוש ב-char c במקום int c גורם לבאג."
+},
+
+// ===== PRINTF FORMAT MISMATCH =====
+{
+  topic: "io",
+  code: `#include <stdio.h>\n\nint main() {\n    int i = 42;\n    float f = 3.14;\n    printf("%f %d\\n", i, f);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "__NONE__",
+  noneExplanation: "הפלט אינו צפוי (undefined behavior). %f מצפה ל-double אבל מקבל int, ו-%d מצפה ל-int אבל מקבל float. printf לא מבצע המרת טיפוסים - הוא קורא מהזיכרון לפי הפורמט.",
+  wrongs: ["42.000000 3", "3.140000 42"],
+  errors: ["Compilation Error - חוסר התאמה בין %f ל-int", "Compilation Error - printf לא מקבל float כפרמטר"],
+  explanation: "printf לא בודק התאמת טיפוסים! %f קורא 8 בתים (double) מהמחסנית אבל i הוא 4 בתים (int). התוצאה היא garbage. תמיד יש להתאים את ה-format specifier לטיפוס."
+},
+
+// ===== VOID* ARITHMETIC =====
+{
+  topic: "pointers",
+  code: `#include <stdio.h>\n\nint main() {\n    int arr[] = {10, 20, 30};\n    void *p = arr;\n    p = p + 1;\n    printf("%d\\n", *(int*)p);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "__CE__",
+  correctError: "Compilation Error - אי אפשר לבצע אריתמטיקת מצביעים על void* כי גודל האיבר לא ידוע",
+  wrongs: ["20", "10"],
+  errors: ["Compilation Error - void* לא יכול להצביע על int[]", "Compilation Error - cast ל-int* לא חוקי"],
+  explanation: "void* הוא מצביע גנרי - אפשר להשים אליו כל כתובת, אבל אי אפשר לבצע עליו אריתמטיקה (p+1, p++) כי הקומפיילר לא יודע כמה בתים לקפוץ. צריך cast: ((int*)p + 1)."
+},
+
+// ===== ARGUMENT EVALUATION ORDER =====
+{
+  topic: "functions",
+  code: `#include <stdio.h>\n\nint main() {\n    int i = 1;\n    printf("%d %d %d\\n", i++, i++, i++);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "__NONE__",
+  noneExplanation: "סדר חישוב הארגומנטים של פונקציה הוא תלוי-קומפיילר (undefined behavior ב-C). התוצאה יכולה להיות 1 2 3 או 3 2 1 או כל סדר אחר.",
+  wrongs: ["1 2 3", "3 2 1"],
+  errors: ["Compilation Error - i++ לא יכול להופיע יותר מפעם אחת בקריאה", "Compilation Error - printf לא מקבל ביטויים עם side effects"],
+  explanation: "לפי תקן C, סדר חישוב ארגומנטים של פונקציה אינו מוגדר. שימוש ב-i++ מספר פעמים באותה קריאה הוא undefined behavior. MSVC מחשב ימין-לשמאל, GCC שמאל-לימין."
+},
+
+// ===== STRING ASSIGNMENT VS COPY =====
+{
+  topic: "arrays",
+  code: `#include <stdio.h>\n\nint main() {\n    char s1[10] = "Hello";\n    char s2[10];\n    s2 = s1;\n    printf("%s\\n", s2);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "__CE__",
+  correctError: "Compilation Error - אי אפשר להשים מערך למערך. יש להשתמש ב-strcpy",
+  wrongs: ["Hello", "s1"],
+  errors: ["Compilation Error - s2 לא מאותחל", "Compilation Error - char[] לא תואם ל-char[]"],
+  explanation: "ב-C, אי אפשר להעתיק מערכים עם =. s2 = s1 מנסה לשנות את כתובת הבסיס של s2 (שהיא קבועה). יש להשתמש ב-strcpy(s2, s1)."
+},
+
 ];
 
 // ============================================================
@@ -1426,8 +3067,13 @@ const TOPICS = [
   {id:"control",  label:"בקרה",           icon:"&#x1F500;"},
   {id:"variables",label:"משתנים",         icon:"&#x1F4E6;"},
   {id:"functions",label:"פונקציות ורקורסיה", icon:"&#x2699;"},
-  {id:"structs",  label:"מבנים, רשימות ומאקרו", icon:"&#x1F9F1;"},
+  {id:"structs",  label:"מבנים",              icon:"&#x1F9F1;"},
   {id:"io",       label:"קלט/פלט וטיפוסים",  icon:"&#x1F4BB;"},
+  {id:"lists",    label:"רשימות מקושרות",    icon:"&#x1F517;"},
+  {id:"trees",    label:"עצים בינאריים",     icon:"&#x1F333;"},
+  {id:"preprocessor", label:"פריפרוססור ומאקרו", icon:"&#x2699;"},
+  {id:"funcptrs", label:"מצביעים לפונקציות", icon:"&#x1F517;"},
+  {id:"memory",   label:"הקצאה דינמית",      icon:"&#x1F4E6;"},
 ];
 const NONE_TEXT = "אף תשובה אחרת אינה נכונה";
 
@@ -1443,6 +3089,33 @@ let timerInterval = null;
 let timeLeft = 0;
 let timerSetting = 300;
 let results = []; // {qIdx, correct, selected, timedOut}
+
+// ============================================================
+//  PER-QUESTION HISTORY (localStorage)
+// ============================================================
+function getQuestionKey(q) {
+  return (q.code || "").substring(0, 80) + "|" + (q.correct || "").substring(0, 30);
+}
+function getQuestionHistory() {
+  return JSON.parse(localStorage.getItem("cquiz_qhistory") || "{}");
+}
+function saveQuestionResult(q, wasCorrect) {
+  const h = getQuestionHistory();
+  const key = getQuestionKey(q);
+  if (!h[key]) h[key] = { attempts: 0, correct: 0, lastSeen: null };
+  h[key].attempts++;
+  if (wasCorrect) h[key].correct++;
+  h[key].lastSeen = new Date().toISOString();
+  localStorage.setItem("cquiz_qhistory", JSON.stringify(h));
+}
+function filterNewOrFailed(questions) {
+  const h = getQuestionHistory();
+  return questions.filter(q => {
+    const rec = h[getQuestionKey(q)];
+    if (!rec) return true; // never seen
+    return rec.correct === 0; // only failed attempts
+  });
+}
 
 // ============================================================
 //  INIT WELCOME
@@ -1565,7 +3238,10 @@ function renderQuestion() {
   $("qCurrent").textContent = currentQ + 1;
   $("scoreDisplay").textContent = "ניקוד: " + score + "/" + (currentQ);
   $("questionTitle").textContent = q.question;
+  $("explanationWrap").style.display = "none";
+  $("explanationText").style.display = "none";
   $("explanationText").textContent = "";
+  $("showExplanationBtn").style.display = "";
   $("actionBtn").textContent = "בדיקה";
   $("actionBtn").disabled = true;
 
@@ -1621,6 +3297,11 @@ $("actionBtn").addEventListener("click", () => {
   else nextQuestion();
 });
 
+$("showExplanationBtn").addEventListener("click", () => {
+  $("explanationText").style.display = "";
+  $("showExplanationBtn").style.display = "none";
+});
+
 function checkAnswer() {
   if (selectedIdx === null) return;
   answered = true;
@@ -1672,9 +3353,13 @@ function handleTimeout() {
     }
   }
   $("explanationText").textContent = "⏰ נגמר הזמן! " + (q.explanation || "");
+  $("explanationText").style.display = "none";
+  $("showExplanationBtn").style.display = "";
+  $("explanationWrap").style.display = "";
   $("scoreDisplay").textContent = "ניקוד: " + score + "/" + (currentQ + 1);
   $("actionBtn").textContent = currentQ < quizQuestions.length - 1 ? "הבא ←" : "סיום";
   $("actionBtn").disabled = false;
+  saveQuestionResult(q, false);
   results.push({qIdx: currentQ, correct: false, selected: -1, timedOut: true});
 }
 
@@ -1835,7 +3520,9 @@ function startExam() {
   timerSetting = 0; // no per-question timer in exam mode
   let count = parseInt($("examCountSelect").value);
   let pool = shuffle([...ALL_QUESTIONS]);
+  if ($("examNewOnlyCheck").checked) pool = filterNewOrFailed(pool);
   if (count > 0) pool = pool.slice(0, count);
+  if (pool.length === 0) { alert("אין שאלות חדשות/שגויות. נסה לבטל את הסינון."); return; }
   quizQuestions = pool;
   currentQ = 0;
   score = 0;
@@ -1891,9 +3578,10 @@ function startQuiz(topicId) {
   timerSetting = parseInt($("timerSelect").value);
   let count = parseInt($("countSelect").value);
   let pool = topicId === "all" ? [...ALL_QUESTIONS] : ALL_QUESTIONS.filter(q=>q.topic===topicId);
+  if ($("newOnlyCheck").checked) pool = filterNewOrFailed(pool);
   pool = shuffle(pool);
   if (count > 0) pool = pool.slice(0, count);
-  if (pool.length === 0) { alert("אין שאלות בנושא זה"); return; }
+  if (pool.length === 0) { alert("אין שאלות חדשות/שגויות בנושא זה. נסה לבטל את הסינון."); return; }
   quizQuestions = pool;
   currentQ = 0;
   score = 0;
@@ -1934,9 +3622,14 @@ function checkAnswer() {
     expText = q.noneExplanation + ". " + expText;
   }
   $("explanationText").textContent = expText;
+  $("explanationText").style.display = "none";
+  $("showExplanationBtn").style.display = "";
+  $("explanationWrap").style.display = "";
   $("scoreDisplay").textContent = "\u05E0\u05D9\u05E7\u05D5\u05D3: " + score + "/" + (isExamMode ? quizQuestions.length : currentQ + 1);
   $("actionBtn").textContent = currentQ < quizQuestions.length - 1 ? "\u05D4\u05D1\u05D0 \u2190" : "\u05E1\u05D9\u05D5\u05DD";
   $("actionBtn").disabled = false;
+
+  saveQuestionResult(q, isCorrect);
 
   const result = {qIdx: currentQ, correct: isCorrect, selected: selectedIdx, timedOut: false, topic: q.topic};
   if (isExamMode) {
@@ -2055,10 +3748,20 @@ function renderStats() {
     variables: "\u05DE\u05E9\u05EA\u05E0\u05D9\u05DD",
     functions: "\u05E4\u05D5\u05E0\u05E7\u05E6\u05D9\u05D5\u05EA",
     structs: "\u05DE\u05D1\u05E0\u05D9\u05DD \u05D5\u05DE\u05D0\u05E7\u05E8\u05D5",
-    io: "\u05E7\u05DC\u05D8/\u05E4\u05DC\u05D8"
+    io: "\u05E7\u05DC\u05D8/\u05E4\u05DC\u05D8",
+    lists: "\u05E8\u05E9\u05D9\u05DE\u05D5\u05EA \u05DE\u05E7\u05D5\u05E9\u05E8\u05D5\u05EA",
+    trees: "\u05E2\u05E6\u05D9\u05DD",
+    preprocessor: "\u05E4\u05E8\u05D9\u05E4\u05E8\u05D5\u05E1\u05E1\u05D5\u05E8",
+    funcptrs: "\u05DE\u05E6\u05D1\u05D9\u05E2\u05D9\u05DD \u05DC\u05E4\u05D5\u05E0\u05E7\u05E6\u05D9\u05D5\u05EA",
+    memory: "\u05D4\u05E7\u05E6\u05D0\u05D4 \u05D3\u05D9\u05E0\u05DE\u05D9\u05EA"
   };
 
   let html = '';
+
+  // Mastery stats
+  const qh = getQuestionHistory();
+  const masteredCount = Object.values(qh).filter(r => r.correct > 0).length;
+  const remainingCount = ALL_QUESTIONS.length - masteredCount;
 
   // Summary cards
   html += '<div class="stats-summary">';
@@ -2066,8 +3769,8 @@ function renderStats() {
   html += `<div class="stat-card"><div class="stat-value">${exams.length}</div><div class="stat-label">\u05DE\u05D1\u05D7\u05E0\u05D9 \u05E1\u05D9\u05DE\u05D5\u05DC\u05E6\u05D9\u05D4</div></div>`;
   html += `<div class="stat-card"><div class="stat-value">${avgPct}%</div><div class="stat-label">\u05DE\u05DE\u05D5\u05E6\u05E2</div></div>`;
   html += `<div class="stat-card"><div class="stat-value">${bestPct}%</div><div class="stat-label">\u05E9\u05D9\u05D0 \u05D0\u05D9\u05E9\u05D9</div></div>`;
-  html += `<div class="stat-card"><div class="stat-value">${totalQ}</div><div class="stat-label">\u05E9\u05D0\u05DC\u05D5\u05EA \u05E0\u05E2\u05E0\u05D5</div></div>`;
-  html += `<div class="stat-card"><div class="stat-value">${Math.round(totalCorrect/totalQ*100)}%</div><div class="stat-label">\u05D0\u05D7\u05D5\u05D6 \u05E0\u05DB\u05D5\u05E0\u05D5\u05EA</div></div>`;
+  html += `<div class="stat-card"><div class="stat-value">${masteredCount}/${ALL_QUESTIONS.length}</div><div class="stat-label">\u05E9\u05D0\u05DC\u05D5\u05EA \u05E0\u05E4\u05EA\u05E8\u05D5</div></div>`;
+  html += `<div class="stat-card"><div class="stat-value" style="color:var(--cp-${remainingCount>0?'warning':'success'})">${remainingCount}</div><div class="stat-label">\u05E0\u05D5\u05EA\u05E8\u05D5 \u05DC\u05EA\u05E8\u05D2\u05DC</div></div>`;
   html += '</div>';
 
   // Trend chart (last 20 results)
@@ -2147,6 +3850,7 @@ function renderStats() {
 function clearStats() {
   if (confirm("\u05D4\u05D0\u05DD \u05DC\u05DE\u05D7\u05D5\u05E7 \u05D0\u05EA \u05DB\u05DC \u05D4\u05E1\u05D8\u05D8\u05D9\u05E1\u05D8\u05D9\u05E7\u05D5\u05EA?")) {
     localStorage.removeItem("cquiz_history");
+    localStorage.removeItem("cquiz_qhistory");
     renderStats();
   }
 }
@@ -2156,9 +3860,9 @@ function clearStats() {
 // ============================================================
 function retryWrongQuestions() {
   const wrongResults = (isExamMode ? results.filter(r => r !== null) : results).filter(r => r && !r.correct);
-  if (wrongResults.length === 0) { alert("אין שאלות שטעית בהן!"); return; }
+  if (wrongResults.length === 0) { alert("\u05D0\u05D9\u05DF \u05E9\u05D0\u05DC\u05D5\u05EA \u05E9\u05D8\u05E2\u05D9\u05EA \u05D1\u05D4\u05DF!"); return; }
   const wrongQs = wrongResults.map(r => quizQuestions[r.qIdx]);
-  
+
   clearInterval(timerInterval);
   clearInterval(examTimerInterval);
   isExamMode = false;
@@ -2166,7 +3870,7 @@ function retryWrongQuestions() {
   $("examTimerDisplay").style.display = "none";
   $("endScreen").classList.remove("visible");
   $("reviewOverlay").classList.remove("visible");
-  
+
   timerSetting = parseInt($("timerSelect").value);
   quizQuestions = shuffle(wrongQs);
   currentQ = 0;
@@ -2182,7 +3886,7 @@ function shuffleNewQuiz() {
   clearInterval(examTimerInterval);
   $("endScreen").classList.remove("visible");
   $("reviewOverlay").classList.remove("visible");
-  
+
   if (isExamMode) {
     isExamMode = false;
     startExam();
@@ -2193,7 +3897,9 @@ function shuffleNewQuiz() {
     timerSetting = parseInt($("timerSelect").value);
     let count = parseInt($("countSelect").value);
     let pool = shuffle([...ALL_QUESTIONS]);
+    if ($("newOnlyCheck").checked) pool = filterNewOrFailed(pool);
     if (count > 0) pool = pool.slice(0, count);
+    if (pool.length === 0) { alert("\u05D0\u05D9\u05DF \u05E9\u05D0\u05DC\u05D5\u05EA \u05D7\u05D3\u05E9\u05D5\u05EA/\u05E9\u05D2\u05D5\u05D9\u05D5\u05EA. \u05E0\u05E1\u05D4 \u05DC\u05D1\u05D8\u05DC \u05D0\u05EA \u05D4\u05E1\u05D9\u05E0\u05D5\u05DF."); return; }
     quizQuestions = pool;
     currentQ = 0;
     score = 0;
