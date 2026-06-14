@@ -2722,6 +2722,333 @@ const ALL_QUESTIONS = [
   explanation: "ה-else שייך ל-if(y) הפנימי (dangling else). x=0 → ה-if(x) הראשון שקר → לא נכנסים בכלל לגוף, כולל ה-else. מודפס רק 'C'."
 },
 
+,
+// ===== EDGE-CASE QUESTIONS FROM SLIDES (29) =====
+// Edge-case questions from PPT slides - tricky behaviors and common pitfalls
+
+// ===== CONST POINTERS =====
+{
+  topic: "pointers",
+  code: `#include <stdio.h>\n\nint main() {\n    int x = 10, y = 20;\n    const int *p = &x;\n    *p = 30;\n    printf("%d\\n", x);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "__CE__",
+  correctError: "Compilation Error - *p הוא const int, אי אפשר לשנות את הערך דרך p",
+  wrongs: ["30", "10"],
+  errors: ["Compilation Error - const int *p לא יכול להצביע על משתנה רגיל", "Compilation Error - p צריך להיות מאותחל ב-malloc"],
+  explanation: "const int *p אומר שהערך שp מצביע עליו הוא const - אי אפשר לשנות *p. אפשר לשנות את p עצמו (p = &y חוקי). ההפך: int *const p - p עצמו const אבל *p ניתן לשינוי."
+},
+
+{
+  topic: "pointers",
+  code: `#include <stdio.h>\n\nint main() {\n    int x = 10, y = 20;\n    int *const p = &x;\n    *p = 30;\n    p = &y;\n    printf("%d\\n", *p);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "__CE__",
+  correctError: "Compilation Error - p הוא const pointer, אי אפשר לשנות את p עצמו",
+  wrongs: ["20", "30"],
+  errors: ["Compilation Error - int *const לא טיפוס חוקי ב-C", "Compilation Error - *p = 30 לא חוקי כי p הוא const"],
+  explanation: "int *const p אומר שp עצמו הוא const - אי אפשר לשנות לאן הוא מצביע. *p = 30 כן חוקי (הערך לא const). p = &y גורם לשגיאה."
+},
+
+// ===== STRING LITERAL MODIFICATION =====
+{
+  topic: "arrays",
+  code: `#include <stdio.h>\n\nint main() {\n    char *s = "Hello";\n    s[0] = 'h';\n    printf("%s\\n", s);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "__NONE__",
+  noneExplanation: "התוכנית תגרום ל-undefined behavior (בד\"כ segfault). מחרוזת ליטרלית מאוחסנת בזיכרון קריאה בלבד.",
+  wrongs: ["hello", "Hello"],
+  errors: ["Compilation Error - אי אפשר להשים char ל-char*", "Compilation Error - s[0] לא חוקי על מצביע"],
+  explanation: "char *s = \"Hello\" - s מצביע למחרוזת ליטרלית ב-read-only memory. ניסיון לשנות s[0] הוא undefined behavior. לעומת זאת, char s[] = \"Hello\" יוצר עותק על ה-stack שניתן לשינוי."
+},
+
+// ===== PARTIAL ARRAY INITIALIZATION =====
+{
+  topic: "arrays",
+  code: `#include <stdio.h>\n\nint main() {\n    int a[5] = {1, 2};\n    printf("%d %d %d %d %d\\n", a[0], a[1], a[2], a[3], a[4]);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "1 2 0 0 0",
+  wrongs: ["1 2 1 2 1", "1 2 garbage garbage garbage"],
+  errors: ["Compilation Error - אתחול חלקי של מערך לא חוקי", "Compilation Error - חוסר התאמה בגודל המערך"],
+  explanation: "כשמאתחלים מערך באופן חלקי, שאר האיברים מאותחלים אוטומטית ל-0. זה שונה ממערך ללא אתחול כלל (int a[5];) שם הערכים הם garbage."
+},
+
+// ===== SHORT CIRCUIT EVALUATION =====
+{
+  topic: "control",
+  code: `#include <stdio.h>\n\nint main() {\n    int a = 0, b = 5;\n    if (a && (b = 10))\n        printf("yes");\n    printf("%d\\n", b);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "5",
+  wrongs: ["10", "yes10"],
+  errors: ["Compilation Error - ההשמה b=10 לא חוקית בתוך תנאי", "Compilation Error - && דורש שני ביטויים בוליאניים"],
+  explanation: "Short-circuit evaluation: כש-a=0 (false), הצד השני של && לא מתבצע כלל. לכן b=10 לא מתבצע ו-b נשאר 5. גם ה-if שקרי אז 'yes' לא מודפס."
+},
+
+{
+  topic: "control",
+  code: `#include <stdio.h>\n\nint main() {\n    int a = 1, b = 5;\n    if (a || (b = 10))\n        printf("yes ");\n    printf("%d\\n", b);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "yes 5",
+  wrongs: ["yes 10", "10"],
+  errors: ["Compilation Error - || לא מקבל השמה כאופרנד", "Compilation Error - חסר else"],
+  explanation: "Short-circuit ב-||: כש-a=1 (true), הצד השני לא מתבצע. b נשאר 5. התנאי אמת אז 'yes ' מודפס."
+},
+
+// ===== COMMA OPERATOR =====
+{
+  topic: "control",
+  code: `#include <stdio.h>\n\nint main() {\n    int x;\n    x = (1, 2, 3, 4, 5);\n    printf("%d\\n", x);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "5",
+  wrongs: ["1", "15"],
+  errors: ["Compilation Error - אי אפשר להשים tuple למשתנה int", "Compilation Error - הסוגריים מכילים יותר מביטוי אחד"],
+  explanation: "אופרטור הפסיק (comma operator) מחשב את כל הביטויים משמאל לימין ומחזיר את הערך של האחרון. x = (1,2,3,4,5) → x = 5."
+},
+
+// ===== ENUM VALUES =====
+{
+  topic: "variables",
+  code: `#include <stdio.h>\n\nenum Color { RED, GREEN = 5, BLUE, YELLOW = 2, WHITE };\n\nint main() {\n    printf("%d %d %d %d %d\\n", RED, GREEN, BLUE, YELLOW, WHITE);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "0 5 6 2 3",
+  wrongs: ["0 5 6 7 8", "0 1 2 3 4"],
+  errors: ["Compilation Error - enum לא יכול להכיל ערכים כפולים", "Compilation Error - YELLOW לא יכול לקבל ערך קטן מ-BLUE"],
+  explanation: "ב-enum, ברירת מחדל מתחילה מ-0 ועולה ב-1. אחרי GREEN=5, BLUE=6. אחרי YELLOW=2, WHITE=3. ערכים יכולים לחזור אחורה."
+},
+
+// ===== SIZEOF WITH EXPRESSIONS =====
+{
+  topic: "variables",
+  code: `#include <stdio.h>\n\nint main() {\n    int x = 5;\n    printf("%lu\\n", sizeof(x++));\n    printf("%d\\n", x);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית? (sizeof(int)=4)",
+  correct: "4\n5",
+  wrongs: ["4\n6", "6\n6"],
+  errors: ["Compilation Error - sizeof לא מקבל ביטוי עם ++", "Compilation Error - sizeof מחזיר int ולא unsigned long"],
+  explanation: "sizeof מחושב בזמן קומפילציה ולא מבצע את הביטוי! x++ בתוך sizeof לא מתבצע, אז x נשאר 5. sizeof(int) = 4."
+},
+
+// ===== SCANF EDGE CASES =====
+{
+  topic: "io",
+  code: `#include <stdio.h>\n\nint main() {\n    char str[10];\n    int n = scanf("%s", str);\n    // user types: Hello World\n    printf("[%s] %d\\n", str, n);\n    return 0;\n}`,
+  question: "אם המשתמש מקליד Hello World, מה תדפיס התוכנית?",
+  correct: "[Hello] 1",
+  wrongs: ["[Hello World] 1", "[Hello World] 2"],
+  errors: ["Compilation Error - scanf %s דורש &str", "Compilation Error - scanf לא יכול לקרוא מחרוזות"],
+  explanation: "scanf עם %s קורא עד הרווח הראשון (whitespace). לכן str = \"Hello\" בלבד. scanf מחזיר 1 (מספר הפריטים שנקראו בהצלחה). שימו לב: str לא צריך & כי שם מערך הוא כבר כתובת."
+},
+
+{
+  topic: "io",
+  code: `#include <stdio.h>\n\nint main() {\n    int x;\n    int n = scanf("%d", &x);\n    // user types: abc\n    printf("%d\\n", n);\n    return 0;\n}`,
+  question: "אם המשתמש מקליד abc (לא מספר), מה תדפיס התוכנית?",
+  correct: "0",
+  wrongs: ["1", "-1"],
+  errors: ["Compilation Error - scanf חייב לקבל מצביע ל-int", "Compilation Error - n לא יכול לקבל ערך מ-scanf"],
+  explanation: "scanf מחזיר את מספר הפריטים שנקראו בהצלחה. כשהקלט 'abc' לא מתאים ל-%d, אף פריט לא נקרא ולכן מוחזר 0 (לא EOF/-1)."
+},
+
+// ===== REALLOC AND FREE EDGE CASES =====
+{
+  topic: "memory",
+  code: `#include <stdio.h>\n#include <stdlib.h>\n\nint main() {\n    int *p = NULL;\n    p = (int*)realloc(p, 3 * sizeof(int));\n    p[0] = 10; p[1] = 20; p[2] = 30;\n    printf("%d %d %d\\n", p[0], p[1], p[2]);\n    free(p);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "10 20 30",
+  wrongs: ["segfault", "0 0 0"],
+  errors: ["Compilation Error - realloc לא מקבל NULL כפרמטר ראשון", "Compilation Error - חסר #include <malloc.h>"],
+  explanation: "realloc(NULL, size) שקול ל-malloc(size). זו דרך נפוצה לכתוב קוד שמטפל גם בהקצאה ראשונית וגם בהגדלה."
+},
+
+{
+  topic: "memory",
+  code: `#include <stdio.h>\n#include <stdlib.h>\n\nint main() {\n    int *p = (int*)malloc(sizeof(int));\n    *p = 42;\n    free(p);\n    free(NULL);\n    printf("OK\\n");\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "OK",
+  wrongs: ["segfault", "runtime error"],
+  errors: ["Compilation Error - free(NULL) לא חוקי", "Compilation Error - free דורש void* ולא int*"],
+  explanation: "free(NULL) הוא פעולה בטוחה ומוגדרת - לא עושה כלום. זה שימושי בקוד cleanup. לעומת זאת, free(p) פעמיים (double free) הוא undefined behavior!"
+},
+
+// ===== FUNCTION POINTERS =====
+{
+  topic: "funcptrs",
+  code: `#include <stdio.h>\n\nint add(int a, int b) { return a + b; }\nint mul(int a, int b) { return a * b; }\n\nint main() {\n    int (*ops[2])(int, int) = {add, mul};\n    printf("%d %d\\n", ops[0](3, 4), ops[1](3, 4));\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "7 12",
+  wrongs: ["12 7", "3 4"],
+  errors: ["Compilation Error - מערך של מצביעים לפונקציות לא חוקי", "Compilation Error - ops[0](3,4) תחביר לא חוקי"],
+  explanation: "int (*ops[2])(int,int) הוא מערך של 2 מצביעים לפונקציות שמקבלות 2 int ומחזירות int. ops[0]=add, ops[1]=mul. ops[0](3,4)=add(3,4)=7, ops[1](3,4)=mul(3,4)=12."
+},
+
+{
+  topic: "funcptrs",
+  code: `#include <stdio.h>\n#include <stdlib.h>\n\nint compare(const void *a, const void *b) {\n    return (*(int*)a - *(int*)b);\n}\n\nint main() {\n    int arr[] = {5, 2, 8, 1, 4};\n    qsort(arr, 5, sizeof(int), compare);\n    for (int i = 0; i < 5; i++)\n        printf("%d ", arr[i]);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "1 2 4 5 8 ",
+  wrongs: ["8 5 4 2 1 ", "5 2 8 1 4 "],
+  errors: ["Compilation Error - qsort דורש פונקציה עם פרמטרים מטיפוס int*", "Compilation Error - compare חייבת להחזיר void"],
+  explanation: "qsort ממיין מערך. פונקציית ההשוואה מקבלת const void* ועושה cast ל-int*. a-b>0 אם a>b → מיון עולה. התוצאה: 1 2 4 5 8."
+},
+
+// ===== LINKED LIST EDGE CASES =====
+{
+  topic: "lists",
+  code: `#include <stdio.h>\n#include <stdlib.h>\n\ntypedef struct Node {\n    int data;\n    struct Node* next;\n} Node;\n\nvoid deleteHead(Node* head) {\n    if (head == NULL) return;\n    Node* temp = head;\n    head = head->next;\n    free(temp);\n}\n\nint main() {\n    Node* list = (Node*)malloc(sizeof(Node));\n    list->data = 10;\n    list->next = NULL;\n    deleteHead(list);\n    printf("%d\\n", list->data);\n    return 0;\n}`,
+  question: "מה הבעיה בתוכנית?",
+  correct: "__NONE__",
+  noneExplanation: "הפונקציה deleteHead מקבלת עותק של המצביע head. שינוי head בתוך הפונקציה לא משפיע על list ב-main. אחרי free, list מצביע לזיכרון משוחרר - use after free (undefined behavior).",
+  wrongs: ["10", "0"],
+  errors: ["Compilation Error - free לא מקבל Node*", "Compilation Error - head->next לא חוקי אם head הוא NULL"],
+  explanation: "דליפת זיכרון + use after free. הפונקציה צריכה לקבל Node** כדי לעדכן את המצביע המקורי: void deleteHead(Node** head) { ... *head = (*head)->next; }"
+},
+
+{
+  topic: "lists",
+  code: `#include <stdio.h>\n#include <stdlib.h>\n\ntypedef struct Node {\n    int data;\n    struct Node* next;\n} Node;\n\nvoid addToEnd(Node** head, int val) {\n    Node* newNode = (Node*)malloc(sizeof(Node));\n    newNode->data = val;\n    newNode->next = NULL;\n    if (*head == NULL) {\n        *head = newNode;\n        return;\n    }\n    Node* curr = *head;\n    while (curr->next != NULL)\n        curr = curr->next;\n    curr->next = newNode;\n}\n\nint main() {\n    Node* list = NULL;\n    addToEnd(&list, 1);\n    addToEnd(&list, 2);\n    addToEnd(&list, 3);\n    Node* curr = list;\n    while (curr) {\n        printf("%d ", curr->data);\n        curr = curr->next;\n    }\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "1 2 3 ",
+  wrongs: ["3 2 1 ", "1 1 1 "],
+  errors: ["Compilation Error - Node** לא טיפוס חוקי", "Compilation Error - addToEnd לא יכולה לקבל &list"],
+  explanation: "הפונקציה מוסיפה לסוף הרשימה. מקבלת Node** כדי לטפל במקרה שהרשימה ריקה (עדכון head). שלושה קריאות: 1→2→3. פלט: 1 2 3."
+},
+
+// ===== TREE EDGE CASES =====
+{
+  topic: "trees",
+  code: `#include <stdio.h>\n#include <stdlib.h>\n\ntypedef struct TreeNode {\n    int data;\n    struct TreeNode *left, *right;\n} TreeNode;\n\nvoid freeTree(TreeNode* root) {\n    if (root == NULL) return;\n    free(root);\n    freeTree(root->left);\n    freeTree(root->right);\n}`,
+  question: "מה הבעיה בפונקציית freeTree?",
+  correct: "__NONE__",
+  noneExplanation: "הפונקציה משחררת את root לפני שניגשת ל-root->left ו-root->right. אחרי free(root), הגישה ל-root->left היא use-after-free (undefined behavior).",
+  wrongs: ["אין בעיה, הפונקציה נכונה", "הפונקציה לא משחררת את כל הצמתים"],
+  errors: ["Compilation Error - free לא מקבל TreeNode*", "Compilation Error - רקורסיה עקיפה לא חוקית ב-C"],
+  explanation: "חובה לשחרר בסדר postorder: קודם בנים, אחר כך אב. הסדר הנכון: freeTree(root->left); freeTree(root->right); free(root);"
+},
+
+{
+  topic: "trees",
+  code: `#include <stdio.h>\n#include <stdlib.h>\n\ntypedef struct Node {\n    int data;\n    struct Node *left, *right;\n} Node;\n\nint height(Node* root) {\n    if (root == NULL) return -1;\n    int lh = height(root->left);\n    int rh = height(root->right);\n    return 1 + (lh > rh ? lh : rh);\n}\n\nint main() {\n    // Tree:     5\n    //          / \\\\\n    //         3   7\n    //        /\n    //       1\n    Node n1 = {1, NULL, NULL};\n    Node n3 = {3, &n1, NULL};\n    Node n7 = {7, NULL, NULL};\n    Node n5 = {5, &n3, &n7};\n    printf("%d\\n", height(&n5));\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "2",
+  wrongs: ["3", "4"],
+  errors: ["Compilation Error - אי אפשר ליצור עץ על ה-stack", "Compilation Error - &n1 לא מתאים ל-struct Node*"],
+  explanation: "גובה העץ: מ-5 ל-1 יש 2 קשתות (5→3→1). הפונקציה מחזירה -1 ל-NULL, ואז 1+max(lh,rh). עלה: 1+max(-1,-1)=0. צומת 3: 1+max(0,-1)=1. שורש 5: 1+max(1,0)=2."
+},
+
+// ===== STRTOK MODIFIES STRING =====
+{
+  topic: "arrays",
+  code: `#include <stdio.h>\n#include <string.h>\n\nint main() {\n    char str[] = "Hello-World-Test";\n    char *token = strtok(str, "-");\n    printf("%s\\n", str);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "Hello",
+  wrongs: ["Hello-World-Test", "Hello-"],
+  errors: ["Compilation Error - strtok דורש const char*", "Compilation Error - strtok מחזיר int"],
+  explanation: "strtok משנה את המחרוזת המקורית! היא מחליפה את ה-'-' הראשון ב-'\\0'. לכן str הוא עכשיו \"Hello\\0World-Test\" ו-printf מדפיס רק \"Hello\"."
+},
+
+// ===== TYPEDEF VS DEFINE =====
+{
+  topic: "preprocessor",
+  code: `#include <stdio.h>\n\n#define PTR1 int*\ntypedef int* PTR2;\n\nint main() {\n    PTR1 a, b;\n    PTR2 c, d;\n    printf("%lu %lu %lu %lu\\n", sizeof(a), sizeof(b), sizeof(c), sizeof(d));\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית? (sizeof(int)=4, sizeof(pointer)=8)",
+  correct: "8 4 8 8",
+  wrongs: ["8 8 8 8", "4 4 4 4"],
+  errors: ["Compilation Error - #define לא יכול להגדיר טיפוס", "Compilation Error - typedef ו-#define לא יכולים להגדיר את אותו שם"],
+  explanation: "#define PTR1 int* → PTR1 a, b מתרחב ל-int* a, b → a הוא int*, b הוא int! typedef int* PTR2 → PTR2 c, d → שניהם int*. זהו ההבדל המרכזי בין typedef ל-#define."
+},
+
+// ===== RECURSIVE CALL COUNT =====
+{
+  topic: "functions",
+  code: `#include <stdio.h>\n\nint count = 0;\n\nint fib(int n) {\n    count++;\n    if (n <= 1) return n;\n    return fib(n-1) + fib(n-2);\n}\n\nint main() {\n    int result = fib(5);\n    printf("%d %d\\n", result, count);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "5 15",
+  wrongs: ["5 5", "8 15"],
+  errors: ["Compilation Error - count לא יכול להיות גלובלי", "Compilation Error - פונקציה רקורסיבית לא יכולה להחזיר ערך"],
+  explanation: "fib(5)=5 (0,1,1,2,3,5). count סופר קריאות: fib(5) קורא ל-fib(4)+fib(3), fib(4) ל-fib(3)+fib(2) וכו'. סה\"כ 15 קריאות רקורסיביות."
+},
+
+// ===== SIGNED CHAR OVERFLOW =====
+{
+  topic: "variables",
+  code: `#include <stdio.h>\n\nint main() {\n    char c = 127;\n    c = c + 1;\n    printf("%d\\n", c);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית? (בהנחה char הוא signed)",
+  correct: "-128",
+  wrongs: ["128", "0"],
+  errors: ["Compilation Error - חריגה מטווח char", "Compilation Error - c + 1 מחזיר int ולא char"],
+  explanation: "signed char מכיל ערכים -128 עד 127. הוספת 1 ל-127 גורמת לגלישה (overflow) ומגיע ל-128. בייצוג two's complement זה -128."
+},
+
+// ===== CALLOC VS MALLOC =====
+{
+  topic: "memory",
+  code: `#include <stdio.h>\n#include <stdlib.h>\n\nint main() {\n    int *a = (int*)malloc(3 * sizeof(int));\n    int *b = (int*)calloc(3, sizeof(int));\n    printf("%d %d\\n", a[0] == 0, b[0] == 0);\n    free(a); free(b);\n    return 0;\n}`,
+  question: "מה מובטח לגבי a[0] ו-b[0]?",
+  correct: "__NONE__",
+  noneExplanation: "calloc מאפס את הזיכרון (b[0] בטוח 0), אבל malloc לא מאפס (a[0] יכול להיות כל ערך). לכן b[0]==0 מובטח true, אבל a[0]==0 לא מובטח.",
+  wrongs: ["1 1", "0 0"],
+  errors: ["Compilation Error - calloc לא קיים ב-C סטנדרטי", "Compilation Error - malloc ו-calloc מחזירים void* ולא int*"],
+  explanation: "ההבדל: malloc מקצה זיכרון לא מאותחל (garbage), calloc מקצה ומאפס ל-0. calloc(n, size) = malloc(n*size) + memset(0)."
+},
+
+// ===== EOF / GETCHAR SIGNEDNESS =====
+{
+  topic: "io",
+  code: `#include <stdio.h>\n\nint main() {\n    char c;\n    while ((c = getchar()) != EOF)\n        putchar(c);\n    return 0;\n}`,
+  question: "מה הבעיה בתוכנית?",
+  correct: "__NONE__",
+  noneExplanation: "EOF הוא -1 (int). char יכול להיות unsigned (0-255) ואז c לעולם לא ישווה ל-EOF. גם אם char הוא signed, הערך 255 (0xFF) ייקרא כ-EOF בטעות. c חייב להיות int.",
+  wrongs: ["אין בעיה, הקוד נכון", "הקוד ידפיס תו אחד בלבד"],
+  errors: ["Compilation Error - getchar מחזיר char ולא int", "Compilation Error - EOF לא מוגדר ב-stdio.h"],
+  explanation: "getchar() מחזיר int (לא char!) כדי שיוכל להחזיר גם EOF (-1) וגם כל ערכי ה-char (0-255). שימוש ב-char c במקום int c גורם לבאג."
+},
+
+// ===== PRINTF FORMAT MISMATCH =====
+{
+  topic: "io",
+  code: `#include <stdio.h>\n\nint main() {\n    int i = 42;\n    float f = 3.14;\n    printf("%f %d\\n", i, f);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "__NONE__",
+  noneExplanation: "הפלט אינו צפוי (undefined behavior). %f מצפה ל-double אבל מקבל int, ו-%d מצפה ל-int אבל מקבל float. printf לא מבצע המרת טיפוסים - הוא קורא מהזיכרון לפי הפורמט.",
+  wrongs: ["42.000000 3", "3.140000 42"],
+  errors: ["Compilation Error - חוסר התאמה בין %f ל-int", "Compilation Error - printf לא מקבל float כפרמטר"],
+  explanation: "printf לא בודק התאמת טיפוסים! %f קורא 8 בתים (double) מהמחסנית אבל i הוא 4 בתים (int). התוצאה היא garbage. תמיד יש להתאים את ה-format specifier לטיפוס."
+},
+
+// ===== VOID* ARITHMETIC =====
+{
+  topic: "pointers",
+  code: `#include <stdio.h>\n\nint main() {\n    int arr[] = {10, 20, 30};\n    void *p = arr;\n    p = p + 1;\n    printf("%d\\n", *(int*)p);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "__CE__",
+  correctError: "Compilation Error - אי אפשר לבצע אריתמטיקת מצביעים על void* כי גודל האיבר לא ידוע",
+  wrongs: ["20", "10"],
+  errors: ["Compilation Error - void* לא יכול להצביע על int[]", "Compilation Error - cast ל-int* לא חוקי"],
+  explanation: "void* הוא מצביע גנרי - אפשר להשים אליו כל כתובת, אבל אי אפשר לבצע עליו אריתמטיקה (p+1, p++) כי הקומפיילר לא יודע כמה בתים לקפוץ. צריך cast: ((int*)p + 1)."
+},
+
+// ===== ARGUMENT EVALUATION ORDER =====
+{
+  topic: "functions",
+  code: `#include <stdio.h>\n\nint main() {\n    int i = 1;\n    printf("%d %d %d\\n", i++, i++, i++);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "__NONE__",
+  noneExplanation: "סדר חישוב הארגומנטים של פונקציה הוא תלוי-קומפיילר (undefined behavior ב-C). התוצאה יכולה להיות 1 2 3 או 3 2 1 או כל סדר אחר.",
+  wrongs: ["1 2 3", "3 2 1"],
+  errors: ["Compilation Error - i++ לא יכול להופיע יותר מפעם אחת בקריאה", "Compilation Error - printf לא מקבל ביטויים עם side effects"],
+  explanation: "לפי תקן C, סדר חישוב ארגומנטים של פונקציה אינו מוגדר. שימוש ב-i++ מספר פעמים באותה קריאה הוא undefined behavior. MSVC מחשב ימין-לשמאל, GCC שמאל-לימין."
+},
+
+// ===== STRING ASSIGNMENT VS COPY =====
+{
+  topic: "arrays",
+  code: `#include <stdio.h>\n\nint main() {\n    char s1[10] = "Hello";\n    char s2[10];\n    s2 = s1;\n    printf("%s\\n", s2);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "__CE__",
+  correctError: "Compilation Error - אי אפשר להשים מערך למערך. יש להשתמש ב-strcpy",
+  wrongs: ["Hello", "s1"],
+  errors: ["Compilation Error - s2 לא מאותחל", "Compilation Error - char[] לא תואם ל-char[]"],
+  explanation: "ב-C, אי אפשר להעתיק מערכים עם =. s2 = s1 מנסה לשנות את כתובת הבסיס של s2 (שהיא קבועה). יש להשתמש ב-strcpy(s2, s1)."
+},
+
 ];
 
 // ============================================================
