@@ -2727,7 +2727,6 @@ const ALL_QUESTIONS = [
   explanation: "ה-else שייך ל-if(y) הפנימי (dangling else). x=0 → ה-if(x) הראשון שקר → לא נכנסים בכלל לגוף, כולל ה-else. מודפס רק 'C'."
 },
 
-,
 // ===== EDGE-CASE QUESTIONS FROM SLIDES (29) =====
 // Edge-case questions from PPT slides - tricky behaviors and common pitfalls
 
@@ -3111,6 +3110,7 @@ function saveQuestionResult(q, wasCorrect) {
 function filterNewOrFailed(questions) {
   const h = getQuestionHistory();
   return questions.filter(q => {
+    if (!q) return false;
     const rec = h[getQuestionKey(q)];
     if (!rec) return true; // never seen
     return rec.correct === 0; // only failed attempts
