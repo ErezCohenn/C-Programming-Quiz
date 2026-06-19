@@ -3053,6 +3053,240 @@ const ALL_QUESTIONS = [
   explanation: "ב-C, אי אפשר להעתיק מערכים עם =. s2 = s1 מנסה לשנות את כתובת הבסיס של s2 (שהיא קבועה). יש להשתמש ב-strcpy(s2, s1)."
 },
 
+// ===== TRICKY QUESTIONS =====
+// Questions designed to trick and test deep understanding of C pitfalls
+
+// --- Tricky: operator precedence & evaluation ---
+{
+  topic: "variables",
+  code: `#include <stdio.h>\n\nint main() {\n    int a = 1, b = 1, c = 1;\n    a = b = c = 3;\n    printf("%d %d %d\\n", a, b, c);\n    a = (b = (c = a + 1) + 1) + 1;\n    printf("%d %d %d\\n", a, b, c);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "3 3 3\\n6 5 4",
+  wrongs: ["3 3 3\\n4 5 6", "1 1 3\\n3 4 5"],
+  errors: ["Compilation Error - a = b = c לא חוקי (השמה מרובה)", "Compilation Error - אי אפשר להשתמש בתוצאת השמה בתוך ביטוי"],
+  explanation: "השמה מרובה a=b=c=3 חוקית ומתבצעת מימין לשמאל. בשורה השנייה: c=3+1=4, b=4+1=5, a=5+1=6."
+},
+{
+  topic: "variables",
+  code: `#include <stdio.h>\n\nint main() {\n    int x = 5;\n    int y = x++ + ++x;\n    printf("%d %d\\n", x, y);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "7 12",
+  wrongs: ["7 11", "6 11"],
+  errors: ["Compilation Error - אי אפשר לשלב ++ לפני ואחרי אותו משתנה", "Compilation Error - x++ + ++x לא חוקי סינטקטית"],
+  explanation: "זהו Undefined Behavior ב-C (שינוי משתנה פעמיים ללא sequence point). תוצאה נפוצה בקומפיילרים: x++=5(x=6), ++x=7(x=7), y=5+7=12. בפועל התוצאה תלויית קומפיילר!"
+},
+{
+  topic: "control",
+  code: `#include <stdio.h>\n\nint main() {\n    int i = 0;\n    for (i = 0; i < 5; i++)\n        printf("%d ", i);\n        printf("* ");\n    printf("\\n%d\\n", i);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "0 1 2 3 4 * \\n5",
+  wrongs: ["0 * 1 * 2 * 3 * 4 * \\n5", "0 1 2 3 4 \\n5"],
+  errors: ["Compilation Error - שתי פקודות אחרי for בלי סוגריים מסולסלים", "Compilation Error - printf כפול בלי נקודה-פסיק"],
+  explanation: "ב-C, אינדנטציה לא קובעת! בלי {} רק השורה הראשונה (printf %d) שייכת ל-for. printf(\"* \") מתבצע פעם אחת אחרי הלולאה. זו מלכודת קלאסית!"
+},
+{
+  topic: "control",
+  code: `#include <stdio.h>\n\nint main() {\n    int x = 3;\n    switch(x) {\n        case 1: printf("A");\n        case 2: printf("B");\n        case 3: printf("C");\n        case 4: printf("D");\n        default: printf("E");\n    }\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "CDE",
+  wrongs: ["C", "ABCDE"],
+  errors: ["Compilation Error - חסר break בכל case", "Compilation Error - default חייב להיות ראשון"],
+  explanation: "בלי break, ה-switch עושה fall-through! נכנסים ב-case 3 ומריצים את כל מה שאחריו: C, D, E. חסר break זו לא שגיאת קומפילציה - זה התנהגות חוקית!"
+},
+{
+  topic: "control",
+  code: `#include <stdio.h>\n\nint main() {\n    int i;\n    for (i = 0; i < 10; i++) {\n        if (i == 5)\n            continue;\n        if (i == 8)\n            break;\n        printf("%d ", i);\n    }\n    printf("\\ni=%d\\n", i);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "0 1 2 3 4 6 7 \\ni=8",
+  wrongs: ["0 1 2 3 4 6 7 \\ni=10", "0 1 2 3 4 5 6 7 \\ni=8"],
+  errors: ["Compilation Error - continue ו-break באותה לולאה לא חוקי", "Compilation Error - continue לא חוקי בתוך for"],
+  explanation: "continue מדלג על i=5 (לא מדפיס 5 אבל ממשיך). break ב-i=8 עוצר את הלולאה. i נשאר 8 (לא 10!) כי break יצא לפני שהתנאי i<10 נבדק שוב."
+},
+
+// --- Tricky: pointers and arrays ---
+{
+  topic: "pointers",
+  code: `#include <stdio.h>\n\nvoid f(int a[]) {\n    printf("%lu\\n", sizeof(a));\n}\n\nint main() {\n    int a[] = {1, 2, 3, 4, 5};\n    printf("%lu\\n", sizeof(a));\n    f(a);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית (הנח מערכת 64-bit)?",
+  correct: "20\\n8",
+  wrongs: ["20\\n20", "8\\n8"],
+  errors: ["Compilation Error - sizeof על מערך לא מוגדר", "Compilation Error - אי אפשר להעביר מערך לפונקציה"],
+  explanation: "ב-main, sizeof(a) = 5*4 = 20 (מערך שלם). בפונקציה, a[] מתפרק למצביע (int*), ו-sizeof(int*) = 8 ב-64bit. זו אחת המלכודות הנפוצות ביותר!"
+},
+{
+  topic: "pointers",
+  code: `#include <stdio.h>\n#include <string.h>\n\nint main() {\n    char s1[] = "Hello";\n    char *s2 = "Hello";\n    printf("%d\\n", s1 == s2);\n    printf("%d\\n", strcmp(s1, s2) == 0);\n    s1[0] = 'h';\n    printf("%s\\n", s1);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "0\\n1\\nhello",
+  wrongs: ["1\\n1\\nhello", "0\\n0\\nhello"],
+  errors: ["Compilation Error - אי אפשר להשוות מערך למצביע עם ==", "Compilation Error - s1[0] = 'h' לא חוקי על מערך"],
+  explanation: "s1 הוא מערך (העתק על ה-stack), s2 מצביע לליטרל. כתובות שונות אז == נותן 0. strcmp משווה תוכן (שווה). שינוי s1[0] חוקי כי הוא מערך. s2[0]='h' היה גורם לקריסה!"
+},
+{
+  topic: "pointers",
+  code: `#include <stdio.h>\n\nint main() {\n    int a[5] = {10, 20, 30, 40, 50};\n    int *p = a;\n    printf("%d\\n", *(p++));\n    printf("%d\\n", *p);\n    printf("%d\\n", *(++p));\n    printf("%d\\n", p - a);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "10\\n20\\n30\\n2",
+  wrongs: ["20\\n20\\n30\\n2", "10\\n20\\n20\\n1"],
+  errors: ["Compilation Error - p++ לא חוקי על מצביע למערך", "Compilation Error - p - a (חיסור מצביע ממערך)"],
+  explanation: "*(p++) - מחזיר *p (=10) ואז מקדם p. *p כעת a[1]=20. *(++p) - מקדם p קודם ואז מחזיר *p (=30). p-a = מרחק = 2 איברים."
+},
+{
+  topic: "pointers",
+  code: `#include <stdio.h>\n\nvoid swap(int a, int b) {\n    int temp = a;\n    a = b;\n    b = temp;\n}\n\nint main() {\n    int x = 10, y = 20;\n    swap(x, y);\n    printf("%d %d\\n", x, y);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "10 20",
+  wrongs: ["20 10", "0 0"],
+  errors: ["Compilation Error - חסרים & בקריאה swap(x,y)", "Compilation Error - swap חייבת להחזיר ערך"],
+  explanation: "C משתמשת ב-call by value! swap מקבלת העתקים של x ו-y. ההחלפה מתרחשת רק על ההעתקים המקומיים. x ו-y לא משתנים. כדי להחליף באמת צריך swap(int *a, int *b)."
+},
+
+// --- Tricky: strings and null terminator ---
+{
+  topic: "arrays",
+  code: `#include <stdio.h>\n#include <string.h>\n\nint main() {\n    char s[5] = "Hello";\n    printf("%lu\\n", strlen(s));\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "אף תשובה אחרת אינה נכונה",
+  wrongs: ["5", "4"],
+  errors: ["Compilation Error - מחרוזת באורך 5 לא נכנסת למערך בגודל 5", "Compilation Error - strlen לא מוגדרת עבור char[5]"],
+  explanation: "\"Hello\" דורשת 6 בתים (5 תווים + \\0). מערך בגודל 5 לא יכיל את \\0! strlen תמשיך לספור מעבר לגבולות המערך - תוצאה לא צפויה (Undefined Behavior). אין שגיאת קומפילציה!"
+},
+{
+  topic: "arrays",
+  code: `#include <stdio.h>\n#include <string.h>\n\nint main() {\n    char a[] = "Hello";\n    char b[] = "Hello";\n    if (a == b)\n        printf("Equal\\n");\n    else\n        printf("Not Equal\\n");\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "Not Equal",
+  wrongs: ["Equal", "0"],
+  errors: ["Compilation Error - השוואת מערכים עם == לא חוקית", "Compilation Error - אופרטור == לא מוגדר עבור char[]"],
+  explanation: "== על מערכים/מחרוזות משווה כתובות, לא תוכן! a ו-b הם מערכים נפרדים בכתובות שונות על ה-stack. להשוואת תוכן צריך strcmp. זו לא שגיאת קומפילציה - התוצאה פשוט false."
+},
+
+// --- Tricky: scope and static ---
+{
+  topic: "functions",
+  code: `#include <stdio.h>\n\nint f() {\n    static int x = 0;\n    x++;\n    return x;\n}\n\nint main() {\n    printf("%d ", f());\n    printf("%d ", f());\n    printf("%d\\n", f());\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "1 2 3",
+  wrongs: ["1 1 1", "0 1 2"],
+  errors: ["Compilation Error - static int בתוך פונקציה לא חוקי", "Compilation Error - f() בלי פרמטרים לא חוקי ב-C"],
+  explanation: "משתנה static מאותחל פעם אחת בלבד ושומר ערכו בין קריאות. x=0 רק בפעם הראשונה. כל קריאה מגדילה את אותו x. שימו לב: 0 1 2 שגוי כי ה-++ מתבצע לפני ה-return."
+},
+{
+  topic: "functions",
+  code: `#include <stdio.h>\n\nint* f() {\n    int x = 42;\n    return &x;\n}\n\nint main() {\n    int *p = f();\n    printf("%d\\n", *p);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "אף תשובה אחרת אינה נכונה",
+  wrongs: ["42", "0"],
+  errors: ["Compilation Error - אי אפשר להחזיר כתובת של משתנה מקומי", "Compilation Error - int* f() לא חוקי כטיפוס החזרה"],
+  explanation: "הקוד מקומפל עם warning בלבד (לא error!). x הוא משתנה מקומי שמשוחרר אחרי ש-f חוזרת. *p הוא dangling pointer - הגישה אליו היא Undefined Behavior. התוצאה לא צפויה."
+},
+
+// --- Tricky: recursion depth ---
+{
+  topic: "functions",
+  code: `#include <stdio.h>\n\nvoid f(int n) {\n    if (n > 0) {\n        f(n - 1);\n        printf("%d ", n);\n        f(n - 1);\n    }\n}\n\nint main() {\n    f(3);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "1 2 1 3 1 2 1",
+  wrongs: ["3 2 1 1 2 1 1", "1 2 3 2 1"],
+  errors: ["Compilation Error - רקורסיה כפולה לא חוקית", "Compilation Error - void f לא יכולה לקרוא לעצמה פעמיים"],
+  explanation: "f(3): f(2),print 3,f(2). f(2): f(1),print 2,f(1). f(1): f(0),print 1,f(0). f(0) לא מדפיסה. העץ: f(1)->1, f(2)->1,2,1, f(3)->1,2,1,3,1,2,1."
+},
+
+// --- Tricky: sizeof pitfalls ---
+{
+  topic: "structs",
+  code: `#include <stdio.h>\n\ntypedef struct {\n    char a;\n    int b;\n    char c;\n} S1;\n\ntypedef struct {\n    char a;\n    char c;\n    int b;\n} S2;\n\nint main() {\n    printf("%lu %lu\\n", sizeof(S1), sizeof(S2));\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית (הנח מערכת 64-bit, alignment 4)?",
+  correct: "12 8",
+  wrongs: ["6 6", "8 8"],
+  errors: ["Compilation Error - sizeof על struct לא מוגדר", "Compilation Error - typedef struct בלי שם לא חוקי"],
+  explanation: "Struct padding! S1: char(1)+pad(3)+int(4)+char(1)+pad(3)=12. S2: char(1)+char(1)+pad(2)+int(4)=8. סדר השדות משפיע על הגודל בזכרון! זו שאלה קלאסית במבחנים."
+},
+
+// --- Tricky: macro pitfalls ---
+{
+  topic: "preprocessor",
+  code: `#include <stdio.h>\n#define SQUARE(x) x*x\n\nint main() {\n    int a = 3;\n    printf("%d\\n", SQUARE(a + 1));\n    printf("%d\\n", SQUARE(++a));\n    return 0;\n}`,
+  question: "מה תדפיס השורה הראשונה של printf?",
+  correct: "7",
+  wrongs: ["16", "10"],
+  errors: ["Compilation Error - מאקרו SQUARE לא מוגדר נכון", "Compilation Error - a+1 לא חוקי כארגומנט למאקרו"],
+  explanation: "SQUARE(a+1) מתרחב ל-a+1*a+1 = 3+1*3+1 = 3+3+1 = 7 (לא 16!). צריך #define SQUARE(x) ((x)*(x)) עם סוגריים. זו מלכודת מאקרו קלאסית!"
+},
+{
+  topic: "preprocessor",
+  code: `#include <stdio.h>\n#define MAX(a,b) a > b ? a : b\n\nint main() {\n    int x = 5, y = 3;\n    int z = 2 * MAX(x, y);\n    printf("%d\\n", z);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "5",
+  wrongs: ["10", "6"],
+  errors: ["Compilation Error - מאקרו MAX לא יכול להכיל אופרטור תנאי", "Compilation Error - 2 * MAX(...) לא חוקי סינטקטית"],
+  explanation: "2 * MAX(x,y) מתרחב ל-2 * 5 > 3 ? 5 : 3 = (2*5) > 3 ? 5 : 3 = 10>3 ? 5 : 3 = 5! לא 10. צריך #define MAX(a,b) ((a) > (b) ? (a) : (b)) עם סוגריים חיצוניים."
+},
+
+// --- Tricky: integer overflow and casting ---
+{
+  topic: "io",
+  code: `#include <stdio.h>\n\nint main() {\n    unsigned int x = 0;\n    x = x - 1;\n    printf("%u\\n", x);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "4294967295",
+  wrongs: ["-1", "0"],
+  errors: ["Compilation Error - אי אפשר לחסר מ-unsigned int 0", "Compilation Error - overflow ב-unsigned int"],
+  explanation: "unsigned int לא יכול להיות שלילי! 0-1 עושה wrap-around ל-UINT_MAX = 2^32-1 = 4294967295. אין שגיאת קומפילציה ואין undefined behavior - זו התנהגות מוגדרת!"
+},
+{
+  topic: "io",
+  code: `#include <stdio.h>\n\nint main() {\n    char c = 128;\n    printf("%d\\n", c);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית (הנח ש-char הוא signed, 8 bits)?",
+  correct: "-128",
+  wrongs: ["128", "0"],
+  errors: ["Compilation Error - 128 לא נכנס ב-char", "Compilation Error - overflow ב-char"],
+  explanation: "signed char מחזיק -128 עד 127. 128 בבינארי: 10000000. כ-signed char (two's complement) זה -128! אין שגיאת קומפילציה, יש רק warning. זו טעות נפוצה מאוד."
+},
+
+// --- Tricky: function pointers ---
+{
+  topic: "funcptrs",
+  code: `#include <stdio.h>\n\nint add(int a, int b) { return a + b; }\nint mul(int a, int b) { return a * b; }\n\nint main() {\n    int (*ops[2])(int, int) = {add, mul};\n    printf("%d\\n", ops[0](3, 4) + ops[1](2, 5));\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "17",
+  wrongs: ["12", "35"],
+  errors: ["Compilation Error - מערך של מצביעים לפונקציות לא חוקי", "Compilation Error - ops[0](3,4) - אי אפשר לקרוא דרך מערך"],
+  explanation: "ops הוא מערך של 2 מצביעים לפונקציות. ops[0] = add, ops[1] = mul. add(3,4)=7, mul(2,5)=10. 7+10=17."
+},
+
+// --- Tricky: memory and free ---
+{
+  topic: "memory",
+  code: `#include <stdio.h>\n#include <stdlib.h>\n\nint main() {\n    int *p = (int*)malloc(3 * sizeof(int));\n    p[0] = 10; p[1] = 20; p[2] = 30;\n    int *q = p;\n    free(p);\n    printf("%d\\n", q[1]);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "אף תשובה אחרת אינה נכונה",
+  wrongs: ["20", "0"],
+  errors: ["Compilation Error - free(p) ואז גישה דרך q לא חוקי סינטקטית", "Compilation Error - int *q = p לא חוקי אחרי malloc"],
+  explanation: "q מצביע לאותו זיכרון ש-p הצביע אליו. אחרי free(p), הזיכרון שוחרר. q[1] הוא use-after-free - Undefined Behavior! יכול להדפיס 20, 0, לקרוס, או כל דבר אחר."
+},
+
+// --- Tricky: linked list ---
+{
+  topic: "lists",
+  code: `#include <stdio.h>\n#include <stdlib.h>\n\ntypedef struct Node {\n    int data;\n    struct Node *next;\n} Node;\n\nvoid addFirst(Node *head, int val) {\n    Node *n = (Node*)malloc(sizeof(Node));\n    n->data = val;\n    n->next = head;\n    head = n;\n}\n\nint main() {\n    Node *list = (Node*)malloc(sizeof(Node));\n    list->data = 1;\n    list->next = NULL;\n    addFirst(list, 2);\n    printf("%d\\n", list->data);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית?",
+  correct: "1",
+  wrongs: ["2", "2 1"],
+  errors: ["Compilation Error - head = n לא חוקי בפונקציה", "Compilation Error - malloc בתוך פונקציה אחרת"],
+  explanation: "addFirst מקבלת את head ב-call by value! head = n משנה רק את ההעתק המקומי. list ב-main לא משתנה. כדי לעדכן את ראש הרשימה צריך Node **head (מצביע למצביע)."
+},
+
+// --- Tricky: bitwise ---
+{
+  topic: "bitwise",
+  code: `#include <stdio.h>\n\nint main() {\n    int x = -1;\n    printf("%d\\n", x >> 1);\n    unsigned int y = -1;\n    printf("%u\\n", y >> 1);\n    return 0;\n}`,
+  question: "מה תדפיס התוכנית (32-bit integers)?",
+  correct: "-1\\n2147483647",
+  wrongs: ["-1\\n-1", "0\\n0"],
+  errors: ["Compilation Error - הזזה ימינה על מספר שלילי לא חוקית", "Compilation Error - unsigned int y = -1 לא חוקי"],
+  explanation: "x>>1 על signed שלילי: arithmetic shift (משכפל bit הסימן) -> עדיין -1 (כל הביטים 1). y = (unsigned)-1 = UINT_MAX = 0xFFFFFFFF. y>>1: logical shift (0 נכנס משמאל) = 0x7FFFFFFF = 2147483647."
+},
+
 // ===== CODE COMPLETION QUESTIONS =====
 // Questions where you fill in the blank to get the expected output
 
