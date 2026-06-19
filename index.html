@@ -3053,6 +3053,216 @@ const ALL_QUESTIONS = [
   explanation: "ב-C, אי אפשר להעתיק מערכים עם =. s2 = s1 מנסה לשנות את כתובת הבסיס של s2 (שהיא קבועה). יש להשתמש ב-strcpy(s2, s1)."
 },
 
+// ===== CODE COMPLETION QUESTIONS =====
+// Questions where you fill in the blank to get the expected output
+
+// --- Pointers completion ---
+{
+  topic: "pointers",
+  code: `#include <stdio.h>\n\nint main() {\n    int arr[] = {10, 20, 30, 40, 50};\n    int *p = arr;\n    ______;\n    printf("%d\\n", *p);\n    return 0;\n}\n// Output: 30`,
+  question: "מה צריך להיות במקום הריק כדי שהתוכנית תדפיס 30?",
+  correct: "p += 2",
+  wrongs: ["p += 3", "*p = 30"],
+  errors: ["Compilation Error - p = arr[2] (arr[2] הוא int, לא int*)", "Compilation Error - p =+ 2 (אופרטור לא חוקי)"],
+  explanation: "p מתחיל בכתובת arr[0]. p += 2 מקדם 2 איברים, כך ש-*p הוא arr[2] = 30."
+},
+{
+  topic: "pointers",
+  code: `#include <stdio.h>\n\nvoid swap(______) {\n    int temp = *a;\n    *a = *b;\n    *b = temp;\n}\n\nint main() {\n    int x = 5, y = 10;\n    swap(&x, &y);\n    printf("%d %d\\n", x, y);\n    return 0;\n}\n// Output: 10 5`,
+  question: "מה צריך להיות בחתימת הפונקציה swap כדי שהתוכנית תדפיס 10 5?",
+  correct: "int *a, int *b",
+  wrongs: ["int a, int b", "int &a, int &b"],
+  errors: ["Compilation Error - int **a, int **b (חוסר תאימות עם *a = *b)", "Compilation Error - void *a, void *b (לא ניתן לבצע dereference ל-void*)"],
+  explanation: "swap צריכה לקבל מצביעים כדי לשנות את הערכים המקוריים. int *a, int *b מתאים ל-&x ו-&y."
+},
+{
+  topic: "pointers",
+  code: `#include <stdio.h>\n#include <string.h>\n\nint main() {\n    char str[] = "Hello World";\n    char *p = ______;\n    printf("%s\\n", p);\n    return 0;\n}\n// Output: World`,
+  question: "מה צריך להיות במקום הריק כדי שהתוכנית תדפיס World?",
+  correct: "str + 6",
+  wrongs: ["str + 5", "&str[7]"],
+  errors: ["Compilation Error - str[6] (str[6] הוא char, לא char*)", "Compilation Error - *str + 6 (תוצאה היא int, לא char*)"],
+  explanation: "'W' של 'World' נמצא באינדקס 6 (H=0,e=1,l=2,l=3,o=4,' '=5,W=6). str + 6 מצביע ל-'W' ומדפיס עד \\0."
+},
+{
+  topic: "pointers",
+  code: `#include <stdio.h>\n\nint main() {\n    int matrix[2][3] = {{1,2,3},{4,5,6}};\n    int *p = ______;\n    printf("%d\\n", *(p + 4));\n    return 0;\n}\n// Output: 5`,
+  question: "מה צריך להיות במקום הריק כדי שהתוכנית תדפיס 5?",
+  correct: "&matrix[0][0]",
+  wrongs: ["matrix[0]", "&matrix[1][0]"],
+  errors: ["Compilation Error - matrix (int(*)[3] לא תואם int*)", "Compilation Error - **matrix (dereference כפול לא חוקי)"],
+  explanation: "&matrix[0][0] הוא int* לתחילת המטריצה. *(p+4) הוא האיבר ה-5 ברצף: 1,2,3,4,5 -> 5."
+},
+
+// --- Arrays completion ---
+{
+  topic: "arrays",
+  code: `#include <stdio.h>\n#include <string.h>\n\nint main() {\n    char dest[20] = "Hello";\n    ______;\n    printf("%s\\n", dest);\n    return 0;\n}\n// Output: Hello World`,
+  question: "מה צריך להיות במקום הריק כדי שהתוכנית תדפיס Hello World?",
+  correct: "strcat(dest, \" World\")",
+  wrongs: ["strcpy(dest, \" World\")", "dest += \" World\""],
+  errors: ["Compilation Error - dest = \"Hello World\" (אי אפשר להשים למערך)", "Compilation Error - strcat(\" World\", dest) (const char* כפרמטר ראשון)"],
+  explanation: "strcat מצרפת מחרוזת לסוף dest. strcpy היתה מוחקת את Hello. += לא עובד על מערכים."
+},
+{
+  topic: "arrays",
+  code: `#include <stdio.h>\n\nint main() {\n    int arr[] = {5, 3, 8, 1, 9, 2};\n    int n = 6;\n    int max = arr[0];\n    for (int i = 1; i < n; i++) {\n        if (______)\n            max = arr[i];\n    }\n    printf("%d\\n", max);\n    return 0;\n}\n// Output: 9`,
+  question: "מה צריך להיות בתנאי ה-if כדי שהתוכנית תדפיס את הערך המקסימלי 9?",
+  correct: "arr[i] > max",
+  wrongs: ["arr[i] > arr[i-1]", "arr[i] >= n"],
+  errors: ["Compilation Error - max < arr (arr הוא מצביע, לא ניתן להשוות)", "Compilation Error - arr[i] == max(arr) (max הוא משתנה, לא פונקציה)"],
+  explanation: "כדי למצוא מקסימום, בודקים אם arr[i] גדול מהמקסימום הנוכחי max ואם כן מעדכנים."
+},
+{
+  topic: "arrays",
+  code: `#include <stdio.h>\n#include <string.h>\n\nint main() {\n    char str[] = "abcdef";\n    int len = strlen(str);\n    for (int i = 0; i < len / 2; i++) {\n        char temp = str[i];\n        str[i] = ______;\n        str[len - 1 - i] = temp;\n    }\n    printf("%s\\n", str);\n    return 0;\n}\n// Output: fedcba`,
+  question: "מה צריך להיות במקום הריק כדי שהתוכנית תהפוך את המחרוזת ותדפיס fedcba?",
+  correct: "str[len - 1 - i]",
+  wrongs: ["str[len - i]", "str[i + 1]"],
+  errors: ["Compilation Error - str[-i] (אינדקס שלילי)", "Compilation Error - *(str + len) (חריגה מגבולות)"],
+  explanation: "אלגוריתם היפוך: מחליפים str[i] עם str[len-1-i]. str[len-i] יגרום לחריגה כי str[len] הוא \\0."
+},
+
+// --- Functions/Recursion completion ---
+{
+  topic: "functions",
+  code: `#include <stdio.h>\n\nint factorial(int n) {\n    if (______)\n        return 1;\n    return n * factorial(n - 1);\n}\n\nint main() {\n    printf("%d\\n", factorial(5));\n    return 0;\n}\n// Output: 120`,
+  question: "מה צריך להיות בתנאי העצירה של הרקורסיה כדי שהתוכנית תדפיס 120?",
+  correct: "n <= 1",
+  wrongs: ["n == 5", "n > 1"],
+  errors: ["Compilation Error - n <= (אופרטור חסר אופרנד)", "Compilation Error - factorial(0) (קריאה רקורסיבית בתנאי)"],
+  explanation: "תנאי העצירה הוא n <= 1 (0! = 1! = 1). n > 1 יגרום לרקורסיה אינסופית. n == 5 לא נכון לוגית."
+},
+{
+  topic: "functions",
+  code: `#include <stdio.h>\n\nint power(int base, int exp) {\n    if (exp == 0)\n        return 1;\n    return ______;\n}\n\nint main() {\n    printf("%d\\n", power(2, 4));\n    return 0;\n}\n// Output: 16`,
+  question: "מה צריך להיות בשורת ה-return כדי שהתוכנית תחשב חזקה רקורסיבית ותדפיס 16?",
+  correct: "base * power(base, exp - 1)",
+  wrongs: ["power(base * base, exp / 2)", "base * power(base - 1, exp)"],
+  errors: ["Compilation Error - base ^ exp (^ הוא XOR ב-C, לא חזקה)", "Compilation Error - pow(base, exp) (מחזיר double, לא int)"],
+  explanation: "2^4 = 2 * 2^3 = 2 * 2 * 2^2 = 2 * 2 * 2 * 2^1 = 2 * 2 * 2 * 2 * 2^0 = 16. כל קריאה מכפילה ב-base."
+},
+{
+  topic: "functions",
+  code: `#include <stdio.h>\n\nint sumDigits(int n) {\n    if (n == 0)\n        return 0;\n    return ______;\n}\n\nint main() {\n    printf("%d\\n", sumDigits(1234));\n    return 0;\n}\n// Output: 10`,
+  question: "מה צריך להיות בשורת ה-return כדי שהפונקציה תחשב סכום ספרות רקורסיבית?",
+  correct: "n % 10 + sumDigits(n / 10)",
+  wrongs: ["n / 10 + sumDigits(n % 10)", "n + sumDigits(n - 1)"],
+  errors: ["Compilation Error - sumDigits(n % 10, n / 10) (פרמטר נוסף)", "Compilation Error - return n[0] + sumDigits(n[1:]) (תחביר Python, לא C)"],
+  explanation: "n%10 מחלץ ספרה אחרונה (4), n/10 מסיר אותה (123). 4+3+2+1+0 = 10."
+},
+
+// --- Structs completion ---
+{
+  topic: "structs",
+  code: `#include <stdio.h>\n\ntypedef struct {\n    int x;\n    int y;\n} Point;\n\nvoid moveRight(______) {\n    p->x += 5;\n}\n\nint main() {\n    Point pt = {10, 20};\n    moveRight(&pt);\n    printf("%d %d\\n", pt.x, pt.y);\n    return 0;\n}\n// Output: 15 20`,
+  question: "מה צריך להיות בפרמטר של moveRight כדי שהתוכנית תדפיס 15 20?",
+  correct: "Point *p",
+  wrongs: ["Point p", "Point &p"],
+  errors: ["Compilation Error - struct Point *p (צריך להשתמש ב-typedef)", "Compilation Error - int *p (p->x לא חוקי על int*)"],
+  explanation: "כדי לשנות את pt המקורי, צריך מצביע. Point *p מתאים ל-&pt ומאפשר p->x."
+},
+{
+  topic: "structs",
+  code: `#include <stdio.h>\n#include <stdlib.h>\n\ntypedef struct Node {\n    int data;\n    struct Node *next;\n} Node;\n\nNode* createNode(int val) {\n    Node *n = (Node*)malloc(sizeof(Node));\n    n->data = val;\n    ______;\n    return n;\n}\n\nint main() {\n    Node *head = createNode(42);\n    printf("%d %p\\n", head->data, (void*)head->next);\n    return 0;\n}\n// Output: 42 (nil)`,
+  question: "מה צריך להיות במקום הריק כדי שהצומת החדש יאותחל נכון (next = NULL)?",
+  correct: "n->next = NULL",
+  wrongs: ["n.next = NULL", "next = NULL"],
+  errors: ["Compilation Error - *n.next = NULL (סדר פעולות שגוי)", "Compilation Error - n->next = 0x0 (ליטרל hex לא חוקי כ-pointer)"],
+  explanation: "n הוא מצביע, לכן משתמשים ב-n->next (לא n.next). חובה לאתחל next ל-NULL."
+},
+
+// --- Control flow completion ---
+{
+  topic: "control",
+  code: `#include <stdio.h>\n\nint main() {\n    int sum = 0;\n    for (int i = 1; ______; i++) {\n        if (i % 2 == 0)\n            sum += i;\n    }\n    printf("%d\\n", sum);\n    return 0;\n}\n// Output: 30`,
+  question: "מה צריך להיות בתנאי הלולאה כדי שהתוכנית תדפיס את סכום הזוגיים עד 10 (כולל)?",
+  correct: "i <= 10",
+  wrongs: ["i < 10", "i <= 30"],
+  errors: ["Compilation Error - i =< 10 (אופרטור לא חוקי)", "Compilation Error - i <= 10; i++ (נקודה-פסיק כפולה בתנאי)"],
+  explanation: "סכום הזוגיים 2+4+6+8+10 = 30. i <= 10 כולל את 10. i < 10 היה נותן רק 2+4+6+8 = 20."
+},
+{
+  topic: "control",
+  code: `#include <stdio.h>\n\nint main() {\n    int n = 5, result = 1;\n    int i = 1;\n    while (______) {\n        result *= i;\n        i++;\n    }\n    printf("%d\\n", result);\n    return 0;\n}\n// Output: 120`,
+  question: "מה צריך להיות בתנאי ה-while כדי שהתוכנית תחשב 5! = 120?",
+  correct: "i <= n",
+  wrongs: ["i < n", "result < 120"],
+  errors: ["Compilation Error - i =< n (אופרטור לא חוקי)", "Compilation Error - while i <= n (חסרים סוגריים)"],
+  explanation: "5! = 1*2*3*4*5 = 120. i <= n מבטיח שנכפיל גם ב-5. i < n היה עוצר ב-4! = 24."
+},
+
+// --- Bitwise completion ---
+{
+  topic: "bitwise",
+  code: `#include <stdio.h>\n\nint main() {\n    unsigned char x = 0xA5; // 10100101\n    unsigned char result = ______;\n    printf("%02X\\n", result);\n    return 0;\n}\n// Output: 5A`,
+  question: "מה צריך להיות במקום הריק כדי שהתוצאה תהיה היפוך ביטים (bitwise NOT) של x?",
+  correct: "~x",
+  wrongs: ["!x", "-x"],
+  errors: ["Compilation Error - x~ (אופרטור unary אחרי אופרנד)", "Compilation Error - NOT x (מילה שמורה לא קיימת)"],
+  explanation: "~x הופך כל ביט: 10100101 -> 01011010 = 0x5A. !x הוא NOT לוגי (0 או 1). -x הוא שלילה מספרית."
+},
+{
+  topic: "bitwise",
+  code: `#include <stdio.h>\n\nint main() {\n    int flags = 0;\n    ______;      // Set bit 3\n    printf("%d\\n", flags);\n    return 0;\n}\n// Output: 8`,
+  question: "מה צריך להיות במקום הריק כדי להדליק (set) את ביט 3?",
+  correct: "flags |= (1 << 3)",
+  wrongs: ["flags = flags + 3", "flags &= (1 << 3)"],
+  errors: ["Compilation Error - flags |= 1 <<< 3 (אופרטור <<< לא קיים ב-C)", "Compilation Error - flags.setBit(3) (אין מתודות ב-C)"],
+  explanation: "1 << 3 = 8 (00001000). |= מדליק את הביט בלי לשנות אחרים. &= היה מכבה הכל חוץ מביט 3."
+},
+{
+  topic: "bitwise",
+  code: `#include <stdio.h>\n\nint isPowerOf2(unsigned int n) {\n    return ______;\n}\n\nint main() {\n    printf("%d %d %d\\n", isPowerOf2(8), isPowerOf2(6), isPowerOf2(16));\n    return 0;\n}\n// Output: 1 0 1`,
+  question: "מה צריך להיות בביטוי כדי לבדוק אם n הוא חזקה של 2?",
+  correct: "n != 0 && (n & (n - 1)) == 0",
+  wrongs: ["n % 2 == 0", "n > 0 && n / 2 == 0"],
+  errors: ["Compilation Error - n && !(n & n-1) (חסרים סוגריים, עדיפות שגויה)", "Compilation Error - n is power of 2 (תחביר לא חוקי)"],
+  explanation: "חזקה של 2 יש לה ביט אחד דלוק. n & (n-1) מכבה את הביט הנמוך ביותר. אם התוצאה 0, יש רק ביט אחד. n%2==0 שגוי (6 זוגי אבל לא חזקה של 2)."
+},
+
+// --- Dynamic memory completion ---
+{
+  topic: "memory",
+  code: `#include <stdio.h>\n#include <stdlib.h>\n\nint main() {\n    int n = 5;\n    int *arr = ______;\n    for (int i = 0; i < n; i++)\n        arr[i] = (i + 1) * 10;\n    printf("%d %d\\n", arr[0], arr[4]);\n    free(arr);\n    return 0;\n}\n// Output: 10 50`,
+  question: "מה צריך להיות במקום הריק כדי להקצות מערך דינמי של 5 int?",
+  correct: "(int*)malloc(n * sizeof(int))",
+  wrongs: ["(int*)malloc(sizeof(int))", "(int*)calloc(sizeof(int), n)"],
+  errors: ["Compilation Error - new int[n] (תחביר C++, לא C)", "Compilation Error - int arr[n] = malloc(...) (אי אפשר לאתחל VLA עם malloc)"],
+  explanation: "malloc(n * sizeof(int)) מקצה מקום ל-5 int. malloc(sizeof(int)) מקצה רק ל-1. calloc(sizeof(int), n) מחליף את סדר הפרמטרים (צריך calloc(n, sizeof(int)))."
+},
+{
+  topic: "memory",
+  code: `#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n\nchar* duplicate(const char *src) {\n    char *copy = (char*)malloc(______);\n    if (copy)\n        strcpy(copy, src);\n    return copy;\n}\n\nint main() {\n    char *s = duplicate("Hello");\n    printf("%s\\n", s);\n    free(s);\n    return 0;\n}\n// Output: Hello`,
+  question: "מה צריך להיות בפרמטר של malloc כדי להקצות מקום למחרוזת?",
+  correct: "strlen(src) + 1",
+  wrongs: ["strlen(src)", "sizeof(src)"],
+  errors: ["Compilation Error - sizeof(*src) + 1 (sizeof(char) תמיד 1, אבל לא מספיק)", "Compilation Error - len(src) + 1 (פונקציה len לא קיימת ב-C)"],
+  explanation: "strlen לא כוללת את \\0, לכן +1. sizeof(src) נותן רק את גודל המצביע (4/8 בתים). strlen(src) בלי +1 יגרום לדריסת זיכרון."
+},
+
+// --- Lists completion ---
+{
+  topic: "lists",
+  code: `#include <stdio.h>\n#include <stdlib.h>\n\ntypedef struct Node {\n    int data;\n    struct Node *next;\n} Node;\n\nvoid insertHead(Node **head, int val) {\n    Node *n = (Node*)malloc(sizeof(Node));\n    n->data = val;\n    n->next = ______;\n    ______ = n;\n}\n\nint main() {\n    Node *list = NULL;\n    insertHead(&list, 10);\n    insertHead(&list, 20);\n    printf("%d -> %d\\n", list->data, list->next->data);\n    return 0;\n}\n// Output: 20 -> 10`,
+  question: "מה צריך להיות בשני המקומות הריקים (n->next = ? ; ? = n) כדי להכניס לראש הרשימה?",
+  correct: "*head ; *head",
+  wrongs: ["head ; head", "NULL ; *head"],
+  errors: ["Compilation Error - list ; list (list לא נגיש מתוך insertHead)", "Compilation Error - &head ; head (סוגים לא תואמים)"],
+  explanation: "n->next = *head מחבר לצומת הקודם. *head = n מעדכן את ראש הרשימה. head (בלי *) הוא Node**, לא Node*."
+},
+
+// --- I/O and types completion ---
+{
+  topic: "io",
+  code: `#include <stdio.h>\n\nint main() {\n    int a = 7, b = 2;\n    float result = ______;\n    printf("%.1f\\n", result);\n    return 0;\n}\n// Output: 3.5`,
+  question: "מה צריך להיות במקום הריק כדי שחלוקת a/b תניב 3.5?",
+  correct: "(float)a / b",
+  wrongs: ["a / b", "(float)(a / b)"],
+  errors: ["Compilation Error - a /f b (אופרטור לא חוקי)", "Compilation Error - float(a) / b (תחביר casting של C++)"],
+  explanation: "a/b (שניהם int) נותן 3 (חלוקה שלמה). (float)(a/b) = (float)3 = 3.0. צריך להמיר לפני החלוקה: (float)a / b."
+},
+
 ];
 
 // ============================================================
