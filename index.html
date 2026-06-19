@@ -3497,6 +3497,240 @@ const ALL_QUESTIONS = [
   explanation: "a/b (שניהם int) נותן 3 (חלוקה שלמה). (float)(a/b) = (float)3 = 3.0. צריך להמיר לפני החלוקה: (float)a / b."
 },
 
+// ===== EXAM-STYLE CODE COMPLETION (open questions) =====
+// Based on typical exam open questions: linked lists, trees, file I/O, recursion
+
+// --- Linked list: insert sorted ---
+{
+  topic: "lists",
+  code: `typedef struct Node {\n    int data;\n    struct Node *next;\n} Node;\n\nvoid insertSorted(Node **head, int val) {\n    Node *newNode = (Node*)malloc(sizeof(Node));\n    newNode->data = val;\n    newNode->next = NULL;\n    if (*head == NULL || ______) {\n        newNode->next = *head;\n        *head = newNode;\n    } else {\n        Node *cur = *head;\n        while (cur->next != NULL && cur->next->data < val)\n            cur = cur->next;\n        newNode->next = cur->next;\n        cur->next = newNode;\n    }\n}`,
+  question: "מה צריך להיות בתנאי כדי להכניס לתחילת הרשימה כשהערך קטן מהראש?",
+  correct: "val < (*head)->data",
+  wrongs: ["val < head->data", "val < *head->data"],
+  errors: ["Compilation Error - val < head (head הוא Node**, לא int)", "Compilation Error - (*head).data < val (סדר השוואה הפוך + חסרים סוגריים)"],
+  explanation: "*head הוא Node* (ראש הרשימה). (*head)->data הוא ערך הצומת הראשון. אם val קטן ממנו, מכניסים לפני הראש."
+},
+
+// --- Linked list: free all nodes ---
+{
+  topic: "lists",
+  code: `typedef struct Node {\n    int data;\n    struct Node *next;\n} Node;\n\nvoid freeList(Node **head) {\n    Node *cur = *head;\n    while (cur != NULL) {\n        Node *temp = cur;\n        ______;\n        free(temp);\n    }\n    *head = NULL;\n}`,
+  question: "מה צריך להיות במקום הריק כדי לשחרר את כל הרשימה בצורה בטוחה?",
+  correct: "cur = cur->next",
+  wrongs: ["cur = temp->next", "free(cur); cur = temp"],
+  errors: ["Compilation Error - cur++; (אי אפשר להגדיל מצביע לצומת)", "Compilation Error - cur = cur.next (cur הוא מצביע, צריך ->)"],
+  explanation: "חייבים לשמור את cur->next לפני free. temp שומר את הצומת הנוכחי, cur מתקדם, ואז משחררים temp. שימו לב: cur = temp->next שקול כי temp == cur בשלב זה."
+},
+
+// --- Linked list: reverse ---
+{
+  topic: "lists",
+  code: `typedef struct Node {\n    int data;\n    struct Node *next;\n} Node;\n\nvoid reverseList(Node **head) {\n    Node *prev = NULL;\n    Node *cur = *head;\n    Node *next = NULL;\n    while (cur != NULL) {\n        next = cur->next;\n        ______;\n        prev = cur;\n        cur = next;\n    }\n    *head = prev;\n}`,
+  question: "מה צריך להיות במקום הריק כדי להפוך את כיוון הרשימה?",
+  correct: "cur->next = prev",
+  wrongs: ["cur->next = next", "prev->next = cur"],
+  errors: ["Compilation Error - cur = prev (השמה לצומת, לא לשדה next)", "Compilation Error - *cur = *prev (העתקת מבנים שלמים)"],
+  explanation: "בכל איטרציה, הופכים את הכיוון: cur->next מצביע אחורה (ל-prev) במקום קדימה. prev=cur ו-cur=next מקדמים את השלישייה."
+},
+
+// --- Linked list: count occurrences from exam ---
+{
+  topic: "lists",
+  code: `typedef struct Node {\n    int data;\n    struct Node *next;\n} Node;\n\nint countVal(Node *head, int val) {\n    if (______)\n        return 0;\n    return (head->data == val) + countVal(head->next, val);\n}`,
+  question: "מה צריך להיות בתנאי העצירה של הרקורסיה?",
+  correct: "head == NULL",
+  wrongs: ["head->next == NULL", "head->data == val"],
+  errors: ["Compilation Error - head = NULL (השמה בתנאי, לא השוואה)", "Compilation Error - !head->data (גישה לשדה של NULL אם head ריק)"],
+  explanation: "תנאי העצירה: אם הרשימה ריקה (head == NULL), אין מה לספור ומחזירים 0. head->next == NULL יפספס את הצומת האחרון."
+},
+
+// --- Binary tree: height ---
+{
+  topic: "trees",
+  code: `typedef struct TreeNode {\n    int data;\n    struct TreeNode *left;\n    struct TreeNode *right;\n} TreeNode;\n\nint height(TreeNode *root) {\n    if (root == NULL)\n        return -1;\n    int lh = height(root->left);\n    int rh = height(root->right);\n    return ______;\n}`,
+  question: "מה צריך לחזור מהפונקציה כדי לחשב את גובה העץ?",
+  correct: "(lh > rh ? lh : rh) + 1",
+  wrongs: ["lh + rh + 1", "lh > rh ? lh + 1 : rh + 1"],
+  errors: ["Compilation Error - max(lh, rh) + 1 (max לא מוגדר ללא macro)", "Compilation Error - return lh, rh + 1 (אופרטור פסיק מחזיר רק את rh+1)"],
+  explanation: "גובה = 1 + גובה תת-העץ הגבוה יותר. (lh > rh ? lh : rh) + 1 בוחר את המקסימום ומוסיף 1 לצומת הנוכחי."
+},
+
+// --- Binary tree: count leaves ---
+{
+  topic: "trees",
+  code: `typedef struct TreeNode {\n    int data;\n    struct TreeNode *left;\n    struct TreeNode *right;\n} TreeNode;\n\nint countLeaves(TreeNode *root) {\n    if (root == NULL)\n        return 0;\n    if (______)\n        return 1;\n    return countLeaves(root->left) + countLeaves(root->right);\n}`,
+  question: "מה התנאי שמזהה שצומת הוא עלה?",
+  correct: "root->left == NULL && root->right == NULL",
+  wrongs: ["root->left == NULL || root->right == NULL", "root->data == 0"],
+  errors: ["Compilation Error - root.left == NULL (root הוא מצביע, צריך ->)", "Compilation Error - isLeaf(root) (פונקציה לא מוגדרת)"],
+  explanation: "עלה הוא צומת ללא ילדים - גם left וגם right הם NULL. || יחזיר true גם לצמתים עם ילד אחד."
+},
+
+// --- Binary tree: sum of all nodes ---
+{
+  topic: "trees",
+  code: `typedef struct TreeNode {\n    int data;\n    struct TreeNode *left;\n    struct TreeNode *right;\n} TreeNode;\n\nint sumTree(TreeNode *root) {\n    if (root == NULL)\n        return 0;\n    return ______;\n}`,
+  question: "מה צריך לחזור כדי לחשב את סכום כל הצמתים בעץ?",
+  correct: "root->data + sumTree(root->left) + sumTree(root->right)",
+  wrongs: ["sumTree(root->left) + sumTree(root->right)", "root->data + root->left->data + root->right->data"],
+  errors: ["Compilation Error - sum(root->left, root->right) (פונקציה sum לא מוגדרת)", "Compilation Error - root->data + sumTree(root) (רקורסיה אינסופית)"],
+  explanation: "סכום עץ = ערך השורש + סכום תת-עץ שמאלי + סכום תת-עץ ימני. בלי root->data נחסר את ערך הצומת הנוכחי."
+},
+
+// --- Binary tree: mirror/flip (exam classic) ---
+{
+  topic: "trees",
+  code: `typedef struct TreeNode {\n    int data;\n    struct TreeNode *left;\n    struct TreeNode *right;\n} TreeNode;\n\nvoid mirrorTree(TreeNode *root) {\n    if (root == NULL)\n        return;\n    TreeNode *temp = root->left;\n    ______;\n    root->left = root->right;\n    root->right = temp;\n}`,
+  question: "מה צריך להיות לפני ההחלפה כדי שפונקציית המראה תעבוד רקורסיבית?",
+  correct: "mirrorTree(root->left); mirrorTree(root->right)",
+  wrongs: ["mirrorTree(root)", "mirrorTree(temp)"],
+  errors: ["Compilation Error - mirrorTree(root->left, root->right) (פרמטר אחד בלבד)", "Compilation Error - root->left = root->right (בלי temp תאבד הפניה)"],
+  explanation: "קודם הופכים רקורסיבית את שני תתי-העצים, ואז מחליפים left ו-right. אפשר גם להפוך אחרי ההחלפה - שני הסדרים נכונים."
+},
+
+// --- Binary tree: path sum check (from exam) ---
+{
+  topic: "trees",
+  code: `typedef struct TreeNode {\n    int data;\n    struct TreeNode *left;\n    struct TreeNode *right;\n} TreeNode;\n\nint hasPathSum(TreeNode *root, int target) {\n    if (root == NULL)\n        return 0;\n    if (root->left == NULL && root->right == NULL)\n        return ______;\n    return hasPathSum(root->left, target - root->data) ||\n           hasPathSum(root->right, target - root->data);\n}`,
+  question: "מה התנאי בעלה שבודק אם סכום המסלול שווה ל-target?",
+  correct: "root->data == target",
+  wrongs: ["target == 0", "root->data == 0"],
+  errors: ["Compilation Error - sum == target (sum לא מוגדר)", "Compilation Error - return target - root->data (מחזיר int, לא boolean)"],
+  explanation: "בכל רמה מחסירים את הערך הנוכחי מ-target. בעלה, target כבר הופחת עד כה - נשאר לבדוק אם ערך העלה עצמו שווה לנותרת."
+},
+
+// --- File I/O: write array to binary file ---
+{
+  topic: "io",
+  code: `#include <stdio.h>\n\nvoid writeArrayToBin(const char *filename, int *arr, int n) {\n    FILE *f = fopen(filename, "wb");\n    if (f == NULL) return;\n    fwrite(&n, sizeof(int), 1, f);\n    ______;\n    fclose(f);\n}`,
+  question: "מה צריך להיות כדי לכתוב את כל המערך לקובץ הבינארי?",
+  correct: "fwrite(arr, sizeof(int), n, f)",
+  wrongs: ["fwrite(arr, n, sizeof(int), f)", "fprintf(f, \"%d\", arr)"],
+  errors: ["Compilation Error - fwrite(arr, sizeof(arr), 1, f) (sizeof(arr) הוא גודל מצביע)", "Compilation Error - write(f, arr, n) (פונקציה לא סטנדרטית)"],
+  explanation: "fwrite(ptr, size, count, file) - כותב count איברים בגודל size מ-ptr. fwrite(arr, sizeof(int), n, f) כותב n מספרי int. הסדר חשוב - size לפני count."
+},
+
+// --- File I/O: read struct from binary file ---
+{
+  topic: "io",
+  code: `#include <stdio.h>\n\ntypedef struct {\n    char name[20];\n    int age;\n} Person;\n\nPerson* readPersons(const char *filename, int *count) {\n    FILE *f = fopen(filename, "rb");\n    if (f == NULL) return NULL;\n    fread(count, sizeof(int), 1, f);\n    Person *arr = (Person*)malloc(______);\n    fread(arr, sizeof(Person), *count, f);\n    fclose(f);\n    return arr;\n}`,
+  question: "מה צריך להיות בפרמטר של malloc כדי להקצות מקום למערך?",
+  correct: "(*count) * sizeof(Person)",
+  wrongs: ["*count * sizeof(int)", "sizeof(Person)"],
+  errors: ["Compilation Error - malloc(count * sizeof(Person)) (count הוא int*, לא int)", "Compilation Error - new Person[*count] (תחביר C++)"],
+  explanation: "*count הוא מספר האנשים. צריך להקצות מקום ל-*count מבנים של Person. sizeof(int) שגוי - צריך sizeof(Person) שכולל name[20] + int."
+},
+
+// --- File I/O: count words in text file ---
+{
+  topic: "io",
+  code: `#include <stdio.h>\n\nint countWords(const char *filename) {\n    FILE *f = fopen(filename, "r");\n    if (f == NULL) return -1;\n    int count = 0;\n    char word[256];\n    while (______ != EOF) {\n        count++;\n    }\n    fclose(f);\n    return count;\n}`,
+  question: "מה צריך להיות בתנאי ה-while כדי לקרוא מילים מהקובץ?",
+  correct: "fscanf(f, \"%s\", word)",
+  wrongs: ["scanf(\"%s\", word)", "fgets(word, 256, f)"],
+  errors: ["Compilation Error - fread(word, 1, 256, f) (מחזיר size_t, לא == EOF)", "Compilation Error - f.read(word) (תחביר C++, לא C)"],
+  explanation: "fscanf מחזירה את מספר הפריטים שנקלטו (1 אם הצליח) או EOF. scanf קורא מ-stdin, לא מקובץ. fgets קורא שורה שלמה, לא מילה."
+},
+
+// --- Recursion: binary search ---
+{
+  topic: "functions",
+  code: `int binarySearch(int arr[], int low, int high, int key) {\n    if (low > high)\n        return -1;\n    int mid = (low + high) / 2;\n    if (arr[mid] == key)\n        return mid;\n    if (arr[mid] > key)\n        return ______;\n    return binarySearch(arr, mid + 1, high, key);\n}`,
+  question: "מה צריך להחזיר כשהמפתח קטן מהאיבר האמצעי?",
+  correct: "binarySearch(arr, low, mid - 1, key)",
+  wrongs: ["binarySearch(arr, low, mid, key)", "binarySearch(arr, mid - 1, high, key)"],
+  errors: ["Compilation Error - binarySearch(arr[low..mid-1], key) (תחביר slice לא קיים ב-C)", "Compilation Error - return arr[mid-1] (מחזיר ערך, לא אינדקס)"],
+  explanation: "אם arr[mid] > key, המפתח בחצי השמאלי: low עד mid-1. mid עצמו כבר נבדק. mid-1 כ-high מונע אינסוף. low,mid,key שגוי כי high צריך להצטמצם."
+},
+
+// --- Recursion: merge sorted arrays (exam classic) ---
+{
+  topic: "arrays",
+  code: `void merge(int a[], int na, int b[], int nb, int c[]) {\n    int i = 0, j = 0, k = 0;\n    while (i < na && j < nb) {\n        if (a[i] <= b[j])\n            c[k++] = a[i++];\n        else\n            c[k++] = b[j++];\n    }\n    while (______)\n        c[k++] = a[i++];\n    while (j < nb)\n        c[k++] = b[j++];\n}`,
+  question: "מה התנאי בלולאה שמעתיקה את שארית מערך a?",
+  correct: "i < na",
+  wrongs: ["i < nb", "k < na + nb"],
+  errors: ["Compilation Error - a[i] != NULL (מערך int לא מסתיים ב-NULL)", "Compilation Error - i++ < na (side effect בתנאי)"],
+  explanation: "אחרי הלולאה הראשית, ייתכן שנשארו איברים ב-a (אם j הגיע לסוף b). i < na מעתיק את הנותרים. i < nb שגוי - nb הוא גודל b, לא a."
+},
+
+// --- Dynamic memory: duplicate string (exam) ---
+{
+  topic: "memory",
+  code: `#include <string.h>\n#include <stdlib.h>\n\nchar* myStrdup(const char *src) {\n    if (src == NULL) return NULL;\n    char *dup = (char*)malloc(______);\n    if (dup == NULL) return NULL;\n    strcpy(dup, src);\n    return dup;\n}`,
+  question: "כמה בתים צריך להקצות כדי לשכפל את המחרוזת?",
+  correct: "strlen(src) + 1",
+  wrongs: ["strlen(src)", "sizeof(src)"],
+  errors: ["Compilation Error - sizeof(char*) (זה גודל מצביע, לא המחרוזת)", "Compilation Error - len(src) + 1 (פונקציה len לא קיימת)"],
+  explanation: "strlen לא סופרת את \\0 הסופי! צריך +1. sizeof(src) נותן גודל מצביע (4/8). strlen(src) בלי +1 יגרום ל-buffer overflow ב-strcpy."
+},
+
+// --- Dynamic memory: create 2D array (exam classic) ---
+{
+  topic: "memory",
+  code: `#include <stdlib.h>\n\nint** create2D(int rows, int cols) {\n    int **mat = (int**)malloc(rows * sizeof(int*));\n    for (int i = 0; i < rows; i++) {\n        ______;\n    }\n    return mat;\n}`,
+  question: "מה צריך להיות בלולאה כדי להקצות כל שורה במטריצה?",
+  correct: "mat[i] = (int*)malloc(cols * sizeof(int))",
+  wrongs: ["mat[i] = (int*)malloc(rows * sizeof(int))", "mat[i] = (int*)calloc(rows, cols)"],
+  errors: ["Compilation Error - mat[i] = malloc(cols) (חסר casting ו-sizeof)", "Compilation Error - mat[i] = new int[cols] (תחביר C++)"],
+  explanation: "כל שורה היא מערך של cols איברים מסוג int. rows * sizeof(int) שגוי - זה מספר השורות, לא העמודות. calloc(rows, cols) מקצה rows*cols בתים, לא int."
+},
+
+// --- Dynamic memory: free 2D array ---
+{
+  topic: "memory",
+  code: `#include <stdlib.h>\n\nvoid free2D(int **mat, int rows) {\n    for (int i = 0; i < rows; i++) {\n        ______;\n    }\n    free(mat);\n}`,
+  question: "מה צריך לשחרר בלולאה לפני שמשחררים את mat?",
+  correct: "free(mat[i])",
+  wrongs: ["free(mat)", "free(&mat[i])"],
+  errors: ["Compilation Error - delete mat[i] (תחביר C++)", "Compilation Error - free(mat[i][0]) (mat[i] הוא int*, לא int**)"],
+  explanation: "חובה לשחרר כל שורה בנפרד לפני שחרור מערך המצביעים. free(mat) בלולאה ישחרר את אותו מצביע שוב ושוב (double free). &mat[i] הוא כתובת המצביע, לא הזיכרון שהוקצה."
+},
+
+// --- Linked list: merge two sorted lists (exam classic) ---
+{
+  topic: "lists",
+  code: `typedef struct Node {\n    int data;\n    struct Node *next;\n} Node;\n\nNode* mergeSorted(Node *a, Node *b) {\n    if (a == NULL) return b;\n    if (b == NULL) return a;\n    Node *result;\n    if (a->data <= b->data) {\n        result = a;\n        result->next = ______;\n    } else {\n        result = b;\n        result->next = ______;\n    }\n    return result;\n}`,
+  question: "מה צריך להיות בשתי הקריאות הרקורסיביות (אותו דבר בשניהם)?",
+  correct: "mergeSorted(a->next, b) ; mergeSorted(a, b->next)",
+  wrongs: ["mergeSorted(a, b) ; mergeSorted(a, b)", "mergeSorted(a->next, b->next) ; mergeSorted(a->next, b->next)"],
+  errors: ["Compilation Error - merge(a+1, b) (a+1 לא חוקי על רשימה מקושרת)", "Compilation Error - a->next = mergeSorted(b) (חסר פרמטר)"],
+  explanation: "אם a->data קטן, בוחרים את a כראש ומחברים אותו למיזוג של a->next עם b. אחרת, בוחרים b ומחברים ל-a עם b->next. זה מבטיח סדר ממוין."
+},
+
+// --- Bitwise: extract bits (exam pattern) ---
+{
+  topic: "bitwise",
+  code: `unsigned char extractBits(unsigned char byte, int from, int to) {\n    // Extract bits from position 'from' to 'to' (inclusive, 0-indexed from right)\n    int numBits = to - from + 1;\n    unsigned char mask = ______;\n    return (byte >> from) & mask;\n}`,
+  question: "מה צריך להיות במסכה כדי לחלץ numBits ביטים?",
+  correct: "(1 << numBits) - 1",
+  wrongs: ["1 << numBits", "~(1 << numBits)"],
+  errors: ["Compilation Error - 0b111...1 (ליטרל בינארי לא ידוע באורך משתנה)", "Compilation Error - pow(2, numBits) - 1 (pow מחזיר double)"],
+  explanation: "(1 << numBits) - 1 יוצר מסכה עם numBits אחדות. למשל numBits=3: (1<<3)-1 = 8-1 = 7 = 0b111. 1 << numBits בלי -1 נותן ביט אחד גבוה מדי."
+},
+
+// --- Recursion: is palindrome (exam) ---
+{
+  topic: "functions",
+  code: `#include <string.h>\n\nint isPalindrome(char *str, int start, int end) {\n    if (start >= end)\n        return 1;\n    if (str[start] != str[end])\n        return 0;\n    return ______;\n}`,
+  question: "מה הקריאה הרקורסיבית לבדיקת פלינדרום?",
+  correct: "isPalindrome(str, start + 1, end - 1)",
+  wrongs: ["isPalindrome(str + 1, start, end - 1)", "isPalindrome(str, start++, end--)"],
+  errors: ["Compilation Error - isPalindrome(str[start+1:end]) (תחביר Python, לא C)", "Compilation Error - return str == reverse(str) (reverse לא מוגדרת)"],
+  explanation: "בדקנו start ו-end - הם שווים. עכשיו בודקים את התווים הפנימיים: start+1 ו-end-1. start++/end-- הם undefined behavior (side effects בארגומנטים)."
+},
+
+// --- Tree: find node and return path (exam) ---
+{
+  topic: "trees",
+  code: `typedef struct TreeNode {\n    int data;\n    struct TreeNode *left;\n    struct TreeNode *right;\n} TreeNode;\n\nint findPath(TreeNode *root, int key, int path[], int depth) {\n    if (root == NULL)\n        return 0;\n    path[depth] = root->data;\n    if (root->data == key)\n        return 1;\n    if (findPath(root->left, key, path, ______) ||\n        findPath(root->right, key, path, ______))\n        return 1;\n    return 0;\n}`,
+  question: "מה צריך להעביר כ-depth בקריאות הרקורסיביות?",
+  correct: "depth + 1",
+  wrongs: ["depth", "depth * 2"],
+  errors: ["Compilation Error - depth++ (side effect ישפיע על שתי הקריאות)", "Compilation Error - ++depth (side effect בארגומנט)"],
+  explanation: "כל רמה בעץ מוסיפה 1 לעומק. depth + 1 מעביר עומק מוגדל בלי לשנות את depth עצמו (חשוב! אם שמאל נכשל, depth חייב להישאר אותו דבר לימין)."
+},
+
 ];
 
 // ============================================================
